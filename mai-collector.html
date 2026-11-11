@@ -68,6 +68,7 @@ body{touch-action:pan-y}
 .qtyctrl{display:flex;align-items:center;justify-content:space-between;gap:4px}.qtyctrl button{width:36px;height:36px;min-height:36px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-weight:800;cursor:pointer}.qtyctrl strong{min-width:20px;text-align:center}
 .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px}
 .toolbar select,.toolbar input[type=text]{background:var(--card2);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:0 10px}
+.mini-sel{background:var(--card2);color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:0 10px;min-height:38px;font-weight:600}
 .btn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:11px;padding:10px 14px;font-weight:700;cursor:pointer}
 .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
 .btn.danger{color:var(--danger)}
@@ -180,7 +181,8 @@ dialog::backdrop{background:rgba(5,0,15,.6)}dialog .in{padding:20px}
 <nav class="section-nav" aria-label="Section shortcuts"><button class="snav-btn" data-goto="home">Home</button><button class="snav-btn" data-goto="tracker">Tracker</button><button class="snav-btn" data-goto="scan">Scan</button><button class="snav-btn on" data-goto="trade" aria-current="page">Trade</button><button class="snav-btn" data-goto="sealed">Sealed</button><button class="snav-btn" data-goto="slabs">Slabs</button><button class="snav-btn" data-goto="research">Slab Research</button><button class="snav-btn" data-goto="settings">Settings</button></nav>
 <div class="backbar"><button class="btn back-btn" data-back>← Back</button><span class="backbar-title">Trade</span></div>
 <div class="section-head"><div><h2>Trade</h2><p>A filtered view of Tracker — everything with Trade qty &gt; 0, slabs included. Prices are shown.</p></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" id="tradePdfBtn">Download trade sheet (PDF)</button><button class="btn" id="needBtn">Download marked Needs</button></div></div>
-<div id="tradeBody"></div>
+<div class="toolbar"><label style="font-weight:700">Sort <select id="tradeSort"><option value="high">Value high → low</option><option value="low">Value low → high</option><option value="name">Name A–Z</option></select></label><label style="font-weight:700">Filter <select id="tradeFilter"><option value="all">All</option><option value="collected">Also collected</option><option value="tradeonly">Trade only</option></select></label></div>
+<div id="tradeBody" style="margin-top:12px"></div>
 <div class="section-head"><div><h2>I Still Need</h2><p>Missing cards from sets you’ve opened in Tracker appear here, with the set each one belongs to. Tick the ones you want in your Need file.</p></div></div>
 <div class="list" id="needList"></div>
 <p style="color:var(--muted);font-size:13px">Sharing is a sheet you download and send — it isn’t saved as a collection file, and there’s no live link (that would need a server).</p>
@@ -191,7 +193,7 @@ dialog::backdrop{background:rgba(5,0,15,.6)}dialog .in{padding:20px}
 <nav class="section-nav" aria-label="Section shortcuts"><button class="snav-btn" data-goto="home">Home</button><button class="snav-btn" data-goto="tracker">Tracker</button><button class="snav-btn" data-goto="scan">Scan</button><button class="snav-btn" data-goto="trade">Trade</button><button class="snav-btn on" data-goto="sealed" aria-current="page">Sealed</button><button class="snav-btn" data-goto="slabs">Slabs</button><button class="snav-btn" data-goto="research">Slab Research</button><button class="snav-btn" data-goto="settings">Settings</button></nav>
 <div class="backbar"><button class="btn back-btn" data-back>← Back</button><span class="backbar-title">Sealed</span></div>
 <div class="section-head"><div><h2>Sealed — all sets, mixed together</h2><p>Pulled from Tracker. Counts toward value, not completion.</p></div></div>
-<div class="toolbar"><label style="font-weight:700">Sort <select id="sealedSort"><option value="high">Price high → low</option><option value="low">Price low → high</option><option value="name">Name A–Z</option><option value="added">Recently added</option></select></label><label style="font-weight:700">Filter <select id="sealedFilter"><option value="all">All</option><option value="box">Boxes &amp; cases</option><option value="pack">Packs</option></select></label><span class="pill" id="sealedTotal"></span></div>
+<div class="toolbar"><label style="font-weight:700">Sort <select id="sealedSort"><option value="high">Price high → low</option><option value="low">Price low → high</option><option value="name">Name A–Z</option><option value="added">Recently added</option></select></label><label style="font-weight:700">Filter <select id="sealedFilter"><option value="all">All</option><option value="box">Boxes &amp; cases</option><option value="pack">Packs</option></select></label><label style="font-weight:700">Holding <select id="sealedQty"><option value="all">All</option><option value="collected">Collected</option><option value="trade">Trade</option></select></label><span class="pill" id="sealedTotal"></span></div>
 <div id="sealedBody" style="margin-top:12px"></div>
 </section>
 
@@ -200,7 +202,7 @@ dialog::backdrop{background:rgba(5,0,15,.6)}dialog .in{padding:20px}
 <nav class="section-nav" aria-label="Section shortcuts"><button class="snav-btn" data-goto="home">Home</button><button class="snav-btn" data-goto="tracker">Tracker</button><button class="snav-btn" data-goto="scan">Scan</button><button class="snav-btn" data-goto="trade">Trade</button><button class="snav-btn" data-goto="sealed">Sealed</button><button class="snav-btn on" data-goto="slabs" aria-current="page">Slabs</button><button class="snav-btn" data-goto="research">Slab Research</button><button class="snav-btn" data-goto="settings">Settings</button></nav>
 <div class="backbar"><button class="btn back-btn" data-back>← Back</button><span class="backbar-title">Slabs</span></div>
 <div class="section-head"><div><h2>Slabs — all sets, mixed together</h2><p>Your graded cards live here, not inside set binders. Price comes from Slab Research, never tcgcsv.</p></div><button class="btn primary" id="addSlabBtn">+ Add a slab</button></div>
-<div class="toolbar"><label style="font-weight:700">Sort <select id="slabSort"><option value="high">Price high → low</option><option value="low">Price low → high</option><option value="name">Name A–Z</option></select></label><label style="font-weight:700">Filter <select id="slabFilter"><option value="all">All companies</option><option>PSA</option><option>CGC</option><option>BGS</option><option>SGC</option><option>TAG</option></select></label><span class="pill" id="slabTotal"></span></div>
+<div class="toolbar"><label style="font-weight:700">Sort <select id="slabSort"><option value="high">Price high → low</option><option value="low">Price low → high</option><option value="name">Name A–Z</option></select></label><label style="font-weight:700">Filter <select id="slabFilter"><option value="all">All companies</option><option>PSA</option><option>CGC</option><option>BGS</option><option>SGC</option><option>TAG</option></select></label><label style="font-weight:700">Holding <select id="slabQty"><option value="all">All</option><option value="collected">Collected</option><option value="trade">Trade</option></select></label><span class="pill" id="slabTotal"></span></div>
 <div class="list" id="slabList" style="margin-top:12px"></div>
 </section>
 
@@ -220,7 +222,8 @@ dialog::backdrop{background:rgba(5,0,15,.6)}dialog .in{padding:20px}
 </div>
 <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center"><a class="btn primary" id="ebayLink" href="#" target="_blank" rel="noopener" style="text-decoration:none;display:inline-flex;align-items:center">Check eBay ↗</a><button class="btn" id="saveResearchBtn">Save price entry</button><span style="color:var(--muted);font-size:13px" id="ebayQuery"></span></div>
 <div class="two" style="margin-top:12px;max-width:420px"><div class="field"><label for="resPrice">Price you found ($)</label><input type="number" id="resPrice" min="0" step="0.01" placeholder="0.00"></div></div>
-<div class="list" id="researchList" style="margin-top:16px"></div>
+<div class="toolbar" style="margin-top:16px"><label style="font-weight:700">Sort <select id="resSort"><option value="updated">Last updated</option><option value="high">Price high → low</option><option value="low">Price low → high</option></select></label><label style="font-weight:700">Company <select id="resFilter"><option value="all">All companies</option></select></label></div>
+<div class="list" id="researchList" style="margin-top:12px"></div>
 </section>
 
 <!-- SETTINGS -->
@@ -273,6 +276,13 @@ let scans=[]; // {name,fc,ft,checked,thumb,match:{catId,groupId,groupName,produc
 let itemSeq=1;
 let nav={game:null,cat:null,group:null}; let chipFilter="all";
 let binderPage=0; let trackerView=null; let groupSearch="";
+// Slim sort / filter controls (session-only UI state; defaults match the
+// long-standing behaviour: groups newest-first, cards by set number,
+// Sealed / Slabs / Trade value high-to-low).
+let groupSort="new", groupFilter="all";
+let cardSort="number", cardFilter="all", cardRarity="all";
+let tradeSort="high", tradeFilter="all";
+let resSort="updated", resFilter="all";
 let visitedGroups={}; // "catId:groupId" -> true once the user has opened that set in Tracker
 let settings={view:"binder",grid:3,sealedSort:"high",slabSort:"high",autoCreate:false,sameGuard:true};
 // ---------- Persistence (localStorage) ----------
@@ -640,6 +650,44 @@ function loadCategories(){
   if(currentPanel==='tracker')renderTracker();
  }).catch(e=>{categoryCache.status='error';categoryCache.error=String((e&&e.message)||e)});
 }
+// ---------- Group ordering & the main / Special split ----------
+// tcgcsv stamps a batch of legacy groups — old promos, trainer kits,
+// misc collections — with one identical placeholder publishedOn (a
+// non-midnight timestamp shared by dozens of unrelated groups) instead
+// of a real release date. Sorting on the raw string put those random
+// groups at the TOP of the list, ahead of the newest real sets. Only a
+// plain midnight date counts as a release date; anything else is no
+// date at all and sorts last.
+function groupReleaseDate(gr){const p=gr&&gr.publishedOn;return (typeof p==='string'&&/^\d{4}-\d{2}-\d{2}T00:00:00/.test(p))?p.slice(0,10):''}
+// The isSupplemental flag alone misses most non-booster product:
+// starter / structure / theme decks, trainer & deck kits, promo packs
+// and promo cards, pre-release and release-event cards. All of it
+// belongs in "Special sets" at the bottom, not mixed into the main
+// booster sets. FS## = Fusion World starter decks; ST-## = Digimon /
+// One Piece starter decks. (A bare /^ST/ would wrongly catch real
+// booster sets like Pokémon's Steam Siege, so the dash form is used.)
+const SPECIAL_GROUP_NAME=/starter|structure deck|ultra deck|theme deck|trainer kit|deck kit|deck set|deck box set|deck exclusives|demo deck|championship decks|promo|release event|pre-?release|event cards/i;
+function isSpecialGroup(gr){
+ if(!gr)return false;
+ if(gr.isSupplemental)return true;
+ if(gr.publishedOn&&!groupReleaseDate(gr))return true; // placeholder date — a legacy promo / misc group
+ if(SPECIAL_GROUP_NAME.test(gr.name||''))return true;
+ const ab=String(gr.abbreviation||'').toUpperCase();
+ return /^FS\d/.test(ab)||/^ST-\d/.test(ab);
+}
+function sortGroupList(list,mode){
+ const arr=list.slice();
+ const byName=(a,b)=>String(a.name||'').localeCompare(String(b.name||''));
+ if(mode==='name'){arr.sort(byName);return arr}
+ arr.sort((a,b)=>{
+  const da=groupReleaseDate(a),db=groupReleaseDate(b);
+  if(da&&db&&da!==db)return mode==='old'?da.localeCompare(db):db.localeCompare(da);
+  if(da&&!db)return -1; // a real date always beats no date, in either direction
+  if(!da&&db)return 1;
+  return byName(a,b);
+ });
+ return arr;
+}
 // A category's groups list is cached for the whole session once it has
 // loaded — in memory, and mirrored to sessionStorage so it also survives
 // the webview reloading the page. Going back to a category therefore
@@ -654,7 +702,7 @@ function loadGroups(){
  }catch(e){}
  groupCache[catId]={status:'loading'};
  tcgFetchText('https://tcgcsv.com/tcgplayer/'+catId+'/groups',t=>{try{JSON.parse(t);return true}catch(e){return false}}).then(t=>{const j=JSON.parse(t);
-  const groups=(j.results||[]).slice().sort((a,b)=>String(b.publishedOn||'').localeCompare(String(a.publishedOn||'')));
+  const groups=sortGroupList(j.results||[],'new');
   groupCache[catId]={status:'ready',groups:groups};
   try{sessionStorage.setItem(GROUP_STORE_PREFIX+catId,JSON.stringify(groups))}catch(e){}
   if(nav.group&&!nav.group.name){const g=groups.find(x=>String(x.groupId)===String(nav.group.groupId));if(g)nav.group={groupId:g.groupId,name:g.name,abbreviation:g.abbreviation||''}}
@@ -764,18 +812,25 @@ function renderTracker(){
   else if(gc.status==='error'){inner=`<div class="notice"><b>Couldn’t load this category’s groups</b><p>The live pull from tcgcsv failed (${esc(gc.error||'network error')}). Check your connection and try again.</p><p><button class="btn primary" data-retry-groups>↻ Retry</button></p></div>`}
   else if(!gc.groups.length){inner=`<div class="notice"><b>No groups found</b><p>tcgcsv returned an empty group list for this category.</p></div>`}
   else{
-   // Main sets first (newest first, as sorted on load), then every
-   // supplemental group — promos, exclusives, misc — under a small
-   // "Special sets" heading at the bottom. A group with no
-   // isSupplemental flag counts as a main set.
-   const groupPick=gr=>`<button class="pick" data-group="${gr.groupId}"><span class="arrow">›</span><b>${esc(gr.name)}</b><span>${gr.abbreviation?esc(gr.abbreviation)+' · ':''}groupId ${gr.groupId}${gr.publishedOn?' · '+esc(String(gr.publishedOn).slice(0,10)):''}</span></button>`;
-   const mainGroups=gc.groups.filter(gr=>!gr.isSupplemental);
-   const specialGroups=gc.groups.filter(gr=>gr.isSupplemental);
-   inner=(mainGroups.length?`<div class="grid">${mainGroups.map(groupPick).join('')}</div>`:'')
-    +(specialGroups.length?`<h3 class="special-head">Special sets</h3><div class="grid">${specialGroups.map(groupPick).join('')}</div>`:'');
+   // Main booster sets first, then every non-booster group — promos,
+   // starter decks, kits, event cards (see isSpecialGroup) — under a
+   // small "Special sets" heading at the bottom. Sort + filter are
+   // slim selects in the content area; the defaults are newest first
+   // with everything shown.
+   const groupPick=gr=>`<button class="pick" data-group="${gr.groupId}"><span class="arrow">›</span><b>${esc(gr.name)}</b><span>${gr.abbreviation?esc(gr.abbreviation)+' · ':''}groupId ${gr.groupId}${groupReleaseDate(gr)?' · '+groupReleaseDate(gr):''}</span></button>`;
+   const sorted=sortGroupList(gc.groups,groupSort);
+   const mainGroups=sorted.filter(gr=>!isSpecialGroup(gr));
+   const specialGroups=sorted.filter(gr=>isSpecialGroup(gr));
+   let sections='';
+   if(groupFilter!=='special')sections+=mainGroups.length?`<div class="grid">${mainGroups.map(groupPick).join('')}</div>`:`<div class="notice"><b>No main sets here</b><p>Every group in this category is a special set — promos, decks, and kits are listed under Special sets.</p></div>`;
+   if(groupFilter!=='main'&&specialGroups.length)sections+=(groupFilter==='all'?`<h3 class="special-head">Special sets</h3>`:'')+`<div class="grid">${specialGroups.map(groupPick).join('')}</div>`;
+   if(groupFilter==='special'&&!specialGroups.length)sections=`<div class="notice"><b>No special sets</b><p>This category has no promo, deck, or kit groups.</p></div>`;
+   inner=`<div class="toolbar" style="margin-bottom:12px"><label style="font-weight:700">Sort <select id="groupSortSel"><option value="new" ${groupSort==='new'?'selected':''}>Newest first</option><option value="old" ${groupSort==='old'?'selected':''}>Oldest first</option><option value="name" ${groupSort==='name'?'selected':''}>Name A–Z</option></select></label><label style="font-weight:700">Show <select id="groupFilterSel"><option value="all" ${groupFilter==='all'?'selected':''}>All groups</option><option value="main" ${groupFilter==='main'?'selected':''}>Main sets</option><option value="special" ${groupFilter==='special'?'selected':''}>Special sets</option></select></label><span class="pill">${mainGroups.length} main · ${specialGroups.length} special</span></div>`+sections;
   }
   body.innerHTML=inner;
   body.querySelectorAll('[data-group]').forEach(b=>b.onclick=()=>{const gr=gc.groups.find(x=>String(x.groupId)===b.dataset.group);if(!gr)return;nav.group={groupId:gr.groupId,name:gr.name,abbreviation:gr.abbreviation||''};visitedGroups[nav.cat.id+':'+gr.groupId]=true;binderPage=0;trackerView=null;groupSearch="";renderTracker();pushHistory()});
+  const gss=body.querySelector('#groupSortSel');if(gss)gss.onchange=()=>{groupSort=gss.value;renderTracker()};
+  const gfs=body.querySelector('#groupFilterSel');if(gfs)gfs.onchange=()=>{groupFilter=gfs.value;renderTracker()};
   const rg=body.querySelector('[data-retry-groups]');if(rg)rg.onclick=()=>{delete groupCache[nav.cat.id];try{sessionStorage.removeItem(GROUP_STORE_PREFIX+nav.cat.id)}catch(e){}renderTracker()};
  } else {
   if(!nav.group.name)loadGroups();
@@ -792,9 +847,23 @@ function renderTracker(){
    const ownedCount=allSingles.filter(p=>{const o=findOwned(p);return o&&(o.c+o.t)>0}).length;
    const ownedVal=allSingles.reduce((s,p)=>{const o=findOwned(p);return s+(o?(o.c+o.t)*p.marketPrice:0)},0);
    const legacy=items.filter(i=>i.catId===nav.cat.id&&!products.some(p=>String(p.productId)===String(i.productId)||normName(p.name)===normName(i.name)));
+   // Slim sort / filter row for the cards in this set. 'number' keeps
+   // the order parseProductsCSV already sorted by set number; Owned /
+   // Missing and the rarity filter narrow the same list the search
+   // narrows, and the binder pages re-slice from the result.
+   const rarities=[...new Set(allSingles.map(p=>p.rarity).filter(Boolean))].sort();
+   if(cardRarity!=='all'&&rarities.indexOf(cardRarity)===-1)cardRarity='all';
+   let shown=singles.filter(p=>{if(cardFilter==='all')return true;const o=findOwned(p);const has=o&&(o.c+o.t)>0;return cardFilter==='owned'?has:!has});
+   if(cardRarity!=='all')shown=shown.filter(p=>p.rarity===cardRarity);
+   shown=shown.slice();
+   if(cardSort==='name')shown.sort((a,b)=>a.name.localeCompare(b.name));
+   else if(cardSort==='high')shown.sort((a,b)=>b.marketPrice-a.marketPrice);
+   else if(cardSort==='low')shown.sort((a,b)=>a.marketPrice-b.marketPrice);
+   else if(cardSort==='rarity')shown.sort((a,b)=>String(a.rarity||'').localeCompare(String(b.rarity||''))||String(a.number||'').localeCompare(String(b.number||''),undefined,{numeric:true})||a.name.localeCompare(b.name));
    inner=`
    <div class="chips" style="margin:6px 0 12px"><button class="chip ${view==='binder'?'on':''}" data-view="binder">Binder</button><button class="chip ${view==='list'?'on':''}" data-view="list">List</button><input type="text" id="groupSearch" placeholder="Search this set…" value="${esc(groupSearch)}" aria-label="Search this set" style="flex:1;min-width:140px;background:var(--card2);color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:0 14px;min-height:38px"><span class="pill">Owned ${ownedCount} of ${allSingles.length} cards · Missing ${allSingles.length-ownedCount} · Owned value ${money(ownedVal)}</span></div>
-   ${q&&!singles.length?`<div class="notice"><b>No cards match “${esc(groupSearch)}”</b><p>Try a different name or set number.</p></div>`:singles.length?(view==='binder'?binderHTML(singles):productListHTML(singles)):`<div class="notice"><b>No numbered cards in this group</b><p>This group has no cards with set numbers — see its sealed products below.</p></div>`}
+   <div class="chips" style="margin:0 0 12px"><label style="font-weight:700;font-size:13px">Sort <select class="mini-sel" id="cardSortSel"><option value="number" ${cardSort==='number'?'selected':''}>Set number</option><option value="name" ${cardSort==='name'?'selected':''}>Name A–Z</option><option value="high" ${cardSort==='high'?'selected':''}>Price high → low</option><option value="low" ${cardSort==='low'?'selected':''}>Price low → high</option><option value="rarity" ${cardSort==='rarity'?'selected':''}>Rarity</option></select></label><label style="font-weight:700;font-size:13px">Show <select class="mini-sel" id="cardFilterSel"><option value="all" ${cardFilter==='all'?'selected':''}>All cards</option><option value="owned" ${cardFilter==='owned'?'selected':''}>Owned</option><option value="missing" ${cardFilter==='missing'?'selected':''}>Missing</option></select></label><label style="font-weight:700;font-size:13px">Rarity <select class="mini-sel" id="cardRaritySel"><option value="all">All rarities</option>${rarities.map(r=>`<option value="${esc(r)}" ${cardRarity===r?'selected':''}>${esc(r)}</option>`).join('')}</select></label><span class="pill">Showing ${shown.length} of ${allSingles.length}</span></div>
+   ${q&&!singles.length?`<div class="notice"><b>No cards match “${esc(groupSearch)}”</b><p>Try a different name or set number.</p></div>`:shown.length?(view==='binder'?binderHTML(shown):productListHTML(shown)):singles.length?`<div class="notice"><b>No cards match these filters</b><p>Try Show: All cards, or a different rarity.</p></div>`:`<div class="notice"><b>No numbered cards in this group</b><p>This group has no cards with set numbers — see its sealed products below.</p></div>`}
    ${sealedProds.length?`<h3 style="margin-top:22px">Sealed in this set</h3><div class="cards">${sealedProds.map(sealedProductHTML).join('')}</div>`:''}
    ${legacy.length?`<h3 style="margin-top:22px">Your other items in this category</h3><div class="cards">${legacy.map(itemCard).join('')}</div>`:''}`;
   }
@@ -805,6 +874,9 @@ function renderTracker(){
   wireItemControls(body);
   const gs=body.querySelector('#groupSearch');
   if(gs){gs.addEventListener('input',()=>{groupSearch=gs.value;binderPage=0;const pos=gs.selectionStart;renderTracker();const n=document.getElementById('groupSearch');if(n){n.focus();try{n.setSelectionRange(pos,pos)}catch(e){}}})}
+  const csel=body.querySelector('#cardSortSel');if(csel)csel.onchange=()=>{cardSort=csel.value;binderPage=0;renderTracker()};
+  const cfil=body.querySelector('#cardFilterSel');if(cfil)cfil.onchange=()=>{cardFilter=cfil.value;binderPage=0;renderTracker()};
+  const crar=body.querySelector('#cardRaritySel');if(crar)crar.onchange=()=>{cardRarity=crar.value;binderPage=0;renderTracker()};
   const ab=document.getElementById('addItemBtn');if(ab)ab.onclick=()=>openItemDialog(null);
  }
  body.querySelectorAll('[data-scanlink]').forEach(b=>b.onclick=()=>showTab('scan'));
@@ -874,9 +946,21 @@ function updateStats(){
 let markedNeeds={};
 function renderTrade(){
  const body=document.getElementById('tradeBody');
- const tradeItems=items.filter(p=>p.t>0); const tradeSlabs=slabs.filter(s=>s.t>0);
- if(!tradeItems.length&&!tradeSlabs.length){body.innerHTML=`<div class="notice"><b>Nothing up for trade yet</b><p>Set a Trade quantity on any item in Tracker (or file a scan with Trade qty) and it appears here automatically — Trade is just a view of Tracker.</p></div>`}
- else{body.innerHTML=`<div class="list">${tradeItems.map(p=>`<div class="row"><div class="grow"><b>${esc(p.name)}</b><small>${p.kind==='sealed'?'Sealed':'Single'} · Trade × ${p.t} · Collected × ${p.c}</small></div><span class="price">${money(p.price*p.t)}</span></div>`).join('')}${tradeSlabs.map(s=>slabRow(s)).join('')}</div>`;
+ const tsEl=document.getElementById('tradeSort');if(tsEl)tradeSort=tsEl.value;
+ const tfEl=document.getElementById('tradeFilter');if(tfEl)tradeFilter=tfEl.value;
+ const anyTrade=items.some(p=>p.t>0)||slabs.some(s=>s.t>0);
+ // Filter: everything here already has Trade qty — "Also collected"
+ // narrows to entries that are in the collection too, "Trade only" to
+ // entries with no collected copy. Sort runs across items and slabs
+ // together, by the trade value each row shows.
+ const qtyOk=x=>tradeFilter==='collected'?x.c>0:tradeFilter==='tradeonly'?x.c===0:true;
+ const rows=[];
+ items.filter(p=>p.t>0&&qtyOk(p)).forEach(p=>rows.push({name:p.name,val:p.price*p.t,html:`<div class="row"><div class="grow"><b>${esc(p.name)}</b><small>${p.kind==='sealed'?'Sealed':'Single'} · Trade × ${p.t} · Collected × ${p.c}</small></div><span class="price">${money(p.price*p.t)}</span></div>`}));
+ slabs.filter(s=>s.t>0&&qtyOk(s)).forEach(s=>rows.push({name:s.name,val:((research[s.key]||{}).price||0)*s.t,html:slabRow(s)}));
+ rows.sort((a,b)=>tradeSort==='low'?a.val-b.val:tradeSort==='name'?a.name.localeCompare(b.name):b.val-a.val);
+ if(!anyTrade){body.innerHTML=`<div class="notice"><b>Nothing up for trade yet</b><p>Set a Trade quantity on any item in Tracker (or file a scan with Trade qty) and it appears here automatically — Trade is just a view of Tracker.</p></div>`}
+ else if(!rows.length){body.innerHTML=`<div class="notice"><b>Nothing matches this filter</b><p>Everything up for trade is hidden by the current filter — try “All”.</p></div>`}
+ else{body.innerHTML=`<div class="list">${rows.map(r=>r.html).join('')}</div>`;
   wireItemControls(body);}
  const need=document.getElementById('needList');
  const missing=[];const seenNeed={};
@@ -890,9 +974,10 @@ function renderTrade(){
 
 // ---------- Sealed ----------
 function renderSealed(){
- const sort=document.getElementById('sealedSort').value, f=document.getElementById('sealedFilter').value;
+ const sort=document.getElementById('sealedSort').value, f=document.getElementById('sealedFilter').value, qf=document.getElementById('sealedQty').value;
  let list=items.filter(i=>i.kind==='sealed'&&(i.c+i.t)>0);
  list=list.filter(p=>f==='all'||p.sub===f);
+ list=list.filter(p=>qf==='all'||(qf==='collected'?p.c>0:p.t>0));
  list.sort((a,b)=>sort==='high'?b.price-a.price:sort==='low'?a.price-b.price:sort==='name'?a.name.localeCompare(b.name):b.id-a.id);
  const body=document.getElementById('sealedBody');
  body.innerHTML=list.length?`<div class="cards">${list.map(itemCard).join('')}</div>`:`<div class="notice"><b>No sealed items yet</b><p>Sealed products you add in Tracker show up here, all sets mixed together. Add one from a set in Tracker with type “Sealed”, or add a sealed product straight from its set page.</p></div>`;
@@ -902,8 +987,9 @@ function renderSealed(){
 
 // ---------- Slabs ----------
 function renderSlabs(){
- const sort=document.getElementById('slabSort').value,f=document.getElementById('slabFilter').value;
+ const sort=document.getElementById('slabSort').value,f=document.getElementById('slabFilter').value,qf=document.getElementById('slabQty').value;
  let list=slabs.filter(s=>f==='all'||s.company.toUpperCase()===f.toUpperCase());
+ list=list.filter(s=>qf==='all'||(qf==='collected'?s.c>0:s.t>0));
  list.sort((a,b)=>{const pa=(research[a.key]||{}).price||0,pb=(research[b.key]||{}).price||0;return sort==='high'?pb-pa:sort==='low'?pa-pb:a.name.localeCompare(b.name)});
  const el=document.getElementById('slabList');
  el.innerHTML=list.length?list.map(s=>slabRow(s)).join(''):`<div class="notice"><b>No slabs yet</b><p>Tap “Add a slab”, type the card name, company, and grade. Then price it once in Slab Research — that price follows it everywhere.</p></div>`;
@@ -957,8 +1043,18 @@ function renderResearch(){
  document.getElementById('presets').innerHTML=presets.map(function(pr){return `<button class="btn" data-preset="${pr[0]}|${pr[1]}">${pr[0]} ${pr[1]}</button>`}).join('');
  document.querySelectorAll('[data-preset]').forEach(b=>b.onclick=()=>{const parts=b.dataset.preset.split('|');document.getElementById('resCompany').value=parts[0];document.getElementById('resGrade').value=parts[1];updateEbay()});
  const list=document.getElementById('researchList');
- const keys=Object.keys(research);
- list.innerHTML=keys.length?keys.map(k=>{const r=research[k];return `<div class="row"><div class="grow"><b>${esc(r.label)}</b><small>Updated ${esc(r.date)}${r.notes?' · '+esc(r.notes):''}</small></div><label style="font-weight:700">$ <input type="number" step="0.01" min="0" value="${r.price}" data-resprice="${esc(k)}" style="width:110px;background:var(--card2);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:0 10px"></label><a class="btn small" target="_blank" rel="noopener" href="${r.url}">Check eBay ↗</a><button class="btn small danger" data-del-research="${esc(k)}">Delete</button></div>`}).join(''):`<div class="notice"><b>No slab prices yet</b><p>Type a card name above, tap a Quick Link (top grades only — lower grades are typed manually), tap Check eBay, look at the last 5 sold, then save the middle price here. Slabs you add get their price from this list.</p></div>`;
+ const allKeys=Object.keys(research);
+ // Slim sort / filter for the price list: by last updated (default) or
+ // price, and by grading company — the company is the middle segment
+ // of each research key (name|COMPANY|grade). The company select is
+ // rebuilt from the entries on file so it never offers an empty one.
+ const rsEl=document.getElementById('resSort');if(rsEl)resSort=rsEl.value;
+ const companies=[...new Set(allKeys.map(k=>k.split('|')[1]||'').filter(Boolean))].sort();
+ const rfEl=document.getElementById('resFilter');
+ if(rfEl){resFilter=rfEl.value;if(resFilter!=='all'&&companies.indexOf(resFilter)===-1)resFilter='all';rfEl.innerHTML=`<option value="all">All companies</option>`+companies.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');rfEl.value=resFilter}
+ let keys=allKeys.filter(k=>resFilter==='all'||(k.split('|')[1]||'')===resFilter);
+ keys.sort((a,b)=>{const ra=research[a],rb=research[b];if(resSort==='high')return (rb.price||0)-(ra.price||0);if(resSort==='low')return (ra.price||0)-(rb.price||0);const dd=(Date.parse(rb.date)||0)-(Date.parse(ra.date)||0);return dd||String(ra.label).localeCompare(String(rb.label))});
+ list.innerHTML=keys.length?keys.map(k=>{const r=research[k];return `<div class="row"><div class="grow"><b>${esc(r.label)}</b><small>Updated ${esc(r.date)}${r.notes?' · '+esc(r.notes):''}</small></div><label style="font-weight:700">$ <input type="number" step="0.01" min="0" value="${r.price}" data-resprice="${esc(k)}" style="width:110px;background:var(--card2);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:0 10px"></label><a class="btn small" target="_blank" rel="noopener" href="${r.url}">Check eBay ↗</a><button class="btn small danger" data-del-research="${esc(k)}">Delete</button></div>`}).join(''):allKeys.length?`<div class="notice"><b>No prices for this company</b><p>Nothing on file matches the company filter — try “All companies”.</p></div>`:`<div class="notice"><b>No slab prices yet</b><p>Type a card name above, tap a Quick Link (top grades only — lower grades are typed manually), tap Check eBay, look at the last 5 sold, then save the middle price here. Slabs you add get their price from this list.</p></div>`;
  list.querySelectorAll('[data-resprice]').forEach(inp=>inp.onchange=()=>{research[inp.dataset.resprice].price=parseFloat(inp.value)||0;research[inp.dataset.resprice].date=new Date().toLocaleDateString();renderAll()});
  list.querySelectorAll('[data-del-research]').forEach(b=>b.onclick=()=>{delete research[b.dataset.delResearch];renderAll()});
  updateEbay();
@@ -1228,8 +1324,10 @@ document.getElementById('setSealedSort').onchange=e=>{settings.sealedSort=e.targ
 document.getElementById('setSlabSort').onchange=e=>{settings.slabSort=e.target.value;document.getElementById('slabSort').value=e.target.value;saveState();renderSlabs()};
 document.getElementById('setAutoCreate').onchange=e=>{settings.autoCreate=e.target.checked;saveState()};
 document.getElementById('setSameGuard').onchange=e=>{settings.sameGuard=e.target.checked;saveState()};
-document.getElementById('sealedSort').onchange=()=>{renderSealed();saveState()};document.getElementById('sealedFilter').onchange=()=>{renderSealed();saveState()};
-document.getElementById('slabSort').onchange=()=>{renderSlabs();saveState()};document.getElementById('slabFilter').onchange=()=>{renderSlabs();saveState()};
+document.getElementById('sealedSort').onchange=()=>{renderSealed();saveState()};document.getElementById('sealedFilter').onchange=()=>{renderSealed();saveState()};document.getElementById('sealedQty').onchange=()=>{renderSealed();saveState()};
+document.getElementById('slabSort').onchange=()=>{renderSlabs();saveState()};document.getElementById('slabFilter').onchange=()=>{renderSlabs();saveState()};document.getElementById('slabQty').onchange=()=>{renderSlabs();saveState()};
+document.getElementById('tradeSort').onchange=()=>{renderTrade()};document.getElementById('tradeFilter').onchange=()=>{renderTrade()};
+document.getElementById('resSort').onchange=()=>{renderResearch()};document.getElementById('resFilter').onchange=()=>{renderResearch()};
 
 // ---------- Price refresh (real) ----------
 // Refresh re-pulls the ProductsAndPrices.csv for every set already
