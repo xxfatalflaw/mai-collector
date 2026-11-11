@@ -36,10 +36,13 @@ a{color:var(--accent2)}
 .backbar{display:flex;align-items:center;gap:8px;margin:4px 0 0}
 .backbar-title{display:none}
 .back-btn{display:inline-flex;align-items:center;gap:5px;min-height:28px;padding:3px 8px;font-size:12px}
-.section-nav{position:sticky;top:42px;z-index:24;display:flex;flex-wrap:wrap;gap:4px;padding:4px 0;background:var(--bg);border-bottom:1px solid var(--line)}
-.snav-btn{flex:1 1 auto;min-height:28px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:3px 7px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;text-align:center}
-.snav-btn:hover{border-color:var(--accent)}
-.snav-btn.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.mark{border:none;cursor:pointer;padding:0}
+.mark:hover{filter:brightness(1.12)}
+.menu{position:absolute;top:calc(100% + 6px);left:10px;min-width:200px;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:6px;display:grid;gap:2px;z-index:50}
+.menu[hidden]{display:none}
+.menu-btn{display:block;width:100%;min-height:40px;padding:8px 12px;border:none;background:none;color:var(--ink);border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;text-align:left}
+.menu-btn:hover{background:var(--card2)}
+.menu-btn.on{background:var(--accent);color:#fff}
 .panel{display:none}.panel.active{display:block;animation:fade .25s ease}
 #swipeHint{position:fixed;left:10px;top:50%;width:44px;height:44px;border-radius:50%;background:var(--card);border:1px solid var(--line);color:var(--ink);display:grid;place-items:center;font-size:26px;font-weight:700;line-height:1;z-index:60;opacity:0;pointer-events:none;transform:translateX(-10px);transition:opacity .15s ease,background .15s ease,transform .15s ease;box-shadow:var(--shadow)}
 #swipeHint.show{opacity:.95}
@@ -150,14 +153,15 @@ dialog::backdrop{background:rgba(5,0,15,.6)}dialog .in{padding:20px}
 </head>
 <body>
 <header class="topbar"><div class="topbar-in">
-<div class="brand"><div class="mark">M</div><div><b>Mai Collector</b><span>Powered by Mai AI · Local only</span></div></div>
+<div class="brand"><button type="button" class="mark" id="menuBtn" aria-haspopup="true" aria-expanded="false" aria-label="Open section menu">M</button><div><b>Mai Collector</b><span>Powered by Mai AI · Local only</span></div></div>
 <div style="display:flex;gap:8px;flex-wrap:wrap"><span class="pill">Source: tcgcsv · TCGplayer data</span><span class="pill" id="lastRefresh">Prices: not refreshed yet</span><button type="button" class="btn" id="refreshBtn">↻ Refresh prices</button></div>
-</div></header>
+</div>
+<nav class="menu" id="mainMenu" aria-label="Sections" hidden><button type="button" class="menu-btn" data-goto="home">Home</button><button type="button" class="menu-btn" data-goto="trade">Trade</button><button type="button" class="menu-btn" data-goto="sealed">Sealed</button><button type="button" class="menu-btn" data-goto="slabs">Slabs</button><button type="button" class="menu-btn" data-goto="settings">Settings</button></nav>
+</header>
 
 <div class="wrap">
 <!-- HOME / OVERVIEW -->
 <section class="panel active" id="panel-home">
-<nav class="section-nav" aria-label="Section shortcuts"><button class="snav-btn on" data-goto="home" aria-current="page">Home</button><button class="snav-btn" data-goto="scan">Scan</button><button class="snav-btn" data-goto="trade">Trade</button><button class="snav-btn" data-goto="sealed">Sealed</button><button class="snav-btn" data-goto="slabs">Slabs</button><button class="snav-btn" data-goto="research">Slab Research</button><button class="snav-btn" data-goto="settings">Settings</button></nav>
 <div class="home-total" style="margin-top:14px"><div><small>Total collection value</small><strong id="homeTotal">$0.00</strong></div>
 <div style="color:var(--muted);font-size:13px;max-width:420px">Your collection starts empty. Add cards in Tracker, scan them in, or price a slab — totals build from what you add.</div></div>
 <div class="list">
@@ -166,7 +170,6 @@ dialog::backdrop{background:rgba(5,0,15,.6)}dialog .in{padding:20px}
 <button class="row homerow" data-goto="trade"><span class="grow"><b>Trade</b><small id="homeTradeSub">Nothing up for trade</small></span><span class="val" id="homeTradeVal">$0.00</span><span class="arrow">›</span></button>
 <button class="row homerow" data-goto="sealed"><span class="grow"><b>Sealed</b><small id="homeSealedSub">No sealed items yet</small></span><span class="val" id="homeSealedVal">$0.00</span><span class="arrow">›</span></button>
 <button class="row homerow" data-goto="slabs"><span class="grow"><b>Slabs</b><small id="homeSlabsSub">No slabs yet</small></span><span class="val" id="homeSlabsVal">$0.00</span><span class="arrow">›</span></button>
-<button class="row homerow" data-goto="research"><span class="grow"><b>Slab Research</b><small id="homeResearchSub">No slab prices on file yet</small></span><span class="val" id="homeResearchVal">$0.00</span><span class="arrow">›</span></button>
 <button class="row homerow" data-goto="settings"><span class="grow"><b>Settings</b><small>Defaults for every section — view, sorts, scan &amp; prices</small></span><span class="arrow">›</span></button>
 </div>
 <p style="color:var(--muted);font-size:13px">Tap a row to open that section. Values update as you add cards, file scans, and price slabs.</p>
@@ -174,7 +177,6 @@ dialog::backdrop{background:rgba(5,0,15,.6)}dialog .in{padding:20px}
 
 <!-- TRACKER -->
 <section class="panel" id="panel-tracker">
-<nav class="section-nav" aria-label="Section shortcuts"><button class="snav-btn" data-goto="home">Home</button><button class="snav-btn" data-goto="scan">Scan</button><button class="snav-btn" data-goto="trade">Trade</button><button class="snav-btn" data-goto="sealed">Sealed</button><button class="snav-btn" data-goto="slabs">Slabs</button><button class="snav-btn" data-goto="research">Slab Research</button><button class="snav-btn" data-goto="settings">Settings</button></nav>
 <div class="backbar" id="trackerBackbar"><button class="btn back-btn" data-back>← Back</button><span class="backbar-title">Tracker</span></div>
 <div class="crumbs" id="crumbs"></div>
 <div id="trackerBody"></div>
@@ -182,7 +184,6 @@ dialog::backdrop{background:rgba(5,0,15,.6)}dialog .in{padding:20px}
 
 <!-- SCAN -->
 <section class="panel" id="panel-scan">
-<nav class="section-nav" aria-label="Section shortcuts"><button class="snav-btn" data-goto="home">Home</button><button class="snav-btn on" data-goto="scan" aria-current="page">Scan</button><button class="snav-btn" data-goto="trade">Trade</button><button class="snav-btn" data-goto="sealed">Sealed</button><button class="snav-btn" data-goto="slabs">Slabs</button><button class="snav-btn" data-goto="research">Slab Research</button><button class="snav-btn" data-goto="settings">Settings</button></nav>
 <div class="camera"><div class="camera-view" id="cameraView"><video id="scanVideo" playsinline muted></video><div class="frame"><div><div style="font-size:26px">▣</div><b style="font-size:13px">Hold a card in the frame</b></div></div>
 <div class="cam-top"><div class="cam-status" id="scanStatus" role="status">Tap Start camera, hold a card steady, then tap Scan card.</div><button class="cam-clear" id="clearSessionBtn" type="button">Clear session</button></div>
 <div class="cam-controls"><button class="cam-btn" id="cameraBtn" type="button">Start camera</button><button class="cam-btn primary" id="scanBtn" type="button">📷 Scan card</button><button class="cam-btn" id="manualBtn" type="button">Add by name</button><button class="cam-btn" id="doubleBtn" type="button">✓ Double-Check</button></div>
@@ -198,7 +199,6 @@ dialog::backdrop{background:rgba(5,0,15,.6)}dialog .in{padding:20px}
 
 <!-- TRADE -->
 <section class="panel" id="panel-trade">
-<nav class="section-nav" aria-label="Section shortcuts"><button class="snav-btn" data-goto="home">Home</button><button class="snav-btn" data-goto="scan">Scan</button><button class="snav-btn on" data-goto="trade" aria-current="page">Trade</button><button class="snav-btn" data-goto="sealed">Sealed</button><button class="snav-btn" data-goto="slabs">Slabs</button><button class="snav-btn" data-goto="research">Slab Research</button><button class="snav-btn" data-goto="settings">Settings</button></nav>
 <div class="backbar"><button class="btn back-btn" data-back>← Back</button><span class="backbar-title">Trade</span></div>
 <div class="section-head"><div><h2>Trade</h2><p>A filtered view of Tracker — everything with Trade qty &gt; 0, slabs included. Prices are shown.</p></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" id="tradePdfBtn">Download trade sheet (PDF)</button><button class="btn" id="needBtn">Download marked Needs</button></div></div>
 <div class="toolbar"><label style="font-weight:700">Sort <select id="tradeSort"><option value="high">Value high → low</option><option value="low">Value low → high</option><option value="name">Name A–Z</option></select></label><label style="font-weight:700">Filter <select id="tradeFilter"><option value="all">All</option><option value="collected">Also collected</option><option value="tradeonly">Trade only</option></select></label></div>
@@ -210,7 +210,6 @@ dialog::backdrop{background:rgba(5,0,15,.6)}dialog .in{padding:20px}
 
 <!-- SEALED -->
 <section class="panel" id="panel-sealed">
-<nav class="section-nav" aria-label="Section shortcuts"><button class="snav-btn" data-goto="home">Home</button><button class="snav-btn" data-goto="scan">Scan</button><button class="snav-btn" data-goto="trade">Trade</button><button class="snav-btn on" data-goto="sealed" aria-current="page">Sealed</button><button class="snav-btn" data-goto="slabs">Slabs</button><button class="snav-btn" data-goto="research">Slab Research</button><button class="snav-btn" data-goto="settings">Settings</button></nav>
 <div class="backbar"><button class="btn back-btn" data-back>← Back</button><span class="backbar-title">Sealed</span></div>
 <div class="section-head"><div><h2>Sealed — all sets, mixed together</h2><p>Pulled from Tracker. Counts toward value, not completion.</p></div></div>
 <div class="toolbar"><label style="font-weight:700">Sort <select id="sealedSort"><option value="high">Price high → low</option><option value="low">Price low → high</option><option value="name">Name A–Z</option><option value="added">Recently added</option></select></label><label style="font-weight:700">Filter <select id="sealedFilter"><option value="all">All</option><option value="box">Boxes &amp; cases</option><option value="pack">Packs</option></select></label><label style="font-weight:700">Holding <select id="sealedQty"><option value="all">All</option><option value="collected">Collected</option><option value="trade">Trade</option></select></label><span class="pill" id="sealedTotal"></span></div>
@@ -219,18 +218,11 @@ dialog::backdrop{background:rgba(5,0,15,.6)}dialog .in{padding:20px}
 
 <!-- SLABS -->
 <section class="panel" id="panel-slabs">
-<nav class="section-nav" aria-label="Section shortcuts"><button class="snav-btn" data-goto="home">Home</button><button class="snav-btn" data-goto="scan">Scan</button><button class="snav-btn" data-goto="trade">Trade</button><button class="snav-btn" data-goto="sealed">Sealed</button><button class="snav-btn on" data-goto="slabs" aria-current="page">Slabs</button><button class="snav-btn" data-goto="research">Slab Research</button><button class="snav-btn" data-goto="settings">Settings</button></nav>
 <div class="backbar"><button class="btn back-btn" data-back>← Back</button><span class="backbar-title">Slabs</span></div>
 <div class="section-head"><div><h2>Slabs — all sets, mixed together</h2><p>Your graded cards live here, not inside set binders. Price comes from Slab Research, never tcgcsv.</p></div><button class="btn primary" id="addSlabBtn">+ Add a slab</button></div>
 <div class="toolbar"><label style="font-weight:700">Sort <select id="slabSort"><option value="high">Price high → low</option><option value="low">Price low → high</option><option value="name">Name A–Z</option></select></label><label style="font-weight:700">Filter <select id="slabFilter"><option value="all">All companies</option><option>PSA</option><option>CGC</option><option>BGS</option><option>SGC</option><option>TAG</option></select></label><label style="font-weight:700">Holding <select id="slabQty"><option value="all">All</option><option value="collected">Collected</option><option value="trade">Trade</option></select></label><span class="pill" id="slabTotal"></span></div>
 <div class="list" id="slabList" style="margin-top:12px"></div>
-</section>
-
-<!-- RESEARCH -->
-<section class="panel" id="panel-research">
-<nav class="section-nav" aria-label="Section shortcuts"><button class="snav-btn" data-goto="home">Home</button><button class="snav-btn" data-goto="scan">Scan</button><button class="snav-btn" data-goto="trade">Trade</button><button class="snav-btn" data-goto="sealed">Sealed</button><button class="snav-btn" data-goto="slabs">Slabs</button><button class="snav-btn on" data-goto="research" aria-current="page">Slab Research</button><button class="snav-btn" data-goto="settings">Settings</button></nav>
-<div class="backbar"><button class="btn back-btn" data-back>← Back</button><span class="backbar-title">Slab Research</span></div>
-<div class="section-head"><div><h2>Slab Research</h2><p>One shared price per card + company + grade. Change it here and it updates in Tracker, Slabs, and Trade.</p></div></div>
+<div class="section-head" style="margin-top:22px"><div><h2>Slab Research</h2><p>One shared price per card + company + grade. Change it here and it updates in Tracker, Slabs, and Trade.</p></div></div>
 <div class="notice"><b>How to price a slab</b><p>1. Pick your grading company and grade below &nbsp;·&nbsp; 2. Tap Check eBay — look at the last 5 sales &nbsp;·&nbsp; 3. Use the middle price and type it in here.</p><p>Ignore active listings (asking prices, not sales) and any one sale way off from the rest. If there are only 1–2 recent sales, use the most recent and check again soon.</p></div>
 <h3 style="margin:20px 0 8px">Quick Links — top grade only</h3>
 <div style="display:flex;gap:8px;flex-wrap:wrap" id="presets"></div>
@@ -248,7 +240,6 @@ dialog::backdrop{background:rgba(5,0,15,.6)}dialog .in{padding:20px}
 
 <!-- SETTINGS -->
 <section class="panel" id="panel-settings">
-<nav class="section-nav" aria-label="Section shortcuts"><button class="snav-btn" data-goto="home">Home</button><button class="snav-btn" data-goto="scan">Scan</button><button class="snav-btn" data-goto="trade">Trade</button><button class="snav-btn" data-goto="sealed">Sealed</button><button class="snav-btn" data-goto="slabs">Slabs</button><button class="snav-btn" data-goto="research">Slab Research</button><button class="snav-btn on" data-goto="settings" aria-current="page">Settings</button></nav>
 <div class="backbar"><button class="btn back-btn" data-back>← Back</button><span class="backbar-title">Settings</span></div>
 <div class="section-head"><div><h2>Settings</h2><p>Mass settings for every section. Changes apply right away.</p></div></div>
 <div style="display:grid;gap:14px">
@@ -376,7 +367,7 @@ function snapshot(){return {panel:currentPanel,game:nav.game,catId:nav.cat?nav.c
 // keeps, with a sessionStorage copy as a fallback for webviews that
 // reload the page from its original address. A refresh therefore
 // re-opens the same screen instead of falling back to Home.
-const NAV_PANELS=['home','tracker','scan','trade','sealed','slabs','research','settings'];
+const NAV_PANELS=['home','tracker','scan','trade','sealed','slabs','settings'];
 const NAV_STORE_KEY='mai-collector-nav-v1';
 function encodeNavState(s){
  const q=[];
@@ -458,7 +449,7 @@ function pushHistory(){
  if(historyArmed){try{history.pushState({maiNavStack:stackCopy()},'','#'+encodeNavState(snapshot()))}catch(e){}}
  persistNav();
 }
-function showPanel(name){currentPanel=name;document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active',p.id==='panel-'+name));window.scrollTo({top:0,behavior:'smooth'});persistNav()}
+function showPanel(name){currentPanel=name;document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active',p.id==='panel-'+name));window.scrollTo({top:0,behavior:'smooth'});persistNav();syncMenu()}
 function applyState(s){
  nav.game=s.game||null;nav.cat=null;
  nav.group=null;
@@ -489,6 +480,41 @@ function goBack(){
  // Already Home: a back does nothing — it must never close the app.
 }
 document.querySelectorAll('[data-goto]').forEach(b=>b.addEventListener('click',()=>navigateTo(b.dataset.goto)));
+
+// ---------- Header drop-down menu (the M in the top bar) ----------
+// Section navigation lives here now — there is no sticky shortcut bar.
+// Tapping the M toggles the menu; picking a section navigates (via the
+// data-goto wiring above) and closes it; tapping anywhere outside, or
+// pressing Escape, closes it too. The current section is highlighted.
+function syncMenu(){
+ const m=document.getElementById('mainMenu');if(!m)return;
+ m.querySelectorAll('[data-goto]').forEach(b=>{
+  const on=b.dataset.goto===currentPanel;
+  b.classList.toggle('on',on);
+  if(on)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');
+ });
+}
+function closeMenu(){
+ const m=document.getElementById('mainMenu'),btn=document.getElementById('menuBtn');
+ if(m)m.hidden=true;if(btn)btn.setAttribute('aria-expanded','false');
+}
+(function(){
+ const btn=document.getElementById('menuBtn'),m=document.getElementById('mainMenu');
+ if(!btn||!m)return;
+ btn.addEventListener('click',e=>{
+  e.stopPropagation();
+  const opening=m.hidden;
+  m.hidden=!opening;
+  btn.setAttribute('aria-expanded',String(opening));
+  if(opening)syncMenu();
+ });
+ m.querySelectorAll('[data-goto]').forEach(b=>b.addEventListener('click',closeMenu));
+ document.addEventListener('click',e=>{
+  if(!m.hidden&&!e.target.closest('#mainMenu')&&!e.target.closest('#menuBtn'))closeMenu();
+ });
+ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMenu()});
+ syncMenu();
+})();
 document.querySelectorAll('[data-back]').forEach(b=>b.addEventListener('click',goBack));
 
 // ---------- Swipe-back gesture (works in every section) ----------
@@ -508,7 +534,7 @@ document.querySelectorAll('[data-back]').forEach(b=>b.addEventListener('click',g
  function eligible(t){return !t.closest||!t.closest('dialog')}
  function contentEligible(t){
   if(currentPanel==='tracker'&&nav.group)return false; // inside a set: no content swipe-back
-  return eligible(t)&&!(t.closest&&t.closest('.section-nav, .binder-wrap, .binder-controls, .chips, .section-head, .toolbar, .backbar, input, select, textarea, [contenteditable]'));
+  return eligible(t)&&!(t.closest&&t.closest('.menu, .binder-wrap, .binder-controls, .chips, .section-head, .toolbar, .backbar, input, select, textarea, [contenteditable]'));
  }
  document.addEventListener('touchstart',function(e){
   if(e.touches.length!==1){ts=null;hint.classList.remove('show','ready');return}
@@ -991,8 +1017,14 @@ function updateStats(){
  set('homeScanVal',money(v.scan));set('homeScanSub',scans.length?`${scans.length} scan${scans.length===1?'':'s'} waiting to file`:"Nothing scanned yet");
  set('homeTradeVal',money(v.trade));set('homeTradeSub',v.tradeQty?`${v.tradeQty} item${v.tradeQty===1?'':'s'} up for trade`:"Nothing up for trade");
  set('homeSealedVal',money(v.sealed));set('homeSealedSub',v.sealedCount?`${v.sealedCount} sealed item${v.sealedCount===1?'':'s'} owned`:"No sealed items yet");
- set('homeSlabsVal',money(v.slab));set('homeSlabsSub',v.slabCount?`${v.slabCount} slab${v.slabCount===1?'':'s'} owned`:"No slabs yet");
- set('homeResearchVal',money(v.research));set('homeResearchSub',v.researchCount?`${v.researchCount} slab price${v.researchCount===1?'':'s'} on file`:"No slab prices on file yet");
+ // Slabs row carries the combined slab totals now that Slab Research
+ // lives inside the Slabs section: owned slab value plus every price
+ // on file, and both counts in the sub-line.
+ set('homeSlabsVal',money(v.slab+v.research));
+ const slabParts=[];
+ if(v.slabCount)slabParts.push(`${v.slabCount} slab${v.slabCount===1?'':'s'} owned`);
+ if(v.researchCount)slabParts.push(`${v.researchCount} slab price${v.researchCount===1?'':'s'} on file`);
+ set('homeSlabsSub',slabParts.length?slabParts.join(' · '):"No slabs yet");
 }
 
 // ---------- Trade ----------
