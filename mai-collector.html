@@ -146,7 +146,10 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent)}
 .tree{display:grid;gap:8px}
 .tnode{display:grid;gap:6px}
 .trow{width:100%;display:flex;align-items:center;gap:8px;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;cursor:pointer;color:var(--ink)}
-.trow:hover{border-color:var(--accent)}
+/* Hover only where a pointer can really hover: on touch screens a
+   :hover rule makes the browser spend the first tap on hover/focus
+   instead of delivering the click, so a tree row needed two taps. */
+@media(hover:hover) and (pointer:fine){.trow:hover{border-color:var(--accent)}}
 .tchev{color:var(--accent2);font-size:13px;width:14px;flex:0 0 auto;text-align:center}
 .tg-name{font-weight:700;font-size:14px;min-width:0;overflow-wrap:anywhere}
 .tg-meta{color:var(--muted);font-size:12px;margin-left:auto;text-align:right}
@@ -936,6 +939,57 @@ function groupSectionsHTML(gc,catId){
  if(groupFilter==='special'&&!specialGroups.length)sections=`<div class="tnote">No special sets — this category has no promo, deck, or kit groups.</div>`;
  return `<div class="ttoolbar"><label style="font-weight:700">Sort <select data-gsort><option value="new" ${groupSort==='new'?'selected':''}>Newest first</option><option value="old" ${groupSort==='old'?'selected':''}>Oldest first</option><option value="name" ${groupSort==='name'?'selected':''}>Name A–Z</option></select></label><label style="font-weight:700">Show <select data-gfilter><option value="all" ${groupFilter==='all'?'selected':''}>All groups</option><option value="main" ${groupFilter==='main'?'selected':''}>Main sets</option><option value="special" ${groupFilter==='special'?'selected':''}>Special sets</option></select></label><span class="pill">${mainGroups.length} main · ${specialGroups.length} special</span></div>`+sections;
 }
+// First-tap fix: on touch screens the first tap on a freshly loaded
+// page can be spent putting focus on the row, so the click that toggles
+// it never lands and the row only toggles on the second tap. The tree
+// rows therefore also toggle on pointerup — a completed tap (press and
+// release on the same row, barely moved) — wired once on the tree
+// container so it survives the innerHTML re-renders; the click that
+// follows the same tap is recognised via lastTreeTap and ignored, so
+// each tap still toggles exactly once. Keyboard activation never sees
+// pointer events and keeps using the plain click path below.
+let lastTreeTap={key:'',at:0};
+function treeTapGuardHit(key){return lastTreeTap.key===key&&(Date.now()-lastTreeTap.at)<700}
+function toggleGameRow(n){
+ const g=GAMES.find(x=>x.name===n);if(!g)return;
+ const open=!treeGameOpen(g);treeOpen.games[n]=open;
+ // A single-category game opens its one category too, so its sets are
+ // one tap away — the category row still shows, per the tree layout.
+ if(open&&g.cats.length===1){treeOpen.cats[g.cats[0].id]=true;loadGroupsFor(g.cats[0].id)}
+ renderTracker();
+}
+function toggleCatRow(id){
+ const cat=GAMES.flatMap(g=>g.cats).find(c=>String(c.id)===String(id));if(!cat)return;
+ const open=!treeCatOpen(cat);treeOpen.cats[id]=open;
+ if(open)loadGroupsFor(id);
+ renderTracker();
+}
+function treeRowKey(row){
+ if(!row)return null;
+ if(row.dataset.tgroup!==undefined)return null; // set rows navigate on click — not toggles
+ if(row.dataset.tgame!==undefined)return 'g:'+row.dataset.tgame;
+ if(row.dataset.tcat!==undefined)return 'c:'+row.dataset.tcat;
+ return null;
+}
+function wireTreeTap(body){
+ if(body._treeTapWired)return;body._treeTapWired=true;
+ let downKey=null,downX=0,downY=0;
+ body.addEventListener('pointerdown',e=>{
+  downKey=null;
+  if(!e.isPrimary||(e.pointerType==='mouse'&&e.button!==0))return;
+  const row=e.target&&e.target.closest?e.target.closest('[data-tgame],[data-tcat],[data-tgroup]'):null;
+  downKey=treeRowKey(row);downX=e.clientX;downY=e.clientY;
+ },{passive:true});
+ body.addEventListener('pointerup',e=>{
+  if(!e.isPrimary||!downKey)return;
+  const key=downKey;downKey=null;
+  if(Math.abs(e.clientX-downX)>12||Math.abs(e.clientY-downY)>12)return; // a scroll or drag, not a tap
+  const row=e.target&&e.target.closest?e.target.closest('[data-tgame],[data-tcat],[data-tgroup]'):null;
+  if(treeRowKey(row)!==key)return;
+  lastTreeTap={key:key,at:Date.now()};
+  if(key.charAt(0)==='g')toggleGameRow(key.slice(2));else toggleCatRow(key.slice(2));
+ },{passive:true});
+}
 function renderTrackerTree(body){
  let html=`<div class="section-head"><div><h2>Game</h2><p>Alphabetical. Games with multiple tcgcsv categories are grouped under one Game. Tap a game to open its categories, then a category to open its sets.</p></div><button class="btn" data-scanlink>📷 Scan</button></div><div class="tree">`;
  for(const g of GAMES){
@@ -964,19 +1018,14 @@ function renderTrackerTree(body){
  }
  html+=`</div>`;
  body.innerHTML=html;
+ wireTreeTap(body);
  body.querySelectorAll('[data-tgame]').forEach(b=>b.onclick=()=>{
-  const n=b.dataset.tgame;const g=GAMES.find(x=>x.name===n);if(!g)return;
-  const open=!treeGameOpen(g);treeOpen.games[n]=open;
-  // A single-category game opens its one category too, so its sets are
-  // one tap away — the category row still shows, per the tree layout.
-  if(open&&g.cats.length===1){treeOpen.cats[g.cats[0].id]=true;loadGroupsFor(g.cats[0].id)}
-  renderTracker();
+  if(treeTapGuardHit('g:'+b.dataset.tgame))return; // this tap already toggled on pointerup
+  toggleGameRow(b.dataset.tgame);
  });
  body.querySelectorAll('[data-tcat]').forEach(b=>b.onclick=()=>{
-  const id=b.dataset.tcat;const cat=GAMES.flatMap(g=>g.cats).find(c=>String(c.id)===String(id));if(!cat)return;
-  const open=!treeCatOpen(cat);treeOpen.cats[id]=open;
-  if(open)loadGroupsFor(id);
-  renderTracker();
+  if(treeTapGuardHit('c:'+b.dataset.tcat))return; // this tap already toggled on pointerup
+  toggleCatRow(b.dataset.tcat);
  });
  body.querySelectorAll('[data-tgroup]').forEach(b=>b.onclick=()=>{
   const catId=b.dataset.tcat,gid=b.dataset.tgroup;
