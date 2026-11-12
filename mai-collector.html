@@ -108,7 +108,8 @@ body{touch-action:pan-y}
 .cam-btn{flex:1 1 0;min-width:68px;min-height:40px;border-radius:999px;border:1px solid rgba(255,255,255,.22);background:rgba(16,10,32,.82);backdrop-filter:blur(8px);color:#fff;font-weight:700;font-size:12px;line-height:1.15;padding:6px 7px;cursor:pointer;text-align:center}
 .cam-btn.primary{background:var(--accent);border-color:var(--accent);flex:1.3 1 0;font-size:13px}
 .cam-btn:active{transform:scale(.98)}
-.latest-scan{position:relative;z-index:2;background:#150e28;border-top:1px solid rgba(255,255,255,.14);padding:7px 9px;display:flex;gap:9px;align-items:center;min-height:62px}
+.latest-scan{position:relative;z-index:2;background:#150e28;border-top:1px solid rgba(255,255,255,.14);padding:7px 9px;display:flex;gap:9px;align-items:center;min-height:62px;cursor:pointer}
+.latest-scan .ls-chev{flex:0 0 auto;color:#c4b5fd;font-size:11.5px;font-weight:800;white-space:nowrap;border:1px solid rgba(255,255,255,.22);border-radius:999px;padding:4px 9px}
 .latest-scan img{width:38px;height:53px;object-fit:cover;border-radius:6px;background:#241842;flex:0 0 auto}
 .latest-scan .ls-grow{flex:1;min-width:0}
 .latest-scan .ls-label{font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#c4b5fd}
@@ -262,12 +263,14 @@ dialog::backdrop{background:rgba(5,0,15,.6)}dialog .in{padding:20px}
 <div class="cam-controls"><button class="cam-btn" id="cameraBtn" type="button">Start camera</button><button class="cam-btn primary" id="scanBtn" type="button">📷 Scan card</button><button class="cam-btn" id="manualBtn" type="button">Add by name</button><button class="cam-btn" id="doubleBtn" type="button">✓ Double-Check</button></div>
 </div>
 <canvas id="scanCanvas" style="display:none"></canvas>
-<div class="latest-scan" id="latestScanPanel" aria-live="polite"><div class="ls-grow"><div class="ls-label">Latest scan</div><div class="ls-name">No scan yet</div><div class="ls-meta">Scan a card and its match will show here.</div></div></div>
+<div class="latest-scan" id="latestScanPanel" aria-live="polite" role="button" tabindex="0" aria-expanded="false" title="Tap to show or hide the scanned list"><div class="ls-grow"><div class="ls-label">Latest scan</div><div class="ls-name">No scan yet</div><div class="ls-meta">Scan a card and its match will show here.</div></div></div>
 </div>
+<div id="scanListWrap" hidden>
 <p style="color:var(--muted);font-size:11.5px;margin:6px 0 0">Clear session clears only the list below — filed cards stay. Thumbnails: <b id="cacheSize">0 KB</b></p>
 <div class="section-head"><div><h2 style="font-size:17px">Scanned list</h2><p id="scanCount">Nothing scanned yet. Scans are drafts — nothing enters Tracker until you file them.</p></div><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn primary small" id="fileBtn">File selected → Tracker</button><button class="btn small" id="cancelScanBtn">Cancel selected</button></div></div>
 <p id="fileMsg" style="color:var(--muted);font-size:13px;margin:0" role="status"></p>
 <div class="list" id="scanList"></div>
+</div>
 </section>
 
 <!-- TRADE -->
@@ -1532,24 +1535,37 @@ function parseProductsCSV(t){
 }
 const PRODUCT_STORE_PREFIX='mai-collector-products-';
 function loadProducts(){
- if(!nav.cat||!nav.group)return;const key=nav.cat.id+':'+nav.group.groupId;const c=productCache[key];
- if(c&&(c.status==='loading'||c.status==='ready'))return;
+ if(nav.cat&&nav.group)loadProductsFor(nav.cat,nav.group);
+}
+// Loads one set's card list and returns a promise that settles when the
+// list is ready (or has failed) — the scanner awaits this for the set
+// the user is standing in, so a scan taken the moment a group opens
+// still matches that set instead of finding an empty cache.
+function loadProductsFor(cat,group){
+ const key=cat.id+':'+group.groupId;const c=productCache[key];
+ if(c&&(c.status==='loading'||c.status==='ready'))return c.promise||Promise.resolve(c);
  // Cache-once-opened: a set already pulled this session (or in a prior
  // page load in this tab) comes straight from sessionStorage — no fetch.
  try{
   const raw=sessionStorage.getItem(PRODUCT_STORE_PREFIX+key);
-  if(raw){const cached=JSON.parse(raw);if(Array.isArray(cached)&&cached.length){productCache[key]={status:'ready',products:cached,catId:nav.cat.id,groupId:nav.group.groupId,groupName:nav.group.name||''};restorePriceStatus(); // these prices came from a real pull — the header must not claim otherwise
-syncFolderTree();if(currentPanel==='tracker')Promise.resolve().then(()=>{renderTracker();renderTrade()});return}}
+  if(raw){const cached=JSON.parse(raw);if(Array.isArray(cached)&&cached.length){productCache[key]={status:'ready',products:cached,catId:cat.id,groupId:group.groupId,groupName:group.name||''};restorePriceStatus(); // these prices came from a real pull — the header must not claim otherwise
+syncFolderTree();if(currentPanel==='tracker')Promise.resolve().then(()=>{renderTracker();renderTrade()});return Promise.resolve(productCache[key])}}
  }catch(e){}
- productCache[key]={status:'loading',catId:nav.cat.id,groupId:nav.group.groupId,groupName:nav.group.name||''};
- tcgFetchText('https://tcgcsv.com/tcgplayer/'+nav.cat.id+'/'+nav.group.groupId+'/ProductsAndPrices.csv',t=>t.split('\n',1)[0].indexOf('productId')>-1).then(t=>{
+ productCache[key]={status:'loading',catId:cat.id,groupId:group.groupId,groupName:group.name||''};
+ const promise=tcgFetchText('https://tcgcsv.com/tcgplayer/'+cat.id+'/'+group.groupId+'/ProductsAndPrices.csv',t=>t.split('\n',1)[0].indexOf('productId')>-1).then(t=>{
   markPricesPulled(); // opening a set pulls its prices fresh — the header pill and the Settings note must say so
   const products=parseProductsCSV(t);
-  productCache[key]={status:'ready',products:products,catId:nav.cat.id,groupId:nav.group.groupId,groupName:nav.group.name||''};binderPage=0;
+  productCache[key]={status:'ready',products:products,catId:cat.id,groupId:group.groupId,groupName:group.name||''};binderPage=0;
   try{sessionStorage.setItem(PRODUCT_STORE_PREFIX+key,JSON.stringify(products))}catch(e){/* quota: in-memory cache still makes re-opening instant this session */}
-  storeGroupCsv(nav.cat.id,nav.group.groupId,nav.group.name||'',t);syncFolderTree(); // the set's source file + parsed source land in its group folder
+  storeGroupCsv(cat.id,group.groupId,group.name||'',t);syncFolderTree(); // the set's source file + parsed source land in its group folder
   if(currentPanel==='tracker')renderTracker();renderTrade();
- }).catch(e=>{productCache[key]={status:'error',error:String((e&&e.message)||e),catId:nav.cat.id,groupId:nav.group.groupId,groupName:nav.group.name||''};if(currentPanel==='tracker')renderTracker()});
+  // A scan taken while this list was still loading had nothing to
+  // match against: retry every unmatched named scan now that it landed.
+  if(currentPanel==='scan'){scans.forEach(s=>{if(!s.match&&(s.name||'').trim())applyMatch(s)});renderScans()}
+  return productCache[key];
+ }).catch(e=>{productCache[key]={status:'error',error:String((e&&e.message)||e),catId:cat.id,groupId:group.groupId,groupName:group.name||''};if(currentPanel==='tracker')renderTracker();if(currentPanel==='scan')renderScans();return productCache[key]});
+ productCache[key].promise=promise;
+ return promise;
 }
 function qtyBtnsHTML(p,owned){
  if(!p.number){
@@ -2317,6 +2333,32 @@ function scanSetOptionsHTML(selKey){
  Object.keys(productCache).forEach(k=>{const pc=productCache[k];if(pc&&pc.status==='ready')opts+=`<option value="${esc(k)}" ${k===selKey?'selected':''}>${esc(setNameFor(pc))}</option>`});
  return opts;
 }
+// The set the user is standing in when they scan (they opened Scan
+// from inside a group, or Tracker still has that group open). Scans
+// match inside this set first — the user is holding that set's cards —
+// and its card list is loaded/awaited before matching, so scanning
+// from inside the actual group can never come back "open a set first".
+function scanContextKey(){
+ if(typeof nav!=='undefined'&&nav.cat&&nav.group)return nav.cat.id+':'+nav.group.groupId;
+ return null;
+}
+function ensureScanContextProducts(){
+ const k=scanContextKey();if(!k)return null;
+ const pc=productCache[k];
+ if(pc&&pc.status==='ready')return Promise.resolve(pc);
+ if(nav.cat&&nav.group&&String(nav.cat.id)+':'+String(nav.group.groupId)===k)return loadProductsFor(nav.cat,nav.group);
+ return null;
+}
+function noMatchHint(){
+ const k=scanContextKey();
+ if(k){const pc=productCache[k];
+  if(pc&&pc.status==='ready')return 'Fix the name to match the card, or pick its set below.';
+  if(pc&&pc.status==='loading')return 'Still loading '+(pc.groupName||'this set')+'’s card list — the match lands as soon as it does, or pick the set below once it’s loaded.';
+  if(pc&&pc.status==='error')return 'This set’s card list couldn’t load — fix the name, or pick a loaded set below.';
+  return 'Loading this set’s card list so the scan can match it — or pick a set below once one is loaded.';
+ }
+ return Object.keys(productCache).some(k2=>productCache[k2]&&productCache[k2].status==='ready')?'Fix the name to match the card, or pick its set below.':'Open a set in Tracker first so scans can match it, or pick a set below once one is loaded.';
+}
 // ----- Matching engine -----
 // Why this was rewritten: the old scorer returned 0.92 whenever the
 // OCR text appeared ANYWHERE as a raw substring of a product name, so
@@ -2357,7 +2399,13 @@ function matchScore(a,b){
  const at=nameTokens(A),bt=nameTokens(B);
  if(!at.length||!bt.length)return 0;
  const bset=new Set(bt),aset=new Set(at);
- let hit=0;at.forEach(w=>{if(bset.has(w))hit++});
+ let hit=0;at.forEach(w=>{
+  if(bset.has(w)){hit++;return}
+  // One letter misread by the camera ("rengage" for "engage") still
+  // counts, at reduced weight — a short name read nearly right used
+  // to score zero because no whole word matched exactly.
+  if(w.length>=4&&bt.some(x=>x.length>=4&&levRatio(w,x)>=0.8))hit+=0.75;
+ });
  const f1=hit?(2*hit/(at.length+bt.length)):0;
  let contain=0;
  if(at.every(w=>bset.has(w))||bt.every(w=>aset.has(w)))contain=0.9;
@@ -2390,7 +2438,7 @@ function bestNameMatch(name,restrictKey){
  // prefer the plain printing, it is the one a normal pull produces.
  const fam=scored.filter(x=>sameCardFamily(x.p,top.p)).sort((a,b)=>((/alternate art/i.test(a.p.name)?1:0)-(/alternate art/i.test(b.p.name)?1:0))||(b.score-a.score));
  const chosen=fam.length?fam[0]:top;
- return {best:{score:chosen.score,catId:chosen.pc.catId,groupId:chosen.pc.groupId,groupName:chosen.pc.groupName,productId:chosen.p.productId,number:chosen.p.number,price:chosen.p.marketPrice,productName:chosen.p.name,rarity:chosen.p.rarity||'',imageUrl:chosen.p.imageUrl||''},confident:confident,top:scored.slice(0,3).map(x=>matchObj(x.pc,x.p))};
+ return {best:{score:chosen.score,catId:chosen.pc.catId,groupId:chosen.pc.groupId,groupName:chosen.pc.groupName,productId:chosen.p.productId,number:chosen.p.number,price:chosen.p.marketPrice,productName:chosen.p.name,rarity:chosen.p.rarity||'',imageUrl:chosen.p.imageUrl||''},confident:confident,rivalScore:rival?rival.score:0,top:scored.slice(0,3).map(x=>matchObj(x.pc,x.p))};
 }
 function matchFromBest(b){return {name:b.productName,catId:b.catId,groupId:b.groupId,groupName:b.groupName,productId:b.productId,number:b.number,price:b.price,rarity:b.rarity||'',imageUrl:b.imageUrl||''}}
 function matchCardName(name){
@@ -2409,10 +2457,10 @@ function extractCardNumber(text){
  if(m)return m[1]+'/'+m[2];
  return null;
 }
-function matchFromEvidence(number,lines){
+function matchFromEvidence(number,lines,restrictKey){
  const target=normNum(number);if(!target)return {match:null};
  const hits=[];
- Object.keys(productCache).forEach(k=>{
+ (restrictKey?[restrictKey]:Object.keys(productCache)).forEach(k=>{
   const pc=productCache[k];if(!pc||pc.status!=='ready')return;
   pc.products.forEach(p=>{if(p.number&&normNum(p.number)===target)hits.push({pc:pc,p:p})});
  });
@@ -2426,19 +2474,34 @@ function matchFromEvidence(number,lines){
  const plain=hits.find(h=>!/alternate art/i.test(h.p.name))||hits[0];
  return {match:matchObj(plain.pc,plain.p)};
 }
+// In-set acceptance: inside the one set the user is standing in, a
+// clear best card wins at a lower bar than a global search — the only
+// rivals are that set's other cards, and the user is holding its cards.
+function inSetAccept(bm){
+ return !!(bm&&bm.best&&bm.best.score>=0.55&&(bm.best.score-(bm.rivalScore||0))>=0.12);
+}
 function applyMatch(s){
  const raw=(s.name||'').trim();
  s.candidates=null;s.via=null;
  if(!raw){s.match=null;return null}
  const num=extractCardNumber(raw);
+ const ctxKey=scanContextKey();
+ const scopes=ctxKey?[ctxKey,undefined]:[undefined];
  if(num){
-  const res=matchFromEvidence(num,[raw]);
-  if(res.match){s.match=res.match;s.name=res.match.name;s.via='number';return res.match}
+  for(const rk of scopes){
+   const res=matchFromEvidence(num,[raw],rk);
+   if(res.match){s.match=res.match;s.name=res.match.name;s.via='number';return res.match}
+  }
  }
- const bm=bestNameMatch(raw);
- if(bm&&bm.confident){s.match=matchFromBest(bm.best);s.name=bm.best.productName;s.via='name';return s.match}
+ let globalBm=null;
+ for(const rk of scopes){
+  const bm=bestNameMatch(raw,rk);
+  if(!bm)continue;
+  if(rk===undefined)globalBm=bm;
+  if(bm.confident||(rk&&inSetAccept(bm))){s.match=matchFromBest(bm.best);s.name=bm.best.productName;s.via='name';return s.match}
+ }
  s.match=null;
- if(bm&&bm.top&&bm.top.length)s.candidates=bm.top;
+ if(globalBm&&globalBm.top&&globalBm.top.length)s.candidates=globalBm.top;
  return null;
 }
 function ownedLineFor(s){
@@ -2466,16 +2529,25 @@ function pushScan(name,thumb,pre){
  return s;
 }
 // Bottom-of-camera panel: always the LATEST scan only. Each new scan
-// replaces the previous card's info here; the full history stays in the
-// Scanned list below.
+// replaces the previous card's info here. The full Scanned list lives
+// in a pop-up under this panel: hidden until the user taps the panel,
+// tap again to pop it back down — no long scrolling page of scans.
+let scanListOpen=false;
 function renderLatestScan(){
  const panel=document.getElementById('latestScanPanel');if(!panel)return;
+ panel.setAttribute('aria-expanded',scanListOpen?'true':'false');
+ const chev=`<span class="ls-chev">${scanListOpen?'▲ Hide list':'▼ '+(scans.length>1?scans.length+' scans':'Scans')}</span>`;
  const s=scans.length?scans[scans.length-1]:null;
- if(!s){panel.innerHTML=`<div class="ls-grow"><div class="ls-label">Latest scan</div><div class="ls-name">No scan yet</div><div class="ls-meta">Scan a card and its match will show here.</div></div>`;return}
+ if(!s){panel.innerHTML=`<div class="ls-grow"><div class="ls-label">Latest scan</div><div class="ls-name">No scan yet</div><div class="ls-meta">Scan a card and its match will show here.</div></div>${chev}`;return}
  const m=s.match;
  const imgSrc=(m&&m.imageUrl)||s.thumb||'';
- const meta=m?[m.number,m.rarity,matchSetName(m)].filter(Boolean).join(' · '):'No set match yet — name it or pick its set in the list below.';
- panel.innerHTML=`${imgSrc?`<img src="${esc(imgSrc)}" alt="">`:''}<div class="ls-grow"><div class="ls-label">Latest scan${s.checked?' · Double-checked':''}${s.dup?' · Possible duplicate':''}</div><div class="ls-name">${esc(cleanDisplayName(s.name)||'Unnamed scan')}</div><div class="ls-meta">${esc(meta)}</div></div>${m&&m.price?`<span class="ls-price">${money(m.price)}</span>`:''}`;
+ const meta=m?[m.number,m.rarity,matchSetName(m)].filter(Boolean).join(' · '):'No set match yet — tap here to name it or pick its set.';
+ panel.innerHTML=`${imgSrc?`<img src="${esc(imgSrc)}" alt="">`:''}<div class="ls-grow"><div class="ls-label">Latest scan${s.checked?' · Double-checked':''}${s.dup?' · Possible duplicate':''}</div><div class="ls-name">${esc(cleanDisplayName(s.name)||'Unnamed scan')}</div><div class="ls-meta">${esc(meta)}</div></div>${m&&m.price?`<span class="ls-price">${money(m.price)}</span>`:''}${chev}`;
+}
+function setScanListOpen(open){
+ scanListOpen=!!open;
+ const w=document.getElementById('scanListWrap');if(w)w.hidden=!scanListOpen;
+ renderLatestScan();
 }
 function renderScans(){
  renderLatestScan();
@@ -2487,11 +2559,11 @@ function renderScans(){
  el.innerHTML=scans.map((s,i)=>{
   const m=s.match;
   return `<div class="row">${s.thumb?`<img class="scan-thumb" src="${s.thumb}" alt="Scan ${i+1} photo">`:''}<input type="checkbox" data-sel="${i}" ${s.dup?'':'checked'}><div class="grow"><b>Scan ${i+1} ${s.checked?'<span class="badge">Double-checked</span>':''} ${s.dup?'<span class="badge warn">Possible duplicate — same card twice in a row</span>':''}</b>
- <small>${m?`Matched${s.via==='number'?' by set number':''}: ${esc(m.number?m.number+' · ':'')}${esc(cleanDisplayName(s.name))}${matchSetName(m)?' — '+esc(matchSetName(m)):''} · ${money(m.price)}<br>${esc(ownedLineFor(s))}`:`No set match yet. ${Object.keys(productCache).some(k=>productCache[k]&&productCache[k].status==='ready')?'Fix the name to match the card, or pick its set below.':'Open a set in Tracker first so scans can match it, or pick a set below once one is loaded.'}`}</small>
+ <small>${m?`Matched${s.via==='number'?' by set number':''}: ${esc(m.number?m.number+' · ':'')}${esc(cleanDisplayName(s.name))}${matchSetName(m)?' — '+esc(matchSetName(m)):''} · ${money(m.price)}<br>${esc(ownedLineFor(s))}`:`No set match yet. ${noMatchHint()}`}</small>
  ${!m&&s.candidates&&s.candidates.length?`<div style="margin-top:8px"><small style="font-weight:700">Closest matches — tap the right one:</small><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:5px">${s.candidates.map((c,j)=>`<button type="button" class="btn small" data-cand="${i}:${j}">${esc(cleanDisplayName(c.name))}${c.number?' · '+esc(c.number):''} · ${money(c.price)}</button>`).join('')}</div></div>`:''}
  ${!m&&s.readText?`<small style="display:block;margin-top:6px">Scanner read: “${esc(s.readText)}”</small>`:''}
  <div style="display:grid;gap:8px;margin-top:8px"><span>Card name <input type="text" value="${esc(s.name)}" data-sname="${i}" placeholder="Name this scan" style="width:min(320px,70vw);background:var(--card2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:0 8px"></span>
- <span>Belongs to <select data-sset="${i}" style="background:var(--card2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:0 8px;min-height:36px">${scanSetOptionsHTML(m?(m.catId+':'+m.groupId):'')}</select></span>
+ <span>Belongs to <select data-sset="${i}" style="background:var(--card2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:0 8px;min-height:36px">${scanSetOptionsHTML(m?(m.catId+':'+m.groupId):(scanContextKey()||''))}</select></span>
  <span style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"><span>File as Collected <input type="number" min="0" value="${s.fc}" data-fc="${i}" style="width:64px;background:var(--card2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:0 8px"></span><span>Trade <input type="number" min="0" value="${s.ft}" data-ft="${i}" style="width:64px;background:var(--card2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:0 8px"></span><button class="btn small" data-del="${i}">Delete &amp; rescan</button></span></div></div></div>`}).join('');
  el.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{scans.splice(+b.dataset.del,1);renderScans()});
  el.querySelectorAll('[data-cand]').forEach(b=>b.onclick=()=>{const parts=b.dataset.cand.split(':');const s=scans[+parts[0]];const c=s&&s.candidates?s.candidates[+parts[1]]:null;if(!c)return;s.match={name:c.name,catId:c.catId,groupId:c.groupId,groupName:c.groupName,productId:c.productId,number:c.number,price:c.price,rarity:c.rarity||'',imageUrl:c.imageUrl||''};s.name=c.name;s.candidates=null;s.via='picked';renderScans();updateStats()});
@@ -2629,17 +2701,33 @@ function ocrPrep(src,sx,sy,sw,sh,targetW,invert){
  }
  return out;
 }
+// One OCR worker, created once and reused for every pass of every
+// scan. Tesseract.recognize() spins up a brand-new worker per call —
+// with up to five passes per scan that startup cost WAS the scan
+// time. The reused worker reads each strip in well under that.
+let ocrWorker=null,ocrWorkerReady=null;
+function getOcrWorker(){
+ if(!window.Tesseract||!window.Tesseract.createWorker)return Promise.resolve(null);
+ if(!ocrWorkerReady){
+  ocrWorkerReady=window.Tesseract.createWorker('eng').then(w=>{ocrWorker=w;return w}).catch(()=>{ocrWorkerReady=null;return null});
+ }
+ return ocrWorkerReady;
+}
 async function ocrText(canvas){
+ const w=ocrWorker||await getOcrWorker();
+ if(w){const r=await w.recognize(canvas);return (r&&r.data&&r.data.text)||''}
  const r=await window.Tesseract.recognize(canvas,'eng');
  return (r&&r.data&&r.data.text)||'';
 }
 async function ocrCardEvidence(cardCanvas){
  const W=cardCanvas.width,H=cardCanvas.height;
+ // Plain strips first — most cards read fine without inversion, and
+ // the inverted passes only run when nothing decisive has been read.
  const passes=[
-  {strip:'bottom',canvas:ocrPrep(cardCanvas,0,H*0.80,W,H*0.20,1400,true)},
   {strip:'bottom',canvas:ocrPrep(cardCanvas,0,H*0.80,W,H*0.20,1400,false)},
-  {strip:'top',canvas:ocrPrep(cardCanvas,0,0,W,H*0.16,1400,true)},
   {strip:'top',canvas:ocrPrep(cardCanvas,0,0,W,H*0.16,1400,false)},
+  {strip:'bottom',canvas:ocrPrep(cardCanvas,0,H*0.80,W,H*0.20,1400,true)},
+  {strip:'top',canvas:ocrPrep(cardCanvas,0,0,W,H*0.16,1400,true)},
   {strip:'full',canvas:ocrPrep(cardCanvas,0,0,W,H,1100,false)}
  ];
  let number=null;const lineCands=[];
@@ -2648,24 +2736,43 @@ async function ocrCardEvidence(cardCanvas){
   try{text=await ocrText(pass.canvas)}catch(e){continue}
   if(!text)continue;
   if(!number)number=extractCardNumber(text);
-  text.split('\n').map(x=>x.trim()).filter(x=>x.length>=3&&/[A-Za-z]/.test(x)).forEach(line=>lineCands.push({line:line,strip:pass.strip}));
-  // Early exit: a set number plus any strip line that names a card in
-  // that number's family is decisive — no need to run the rest.
-  if(number&&lineCands.some(c=>c.strip!=='full')){
-   const res=matchFromEvidence(number,lineCands.map(c=>c.line));
-   if(res.match)break;
+  const lines=text.split('\n').map(x=>x.trim()).filter(x=>x.length>=3&&/[A-Za-z]/.test(x));
+  lines.forEach(line=>lineCands.push({line:line,strip:pass.strip}));
+  // A name split across two printed lines ("Cyber" / "Engage") never
+  // matches line-by-line — the strip read as one line can.
+  const joined=lines.join(' ');
+  if(joined.length>=3&&joined!==lines[0])lineCands.push({line:joined,strip:pass.strip});
+  // Early exit: as soon as the evidence so far decides the card —
+  // by set number or by a clear name — the remaining passes are
+  // wasted seconds, so stop reading.
+  if(lineCands.some(c=>c.strip!=='full')){
+   const d=decideFromEvidence({number:number,lineCands:lineCands});
+   if(d.match)break;
   }
  }
  return {number:number,lineCands:lineCands};
 }
 function decideFromEvidence(ev){
+ // The set the user is standing in is tried first (its card list is
+ // the one being scanned from), then every loaded set as before.
+ const ctxKey=scanContextKey();
+ const scopes=ctxKey?[ctxKey,undefined]:[undefined];
+ let fallback=null;
+ for(const rk of scopes){
+  const d=decideInScope(ev,rk);
+  if(d.match)return d;
+  if(!fallback||(!fallback.candidates&&d.candidates))fallback=d;
+ }
+ return fallback;
+}
+function decideInScope(ev,rk){
  let bestLine=null;
  ev.lineCands.forEach(c=>{
-  const bm=bestNameMatch(c.line);
+  const bm=bestNameMatch(c.line,rk);
   if(bm&&bm.best&&(!bestLine||bm.best.score>bestLine.bm.best.score))bestLine={bm:bm,line:c.line};
  });
  if(ev.number){
-  const res=matchFromEvidence(ev.number,ev.lineCands.map(c=>c.line));
+  const res=matchFromEvidence(ev.number,ev.lineCands.map(c=>c.line),rk);
   if(res.match){
    // Cross-check: a confident, clearly different name read beats a
    // possibly misread number; anything less and the number stands.
@@ -2674,6 +2781,7 @@ function decideFromEvidence(ev){
   }
  }
  if(bestLine&&bestLine.bm.confident)return {match:matchFromBest(bestLine.bm.best),via:'name',name:bestLine.bm.best.productName,candidates:null,readText:bestLine.line};
+ if(rk&&bestLine&&inSetAccept(bestLine.bm))return {match:matchFromBest(bestLine.bm.best),via:'name',name:bestLine.bm.best.productName,candidates:null,readText:bestLine.line};
  const read=(ev.lineCands.find(c=>c.strip==='bottom')||ev.lineCands.find(c=>c.strip==='top')||ev.lineCands[0]||{line:''}).line;
  return {match:null,via:null,name:'',candidates:bestLine?bestLine.bm.top:null,readText:read};
 }
@@ -2685,6 +2793,9 @@ async function scanNow(){
  const video=document.getElementById('scanVideo');
  if(!scanStream||video.readyState<2){scanStatus('Start the camera first, hold the card in the frame, then tap Scan card. No camera? “Add by name” does the same matching.');return}
  scanStatus('Reading the card — name and set number…');
+ // Kick off the current set's card list NOW so it loads while the
+ // photo is being read, and is awaited before matching below.
+ const ctxLoad=ensureScanContextProducts();
  let cardCanvas;
  try{
   await loadOCR();
@@ -2702,14 +2813,17 @@ async function scanNow(){
  let decision;
  try{
   const ev=await ocrCardEvidence(cardCanvas);
+  // Matching is pointless against a set list that hasn't landed yet:
+  // give the current set's load a bounded chance to finish first.
+  if(ctxLoad)await Promise.race([ctxLoad,new Promise(r=>setTimeout(r,6000))]);
   decision=decideFromEvidence(ev);
  }catch(e){
   pushScan('',thumb);
-  scanStatus('The name reader couldn’t finish that one — the scan is in the list below; type the card name on it, or delete and rescan.');
+  scanStatus('The name reader couldn’t finish that one — the scan was added; tap Latest scan above to open the list, type the card name on it, or delete and rescan.');
   return;
  }
  const s=pushScan(decision.name||'',thumb,decision);
- scanStatus(decision.match?(decision.via==='number'?`Matched by set number ${decision.match.number} · ${s.name}${matchSetName(decision.match)?' ('+matchSetName(decision.match)+')':''} — ${money(decision.match.price)}. It’s in the list below; check it, then file.`:`Matched ${decision.match.number?decision.match.number+' · ':''}${s.name}${matchSetName(decision.match)?' ('+matchSetName(decision.match)+')':''} — ${money(decision.match.price)}. It’s in the list below; check it, then file.`):(decision.candidates&&decision.candidates.length?`Couldn’t pin that card down for sure — the closest matches are on the scan below. Tap the right one, or fix the name on the scan.`:`Couldn’t read a name or set number from that photo. The scan is in the list below — type the card name on it, or delete and rescan with the card filling the frame.`));
+ scanStatus(decision.match?(decision.via==='number'?`Matched by set number ${decision.match.number} · ${s.name}${matchSetName(decision.match)?' ('+matchSetName(decision.match)+')':''} — ${money(decision.match.price)}. Tap Latest scan above to review it, then file.`:`Matched ${decision.match.number?decision.match.number+' · ':''}${s.name}${matchSetName(decision.match)?' ('+matchSetName(decision.match)+')':''} — ${money(decision.match.price)}. Tap Latest scan above to review it, then file.`):(decision.candidates&&decision.candidates.length?`Couldn’t pin that card down for sure — tap Latest scan above to open the list; the closest matches are on the scan. Tap the right one, or fix the name on the scan.`:`Couldn’t read a name or set number from that photo. Tap Latest scan above to open the list and type the card name on it, or delete and rescan with the card filling the frame.`));
  }finally{scanBusy=false}
 }
 document.getElementById('scanBtn').onclick=scanNow;
@@ -2747,6 +2861,11 @@ document.getElementById('doubleBtn').onclick=async()=>{
  scanStatus(`Double-Check done: every scan photo re-read and re-matched.${fixed?` ${fixed} match${fixed===1?'':'es'} updated.`:''}${still?` ${still} still unmatched — tap a closest match on the scan, fix its name, or pick its set.`:''}`);
 };
 document.getElementById('clearSessionBtn').onclick=()=>{scans=[];renderScans();scanStatus('Session cleared — the list and its thumbnails are gone. Filed cards in Tracker are untouched.')};
+(function(){
+ const lsp=document.getElementById('latestScanPanel');if(!lsp)return;
+ lsp.addEventListener('click',()=>setScanListOpen(!scanListOpen));
+ lsp.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();setScanListOpen(!scanListOpen)}});
+})();
 document.getElementById('autoBtn').onclick=()=>{settings.autoScan=settings.autoScan===false?true:false;document.getElementById('autoBtn').textContent=settings.autoScan?'Auto scan: On':'Auto scan: Off';const sas=document.getElementById('setAutoScan');if(sas)sas.checked=settings.autoScan;autoPrevSig=null;autoStable=0;autoArmed=true;saveState();scanStatus(settings.autoScan?'Auto scan on — hold a card steady in the frame and it scans by itself.':'Auto scan off — tap Scan card for each card.')};
 document.getElementById('cancelScanBtn').onclick=()=>{const sels=[...document.querySelectorAll('[data-sel]')].filter(c=>c.checked).map(c=>+c.dataset.sel);scans=scans.filter((_,i)=>!sels.includes(i));renderScans()};
 document.getElementById('fileBtn').onclick=()=>{
