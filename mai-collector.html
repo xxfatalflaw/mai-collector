@@ -112,10 +112,14 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent)}
 .toggle input{margin-top:2px}.toggle span small{display:block;color:var(--muted)}
 .field{display:grid;gap:6px}.field label{font-weight:700;font-size:13px}.field input,.field select{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:10px;color:var(--ink);padding:0 12px}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:640px){.two{grid-template-columns:1fr}}
-.binder-wrap{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:6px;touch-action:pan-y;box-shadow:var(--shadow);height:calc(100vh - 250px);height:calc(100dvh - 250px);min-height:300px;max-height:1000px}
+.binder-wrap{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:6px;touch-action:pan-y;box-shadow:var(--shadow);height:calc(100vh - 322px);height:calc(100dvh - 322px);min-height:230px;max-height:1000px}
 .binder-page{display:grid;gap:6px;height:100%;grid-template-rows:repeat(3,minmax(0,1fr));align-items:stretch}
-.pocket{background:var(--card);border:1px solid var(--line);border-radius:9px;padding:5px;display:flex;flex-direction:column;gap:3px;min-width:0;height:100%;min-height:0;overflow:hidden}
-.pocket-art{position:relative;flex:1 1 auto;min-height:0;overflow:hidden;border-radius:6px;background:var(--card2)}
+.pocket{background:var(--card);border:1px solid var(--line);border-radius:9px;padding:5px;display:grid;grid-template-rows:minmax(0,1fr) auto 51px;gap:3px;min-width:0;height:100%;min-height:0;overflow:hidden}
+.pocket-art{position:relative;min-height:0;overflow:hidden;border-radius:6px;background:var(--card2);cursor:pointer}
+.pocket-foot{display:grid;gap:3px;align-content:start;height:51px;min-height:0}
+.pocket-badge.owned{background:var(--accent);border-color:var(--accent);color:#fff}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(16px);background:var(--card);color:var(--ink);border:1px solid var(--accent);border-radius:999px;padding:10px 16px;font-size:13.5px;font-weight:600;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .2s ease,transform .2s ease;z-index:90;max-width:92vw;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .pocket-art img{width:100%;height:100%;object-fit:contain;border-radius:6px;background:var(--card2);display:block;-webkit-user-drag:none;user-select:none}
 .pocket-art img.img-hide{display:none}
 .pocket-badge{position:absolute;top:4px;left:4px;background:rgba(12,6,28,.85);color:#fff;border:1px solid rgba(255,255,255,.35);font-size:8.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:2px 5px;border-radius:999px;pointer-events:none}
@@ -138,9 +142,6 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent)}
 .binder-controls{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:6px;font-size:12px}
 .binder-controls .btn{min-height:28px;padding:3px 8px;font-size:12px}
 .binder-controls .pill{padding:4px 8px;font-size:11.5px}
-.binder-dots{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
-.binder-dot{width:8px;height:8px;min-height:8px;border-radius:50%;border:1px solid var(--line);background:var(--card);cursor:pointer;padding:0}
-.binder-dot.on{background:var(--accent);border-color:var(--accent)}
 .prodthumb{width:40px;height:56px;object-fit:cover;border-radius:6px;background:var(--card2);flex:0 0 auto}
 @media(max-width:520px){.pocket-info b{font-size:10.5px}}
 .pathline{display:flex;flex-wrap:nowrap;gap:3px;align-items:center;margin:4px 0 6px;font-size:12px;color:var(--muted);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;line-height:1.3}
@@ -211,7 +212,7 @@ dialog::backdrop{background:rgba(5,0,15,.6)}dialog .in{padding:20px}
 
 <!-- SCAN -->
 <section class="panel" id="panel-scan">
-<div class="camera"><div class="camera-view" id="cameraView"><video id="scanVideo" playsinline muted></video><div class="frame"><div><div style="font-size:26px">▣</div><b style="font-size:13px">Hold a card in the frame</b></div></div>
+<div class="camera"><div class="camera-view" id="cameraView"><video id="scanVideo" playsinline muted></video><div class="frame"><div><svg width="30" height="40" viewBox="0 0 30 40" fill="none" stroke="#ddd6fe" stroke-width="2" aria-hidden="true" style="display:block;margin:0 auto 6px"><rect x="2" y="2" width="26" height="36" rx="3"/><path d="M2 12h26"/></svg><b style="font-size:13px">Hold a card in the frame</b></div></div>
 <div class="cam-top"><div class="cam-status" id="scanStatus" role="status">Tap Start camera and hold a card steady in the frame — with Auto scan on it scans by itself, or tap Scan card.</div><button class="cam-clear" id="autoBtn" type="button">Auto scan: On</button><button class="cam-clear" id="clearSessionBtn" type="button">Clear session</button></div>
 <div class="cam-controls"><button class="cam-btn" id="cameraBtn" type="button">Start camera</button><button class="cam-btn primary" id="scanBtn" type="button">📷 Scan card</button><button class="cam-btn" id="manualBtn" type="button">Add by name</button><button class="cam-btn" id="doubleBtn" type="button">✓ Double-Check</button></div>
 </div>
@@ -227,10 +228,12 @@ dialog::backdrop{background:rgba(5,0,15,.6)}dialog .in{padding:20px}
 <!-- TRADE -->
 <section class="panel" id="panel-trade">
 <div class="backbar"><button class="btn back-btn" data-back>← Back</button><span class="backbar-title">Trade</span></div>
-<div class="section-head"><div><h2>Trade</h2><p>A filtered view of Tracker — everything with Trade qty &gt; 0, slabs included. Prices are shown.</p></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" id="tradePdfBtn">Download trade sheet (PDF)</button><button class="btn" id="needBtn">Download marked Needs</button></div></div>
+<div class="section-head"><div><h2>Trade</h2><p>A filtered view of Tracker — everything with Trade qty &gt; 0, slabs included. Trade copies are part of your Collected copies, not extra. Prices are shown.</p></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" id="tradePdfBtn">Download trade sheet (PDF)</button><button class="btn" id="needBtn">Download marked Needs</button></div></div>
+<p id="tradeMsg" role="status" style="color:var(--muted);font-size:13px;margin:0 0 4px"></p>
 <div class="toolbar"><label style="font-weight:700">Sort <select id="tradeSort"><option value="high">Value high → low</option><option value="low">Value low → high</option><option value="name">Name A–Z</option></select></label><label style="font-weight:700">Filter <select id="tradeFilter"><option value="all">All</option><option value="collected">Also collected</option><option value="tradeonly">Trade only</option></select></label></div>
 <div id="tradeBody" style="margin-top:12px"></div>
-<div class="section-head"><div><h2>I Still Need</h2><p>Missing cards from sets you’ve opened in Tracker appear here, with the set each one belongs to. Tick the ones you want in your Need file.</p></div></div>
+<div class="section-head"><div><h2>I Still Need</h2><p>Missing cards from sets you’ve opened in Tracker appear here, grouped by the set each one belongs to. Tick the ones you want in your Need file.</p></div></div>
+<div class="toolbar" style="margin-bottom:10px"><label style="font-weight:700;flex:1;display:flex;gap:8px;align-items:center">Search <input type="text" id="needSearch" placeholder="Card, number, or set…" style="flex:1;background:var(--card2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:0 8px;min-height:32px"></label></div>
 <div class="list" id="needList"></div>
 <p style="color:var(--muted);font-size:13px">Sharing is a sheet you download and send — it isn’t saved as a collection file, and there’s no live link (that would need a server).</p>
 </section>
@@ -273,13 +276,13 @@ dialog::backdrop{background:rgba(5,0,15,.6)}dialog .in{padding:20px}
 <div class="hero-card"><h3 style="margin-top:0">Tracker defaults</h3><div class="two"><div class="field"><label>Default view</label><select id="setView"><option value="binder">Binder Page</option><option value="list">Long List</option></select></div><div class="field"><label>Binder grid</label><select id="setGrid"><option value="3">3 × 3</option><option value="4">4 × 3</option></select></div></div></div>
 <div class="hero-card"><h3 style="margin-top:0">Sealed &amp; Slabs defaults</h3><div class="two"><div class="field"><label>Sealed default sort</label><select id="setSealedSort"><option value="high">Price high → low</option><option value="low">Price low → high</option><option value="name">Name A–Z</option></select></div><div class="field"><label>Slabs default sort</label><select id="setSlabSort"><option value="high">Price high → low</option><option value="low">Price low → high</option><option value="name">Name A–Z</option></select></div></div><p style="color:var(--muted);font-size:13px">These become the sort each section opens with. You can still change the sort in the section itself.</p></div>
 <div class="hero-card"><h3 style="margin-top:0">Scan</h3><label class="toggle"><input type="checkbox" id="setAutoCreate"><span><b>Auto-create groups I haven’t opened</b><small>When a scan matches a set you haven’t opened in Tracker, file it there without asking. If this is off, that scan is held back in the list with a note until you open the set — and the app never nags you to turn this on.</small></span></label><label class="toggle" style="margin-top:10px"><input type="checkbox" id="setSameGuard" checked><span><b>Same-card guard</b><small>When the same card is scanned twice in a row, the second scan is flagged as a possible duplicate and left unselected, so a card held still doesn’t get counted twice. Turn it off to file back-to-back copies without the flag.</small></span></label><label class="toggle" style="margin-top:10px"><input type="checkbox" id="setAutoScan" checked><span><b>Auto scan</b><small>With the camera on, holding a card steady in the frame scans it automatically — no tap needed. The same card won’t scan twice; swap it for the next one. You can also switch this on the camera itself.</small></span></label></div>
-<div class="hero-card"><h3 style="margin-top:0">Your data — a file on this phone</h3><p style="color:var(--muted);margin:0" id="dataHomeStatus">Right now your collection is saved <b style="color:var(--ink)">in this browser only</b> — every browser keeps its own separate save, so a set added in the Google app will not appear in Chrome, or the other way round. Link a data file in a folder on this phone and <b style="color:var(--ink)">the file becomes the real home</b>: every change saves to it, any browser that opens the app and uses the same file sees the same collection, and the file survives browser switches, updates, and reloads. Inside a browser your save is still protected: a backup copy restores automatically if the main save is damaged, open tabs sync so one can’t erase another’s additions, and the app asks the browser for durable storage.</p><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button type="button" class="btn primary" id="linkFileBtn">Save to a phone folder…</button><button type="button" class="btn" id="openFileBtn">Use an existing data file…</button><button type="button" class="btn primary" id="reconnectFileBtn" style="display:none">Reconnect data file</button><button type="button" class="btn" id="unlinkFileBtn" style="display:none">Stop using the file</button></div><p style="color:var(--muted);font-size:13px;margin:12px 0 0">Pick any folder on the phone — Downloads is an easy one to find again. The file is small: a few kilobytes of text for a typical collection, well under a megabyte even with hundreds of scans. It stays on your phone unless you move it.</p></div>
-<div class="hero-card"><h3 style="margin-top:0">Prices</h3><p style="color:var(--muted);margin-top:0">Singles &amp; sealed: TCGplayer market prices from tcgcsv, pulled fresh each time a set is opened and re-pulled for every opened set when you refresh. Slabs: manual, from Slab Research only — never auto-refreshed.</p><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn primary" id="refreshBtn2">↻ Refresh prices now</button></div><p style="font-size:13px;color:var(--muted)" id="refreshNote">Refreshing re-pulls each opened set’s price list from tcgcsv and updates prices only — quantities, check-offs, and where a card is filed never change, and no card ever moves.</p></div>
-<div class="hero-card"><h3 style="margin-top:0">About</h3><p style="color:var(--muted);margin:0">Mai Collector, powered by Mai AI (recognition runs on this device — no Gemini, OpenRouter, Groq, OpenAI, or any other provider, no API key, no account). Hierarchy is Game – Category – Group – Product, with no Era level and no Bulk bucket: bulk is simply Collected quantity. Set lists and prices pull live from tcgcsv; lists you’ve opened are kept for the session so flipping between sets doesn’t re-pull them.</p></div>
+<div class="hero-card"><h3 style="margin-top:0">Your data</h3><p style="color:var(--muted);margin:0" id="dataHomeStatus">Saved in this browser only. Pick a folder and your collection saves to a <b style="color:var(--ink)">mai_collector</b> folder there instead.</p><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button type="button" class="btn primary" id="linkFileBtn">Pick a folder…</button><button type="button" class="btn" id="openFileBtn">Use an existing data file…</button><button type="button" class="btn primary" id="reconnectFileBtn" style="display:none">Reconnect</button><button type="button" class="btn" id="unlinkFileBtn" style="display:none">Stop using it</button></div></div>
+<div class="hero-card"><h3 style="margin-top:0">Prices</h3><p style="color:var(--muted);margin-top:0">Singles &amp; sealed: TCGplayer prices from tcgcsv. Slabs: manual, set in Slabs.</p><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn primary" id="refreshBtn2">↻ Refresh prices now</button></div><p style="font-size:13px;color:var(--muted)" id="refreshNote">Updates prices only — quantities and check-offs never change.</p></div>
+<div class="hero-card"><h3 style="margin-top:0">About</h3><p style="color:var(--muted);margin:0">Mai Collector, powered by Mai AI — recognition runs on this device. Set lists and prices from tcgcsv.</p></div>
 </div>
 </section>
 
-<footer id="pageFooter">Mai Collector · Source data: <a href="https://tcgcsv.com/tcgplayer/categories" target="_blank" rel="noopener">tcgcsv.com</a> (TCGplayer, updated daily) · The catalog loads on demand: tap + Add in Tracker to browse every game, category, and set on tcgcsv and add just what you collect — your list saves to your data file on this phone when one is linked in Settings, and in this browser only until then · A set’s cards and prices pull live from tcgcsv when the set is opened and stay cached after · Card images via TCGplayer CDN · Slab prices are manual — check eBay sold listings, never asking prices.</footer>
+<footer id="pageFooter">Mai Collector · Set lists &amp; prices: <a href="https://tcgcsv.com/tcgplayer/categories" target="_blank" rel="noopener">tcgcsv.com</a> (TCGplayer) · Slab prices are manual — check eBay sold listings.</footer>
 </div>
 
 <div id="swipeHint" aria-hidden="true">‹</div>
@@ -289,6 +292,12 @@ dialog::backdrop{background:rgba(5,0,15,.6)}dialog .in{padding:20px}
 <dialog id="itemDialog"><div class="in"><h3 style="margin-top:0" id="itemDialogTitle">Add an item</h3><div style="display:grid;gap:10px"><div class="field"><label>Name</label><input type="text" id="itemName" placeholder="Card or product name"></div><div class="two"><div class="field"><label>Type</label><select id="itemKind"><option value="single">Single</option><option value="sealed">Sealed</option></select></div><div class="field"><label>Sealed type</label><select id="itemSub"><option value="box">Box / Case</option><option value="pack">Pack</option></select></div></div><div class="field"><label>Price ($)</label><input type="number" id="itemPrice" min="0" step="0.01" value="0"></div><div class="two"><div class="field"><label>Collected qty</label><input type="number" id="itemCollected" value="1" min="0"></div><div class="field"><label>Trade qty</label><input type="number" id="itemTrade" value="0" min="0"></div></div></div><div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap"><button class="btn primary" id="saveItemBtn">Save item</button><button class="btn danger" id="deleteItemBtn" style="display:none">Remove item</button><button class="btn" onclick="document.getElementById('itemDialog').close()">Cancel</button></div></div></dialog>
 
 <dialog id="slabDialog"><div class="in"><h3 style="margin-top:0" id="slabDialogTitle">Add a slab</h3><div style="display:grid;gap:10px"><div class="field"><label>Card name</label><input type="text" id="slabCard" placeholder="Type the card name"></div><div class="two"><div class="field"><label>Company</label><input type="text" id="slabCompany" value="PSA"></div><div class="field"><label>Grade</label><input type="text" id="slabGrade" value="10"></div></div><div class="field"><label>Cert # (optional)</label><input type="text" id="slabCert" placeholder="e.g. 81234567"></div><div class="two"><div class="field"><label>Collected qty</label><input type="number" id="slabCollected" value="1" min="0"></div><div class="field"><label>Trade qty</label><input type="number" id="slabTrade" value="0" min="0"></div></div></div><div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap"><button class="btn primary" id="saveSlabBtn">Save slab</button><button class="btn danger" id="deleteSlabBtn" style="display:none">Remove slab</button><button class="btn" onclick="document.getElementById('slabDialog').close()">Cancel</button></div></div></dialog>
+
+<div class="toast" id="toast" role="status"></div>
+
+<dialog id="confirmDialog"><div class="in"><h3 style="margin-top:0">Remove this?</h3><p style="color:var(--muted);margin:0" id="confirmMsg"></p><div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap"><button class="btn danger" id="confirmYes">Remove</button><button class="btn" id="confirmNo">Cancel</button></div></div></dialog>
+
+<dialog id="cardDialog"><div class="in" id="cardDetailBody"></div></dialog>
 
 <script>
 // ---------- Catalog directory (names + IDs only, from tcgcsv) — nothing is preloaded: the Tracker starts empty for everyone, the full catalog loads on demand from the + Add menu, and a set’s card list loads when the set is opened ----------
@@ -380,6 +389,27 @@ function addGroup(catId,gr){
 function removeGroup(catId,groupId){userCatalog.groups=userCatalog.groups.filter(x=>!(String(x.catId)===String(catId)&&String(x.groupId)===String(groupId)));afterCatalogChange()}
 const money=n=>"$"+Number(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
 const esc=s=>String(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+// Display-only name tidy: tcgcsv product names repeat the set number
+// as a suffix ("Son Goku - FB11-001") while the number is shown
+// separately, so the suffix is stripped wherever a name is DISPLAYED.
+// Stored / source names are never changed — matching keeps using them.
+function cleanDisplayName(name){return String(name||'').replace(/\s+-\s+[A-Za-z]{1,4}\d{1,2}-\d{2,3}\b.*$/,'')}
+// ---------- Toast (small in-page status note) ----------
+let toastTimer=null;
+function toast(msg){const t=document.getElementById('toast');if(!t)return;t.textContent=msg;t.classList.add('show');if(toastTimer)clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2800)}
+// ---------- Remove confirmation ----------
+// Every Remove / Delete in the app asks first, through this dialog —
+// nothing deletes on a single tap any more.
+let confirmCb=null;
+function confirmAction(msg,cb){const m=document.getElementById('confirmMsg');if(m)m.textContent=msg;confirmCb=cb;const d=document.getElementById('confirmDialog');if(d&&!d.open)d.showModal()}
+document.getElementById('confirmYes').addEventListener('click',()=>{const cb=confirmCb;confirmCb=null;document.getElementById('confirmDialog').close();if(cb)cb()});
+document.getElementById('confirmNo').addEventListener('click',()=>{confirmCb=null;document.getElementById('confirmDialog').close()});
+// ---------- Trade is a subset of Collected ----------
+// One physical card can be marked for trade, but Trade copies are
+// part of the Collected copies — never extra. Everywhere a quantity
+// changes, Trade is capped at Collected; hitting the cap warns.
+const TRADE_CAP_MSG='Trade can’t be more than Collected — Trade copies are part of your Collected copies, so Trade was set to match.';
+function capTrade(obj){if((obj.t||0)>(obj.c||0)){obj.t=obj.c||0;return true}return false}
 
 // ---------- State — starts empty, then loadState() restores anything saved in localStorage ----------
 let items=[]; // {id,name,kind:'single'|'sealed',sub,price,c,t,catId,productId,groupId}
@@ -530,36 +560,46 @@ try{
  document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'){try{const raw=localStorage.getItem(STORAGE_KEY);if(raw&&adoptStoredState(raw))renderAll()}catch(e){}}});
  if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(function(){});
 }catch(e){}
-// ---------- Phone-folder data file (File System Access) ----------
-// The collection's real home can be ONE data file in a folder on the
-// phone. The user links it once (Settings → Your data): from then on
-// every save also writes that file, and every open reads it first.
-// The file holds plain JSON in exactly the payload shape saveState()
-// already writes, so it survives browser switches (any browser that
-// links the same file sees the same collection), app updates, and
-// reloads. The file handle itself cannot live in localStorage, so it
-// is kept in a tiny IndexedDB; browsers remember the permission, and
-// when a browser asks again the Settings card offers a one-tap
-// Reconnect (permission requests need a tap). localStorage stays as
-// the always-on mirror: in a browser without folder support (or
-// before a file is linked) it is the home, exactly as before.
-let dataFileHandle=null;      // FileSystemFileHandle for the linked data file
+// ---------- Phone-folder storage (File System Access) ----------
+// The user picks a location ONCE (Settings → Your data → Pick a
+// folder…). Inside it the app keeps a mai_collector folder: the main
+// data file (mai-collector-data.json, the payload saveState() writes)
+// plus a folder per category and, inside it, a folder per group —
+// each group folder holds the set's source file (ProductsAndPrices
+// .csv), a source/ folder (parsed product list) and a collection/
+// folder (this user's items in that set), side by side. Everything
+// is written in the background on every change; no more prompts.
+// Handles can't live in localStorage, so they are kept in a tiny
+// IndexedDB; when a browser asks for permission again the Settings
+// card offers a one-tap Reconnect. A single linked data file (the
+// older flow) still works as before, and localStorage stays as the
+// always-on mirror in every case.
+let dataFileHandle=null;      // FileSystemFileHandle for the main data file
+let dataDirHandle=null;       // FileSystemDirectoryHandle for the location the user picked
+let maiDirHandle=null;        // the mai_collector folder inside that location
+let dirMode=false;            // true when saving through the picked folder
 let dataFileReady=false;      // true once the file has been read (or seeded) this session — saves never touch the file before that, so a startup save can't clobber it unread
-let dataFileNeedsPerm=false;  // a file is linked but this browser wants a tap before read/write
+let dataFileNeedsPerm=false;  // storage is set up but this browser wants a tap before read/write
 let dataFileBroken=false;     // the last file write failed (file moved/deleted, access revoked)
 let fileWriteTimer=null,fileWriteChain=Promise.resolve();
+let treeSyncChain=Promise.resolve();
 const fileSupported=('showSaveFilePicker' in window)&&('indexedDB' in window);
+const dirSupported=('showDirectoryPicker' in window)&&('indexedDB' in window);
+const fsSupported=fileSupported||dirSupported;
 function idbOpen(){return new Promise(function(res,rej){try{const r=indexedDB.open('mai-collector-fs',1);r.onupgradeneeded=function(){try{r.result.createObjectStore('kv')}catch(e){}};r.onsuccess=function(){res(r.result)};r.onerror=function(){rej(r.error)}}catch(e){rej(e)}})}
 function idbCall(mode,fn){return idbOpen().then(function(db){return new Promise(function(res,rej){try{const tx=db.transaction('kv',mode);const req=fn(tx.objectStore('kv'));req.onsuccess=function(){res(req.result)};req.onerror=function(){rej(req.error)};tx.oncomplete=function(){try{db.close()}catch(e){}}}catch(e){rej(e)}})}).catch(function(){return null})}
 function idbGet(k){return idbCall('readonly',function(s){return s.get(k)})}
 function idbSet(k,v){return idbCall('readwrite',function(s){return s.put(v,k)})}
 function idbDel(k){return idbCall('readwrite',function(s){return s.delete(k)})}
 async function filePerm(ask){
- if(!dataFileHandle)return 'denied';
+ // In folder mode the permission lives on the picked directory —
+ // access granted there covers everything inside mai_collector.
+ const h=(dirMode&&dataDirHandle)?dataDirHandle:dataFileHandle;
+ if(!h)return 'denied';
  const opts={mode:'readwrite'};
  try{
-  let p=await dataFileHandle.queryPermission(opts);
-  if(p!=='granted'&&ask)p=await dataFileHandle.requestPermission(opts);
+  let p=await h.queryPermission(opts);
+  if(p!=='granted'&&ask)p=await h.requestPermission(opts);
   return p;
  }catch(e){return 'denied'}
 }
@@ -601,16 +641,35 @@ function queueFileWrite(){
    await w.write(JSON.stringify(p));
    await w.close();
    if(dataFileBroken){dataFileBroken=false;updateDataHomeUI()}
+   syncFolderTree(); // folder mode: mirror the change into the category/group folders too
   }catch(e){if(!dataFileBroken){dataFileBroken=true;updateDataHomeUI()}}
  }).catch(function(){});
  return fileWriteChain;
 }
 function writeToFile(){
- if(!dataFileHandle||!dataFileReady||!fileSupported)return;
+ if(!dataFileHandle||!dataFileReady||!fsSupported)return;
  if(fileWriteTimer)clearTimeout(fileWriteTimer);
  fileWriteTimer=setTimeout(function(){fileWriteTimer=null;queueFileWrite()},300);
 }
 async function activateDataFile(ask){
+ if(dirMode){
+  if(!dataDirHandle)return;
+  const perm=await filePerm(ask);
+  dataFileNeedsPerm=(perm!=='granted');
+  if(perm==='granted'){
+   try{
+    maiDirHandle=await dataDirHandle.getDirectoryHandle('mai_collector',{create:true});
+    dataFileHandle=await maiDirHandle.getFileHandle('mai-collector-data.json',{create:true});
+   }catch(e){dataFileBroken=true;updateDataHomeUI();return}
+   const adopted=await readDataFile();
+   dataFileReady=true;
+   if(adopted)renderAll();
+   else await queueFileWrite(); // file empty, unreadable, or older: this browser's copy becomes the file's content
+   syncFolderTree();
+  }
+  updateDataHomeUI();
+  return;
+ }
  if(!dataFileHandle)return;
  const perm=await filePerm(ask);
  dataFileNeedsPerm=(perm!=='granted');
@@ -624,7 +683,7 @@ async function activateDataFile(ask){
 }
 async function initDataFile(){
  updateDataHomeUI();
- const lf=document.getElementById('linkFileBtn');if(lf)lf.addEventListener('click',linkDataFile);
+ const lf=document.getElementById('linkFileBtn');if(lf)lf.addEventListener('click',function(){if(dirSupported)pickFolder();else linkDataFile()});
  const of=document.getElementById('openFileBtn');if(of)of.addEventListener('click',openDataFile);
  const rf=document.getElementById('reconnectFileBtn');if(rf)rf.addEventListener('click',function(){activateDataFile(true)});
  const uf=document.getElementById('unlinkFileBtn');if(uf)uf.addEventListener('click',unlinkDataFile);
@@ -634,18 +693,31 @@ async function initDataFile(){
   // the background — pick up its newer copy instead of overwriting it.
   if((await filePerm(false))==='granted'){if(await readDataFile())renderAll()}
  });
- if(!fileSupported)return;
+ if(!fsSupported)return;
  try{
+  const dh=await idbGet('dataDirHandle');
+  if(dh&&dh.kind==='directory'){dataDirHandle=dh;dirMode=true;await activateDataFile(false);return}
   const h=await idbGet('dataFileHandle');
   if(h&&h.kind==='file'){dataFileHandle=h;await activateDataFile(false)}
  }catch(e){}
+}
+async function pickFolder(){
+ if(!dirSupported)return;
+ try{
+  const d=await window.showDirectoryPicker({mode:'readwrite'});
+  dataDirHandle=d;dirMode=true;dataFileBroken=false;dataFileNeedsPerm=false;dataFileReady=false;maiDirHandle=null;dataFileHandle=null;
+  await idbSet('dataDirHandle',d);
+  await idbDel('dataFileHandle');
+  await activateDataFile(true); // creates mai_collector inside the picked location and seeds it
+ }catch(e){/* picker cancelled — nothing changes */}
 }
 async function linkDataFile(){
  if(!fileSupported)return;
  try{
   const h=await window.showSaveFilePicker({suggestedName:'mai-collector-data.json',types:[{description:'Mai Collector data file',accept:{'application/json':['.json']}}]});
-  dataFileHandle=h;dataFileBroken=false;dataFileNeedsPerm=false;
+  dataFileHandle=h;dataFileBroken=false;dataFileNeedsPerm=false;dirMode=false;dataDirHandle=null;maiDirHandle=null;
   await idbSet('dataFileHandle',h);
+  await idbDel('dataDirHandle');
   dataFileReady=true; // a freshly picked file: seeding it with the current collection is the point of linking
   await queueFileWrite();
   updateDataHomeUI();
@@ -656,39 +728,165 @@ async function openDataFile(){
  try{
   const picked=await window.showOpenFilePicker({types:[{description:'Mai Collector data file',accept:{'application/json':['.json']}}],multiple:false});
   if(!picked||!picked[0])return;
-  dataFileHandle=picked[0];dataFileBroken=false;
+  dataFileHandle=picked[0];dataFileBroken=false;dirMode=false;dataDirHandle=null;maiDirHandle=null;
   await idbSet('dataFileHandle',dataFileHandle);
+  await idbDel('dataDirHandle');
   await activateDataFile(true);
  }catch(e){/* picker cancelled — nothing changes */}
 }
 async function unlinkDataFile(){
- dataFileHandle=null;dataFileReady=false;dataFileNeedsPerm=false;dataFileBroken=false;
+ dataFileHandle=null;dataDirHandle=null;maiDirHandle=null;dirMode=false;dataFileReady=false;dataFileNeedsPerm=false;dataFileBroken=false;
  await idbDel('dataFileHandle');
+ await idbDel('dataDirHandle');
  updateDataHomeUI();
 }
 function updateDataHomeUI(){
  const st=document.getElementById('dataHomeStatus');if(!st)return;
  const lf=document.getElementById('linkFileBtn'),of=document.getElementById('openFileBtn'),rf=document.getElementById('reconnectFileBtn'),uf=document.getElementById('unlinkFileBtn');
  function show(el,on){if(el)el.style.display=on?'':'none'}
- if(!fileSupported){
-  st.innerHTML='This browser can’t save to a phone folder — that needs a browser with file access, like Chrome on Android. Here your collection keeps saving the way it always has: in this browser only, with the automatic backup copy, cross-tab sync, and durable-storage request all still on.';
+ if(!fsSupported){
+  st.textContent='This browser can’t save to a phone folder (that needs Chrome on Android). Your collection saves in this browser only.';
   show(lf,false);show(of,false);show(rf,false);show(uf,false);return;
  }
+ if(dirMode&&dataDirHandle){
+  if(dataFileNeedsPerm){
+   st.innerHTML='Your <b style="color:var(--ink)">mai_collector</b> folder is set up, but this browser needs your OK to use it again. Tap <b style="color:var(--ink)">Reconnect</b>.';
+   show(lf,false);show(of,false);show(rf,true);show(uf,true);return;
+  }
+  if(dataFileBroken){
+   st.innerHTML='Saving to your <b style="color:var(--ink)">mai_collector</b> folder failed — it may have been moved or deleted. Your collection is safe in this browser.';
+   show(lf,true);show(of,false);show(rf,true);show(uf,true);return;
+  }
+  st.innerHTML='Saving to your <b style="color:var(--ink)">mai_collector</b> folder — one folder per category and set, updated on every change. A copy also stays in this browser.';
+  show(lf,false);show(of,false);show(rf,false);show(uf,true);return;
+ }
  if(!dataFileHandle){
-  st.innerHTML='Right now your collection is saved <b style="color:var(--ink)">in this browser only</b> — every browser keeps its own separate save, so a set added in the Google app will not appear in Chrome, or the other way round. Link a data file in a folder on this phone and <b style="color:var(--ink)">the file becomes the real home</b>: every change saves to it, any browser that opens the app and uses the same file sees the same collection, and the file survives browser switches, updates, and reloads. Inside a browser your save is still protected: a backup copy restores automatically if the main save is damaged, open tabs sync so one can’t erase another’s additions, and the app asks the browser for durable storage.';
+  st.innerHTML='Saved in this browser only. Pick a folder and your collection saves to a <b style="color:var(--ink)">mai_collector</b> folder there instead — the same collection in any browser that picks the same folder.';
   show(lf,true);show(of,true);show(rf,false);show(uf,false);return;
  }
  const name=esc(dataFileHandle.name||'mai-collector-data.json');
  if(dataFileNeedsPerm){
-  st.innerHTML='Your data file <b style="color:var(--ink)">'+name+'</b> is linked, but this browser needs your OK before it can read and write it again — that comes up after the browser has been closed a while. Tap <b style="color:var(--ink)">Reconnect data file</b> and your collection loads from the file. Until then, changes keep saving in this browser only.';
+  st.innerHTML='Your data file <b style="color:var(--ink)">'+name+'</b> is linked, but this browser needs your OK to use it again. Tap <b style="color:var(--ink)">Reconnect</b>.';
   show(lf,false);show(of,false);show(rf,true);show(uf,true);return;
  }
  if(dataFileBroken){
-  st.innerHTML='Your collection’s home is the file <b style="color:var(--ink)">'+name+'</b> in the phone folder you picked — but the last save to it failed: the file may have been moved or deleted, or access was taken back. Your collection is still safe in this browser. Reconnect the file, or link it again, to resume saving to the folder.';
+  st.innerHTML='Saving to <b style="color:var(--ink)">'+name+'</b> failed — the file may have been moved or deleted. Your collection is safe in this browser.';
   show(lf,true);show(of,true);show(rf,true);show(uf,true);return;
  }
- st.innerHTML='Your collection’s home is the file <b style="color:var(--ink)">'+name+'</b> in the phone folder you picked. Every change saves to that file, and opening the app reads it first — so the collection is the same in any browser that uses the same file, and it survives browser switches, app updates, and reloads. A copy also stays in this browser as a backup. To use it in another browser: open Mai Collector there, come to this card, tap “Use an existing data file…”, and pick the same file.';
+ st.innerHTML='Saving to <b style="color:var(--ink)">'+name+'</b> in your folder, on every change. A copy also stays in this browser.';
  show(lf,false);show(of,false);show(rf,false);show(uf,true);
+}
+// ---------- mai_collector folder tree ----------
+// Mirrors the catalog inside the picked folder: one folder per
+// category, one per group inside it. A category folder holds
+// category.json (its downloaded groups list); a group folder holds
+// the set's source file (ProductsAndPrices.csv, dropped in by
+// storeGroupCsv when the set downloads), a source/ folder with the
+// parsed product list, and a collection/ folder with this user's
+// items in that set — source data and collection side by side.
+// Everything here is best-effort background work: any failure is
+// swallowed and the main data file remains the record the app
+// reads back, exactly as before.
+function safeFolderName(name,fallback){
+ let s=String(name==null?'':name).replace(/[\\/:*?"<>|\u0000-\u001f]/g,' ').replace(/\s+/g,' ').trim().replace(/[.\s]+$/,'');
+ if(!s)s=fallback;
+ if(s.length>80)s=s.slice(0,80).trim();
+ return s||fallback;
+}
+function uniqueFolderNames(list,fallbackPrefix){
+ const counts={};
+ list.forEach(function(e){e._folder=safeFolderName(e.name,fallbackPrefix+' '+e.key);counts[e._folder]=(counts[e._folder]||0)+1});
+ list.forEach(function(e){if(counts[e._folder]>1)e._folder=e._folder+' ['+e.key+']'});
+ return list;
+}
+async function writeTextTo(dir,name,text){
+ const fh=await dir.getFileHandle(name,{create:true});
+ const w=await fh.createWritable();
+ await w.write(text);
+ await w.close();
+}
+// The categories this user has: added games/cats/groups, opened
+// sets, downloaded sets, and anything holding items.
+function knownCats(){
+ const map={};
+ function put(id,name){if(id==null)return;const k=String(id);if(!map[k])map[k]={id:id,name:name||''};else if(!map[k].name&&name)map[k].name=name}
+ function nm(id){const info=catInfo(id);return info?(info.display||info.name):null}
+ GAMES.forEach(function(g){g.cats.forEach(function(c){put(c.id,nm(c.id)||c.name)})});
+ userCatalog.cats.forEach(function(c){put(c.id,nm(c.id)||c.name)});
+ userCatalog.groups.forEach(function(g){put(g.catId,nm(g.catId))});
+ Object.keys(visitedGroups).forEach(function(k){put(k.split(':')[0],nm(k.split(':')[0]))});
+ Object.keys(productCache).forEach(function(k){const pc=productCache[k];if(pc)put(pc.catId,nm(pc.catId))});
+ items.forEach(function(i){put(i.catId,nm(i.catId))});
+ return Object.keys(map).map(function(k){const c=map[k];if(!c.name)c.name='Category '+k;return c});
+}
+// The groups of one category this user has: added, opened,
+// downloaded, or holding items. (Not every group tcgcsv lists —
+// only the ones that are part of this collection.)
+function knownGroups(catId){
+ const map={};
+ function put(gid,name,abbr){if(gid==null)return;const k=String(gid);if(!map[k])map[k]={groupId:gid,name:name||'',abbreviation:abbr||''};else{if(!map[k].name&&name)map[k].name=name;if(!map[k].abbreviation&&abbr)map[k].abbreviation=abbr}}
+ userCatalog.groups.forEach(function(g){if(String(g.catId)===String(catId))put(g.groupId,g.name,g.abbreviation)});
+ Object.keys(visitedGroups).forEach(function(k){const p=k.split(':');if(p.length===2&&String(p[0])===String(catId))put(p[1],'','')});
+ Object.keys(productCache).forEach(function(k){const pc=productCache[k];if(pc&&String(pc.catId)===String(catId))put(pc.groupId,pc.groupName,'')});
+ items.forEach(function(i){if(String(i.catId)===String(catId)&&i.groupId!=null)put(i.groupId,'','')});
+ const gc=groupCache[catId];
+ if(gc&&gc.status==='ready'&&gc.groups)Object.keys(map).forEach(function(k){const g=gc.groups.find(function(x){return String(x.groupId)===k});if(g)put(g.groupId,g.name,g.abbreviation)});
+ if(nav.group&&nav.cat&&String(nav.cat.id)===String(catId))put(nav.group.groupId,nav.group.name,nav.group.abbreviation);
+ return Object.keys(map).map(function(k){const g=map[k];if(!g.name)g.name='Set '+k;return g});
+}
+function syncFolderTree(){
+ if(!dirMode||!maiDirHandle||!dataFileReady)return;
+ treeSyncChain=treeSyncChain.then(runTreeSync).catch(function(){});
+}
+async function runTreeSync(){
+ if(!dirMode||!maiDirHandle)return;
+ try{
+  const cats=uniqueFolderNames(knownCats().map(function(c){return{key:String(c.id),name:c.name,id:c.id}}),'Category');
+  const keepCats={};cats.forEach(function(c){keepCats[c._folder]=1});
+  try{
+   for await(const entry of maiDirHandle.values()){
+    if(entry.kind==='directory'&&!keepCats[entry.name]){try{await maiDirHandle.removeEntry(entry.name,{recursive:true})}catch(e){}}
+   }
+  }catch(e){}
+  for(const cat of cats){
+   const catDir=await maiDirHandle.getDirectoryHandle(cat._folder,{create:true});
+   const gc=groupCache[cat.id];
+   const catGroups=(gc&&gc.status==='ready'&&gc.groups)?gc.groups.map(function(g){return{groupId:g.groupId,name:g.name||'',abbreviation:g.abbreviation||''}}):knownGroups(cat.id).map(function(g){return{groupId:g.groupId,name:g.name,abbreviation:g.abbreviation}});
+   await writeTextTo(catDir,'category.json',JSON.stringify({catId:cat.id,name:cat.name,groups:catGroups,savedAt:Date.now()},null,1));
+   const groups=uniqueFolderNames(knownGroups(cat.id).map(function(g){return{key:String(g.groupId),name:g.name,groupId:g.groupId,abbreviation:g.abbreviation}}),'Set');
+   const keepGroups={};groups.forEach(function(g){keepGroups[g._folder]=1});
+   try{
+    for await(const entry of catDir.values()){
+     if(entry.kind==='directory'&&!keepGroups[entry.name]){try{await catDir.removeEntry(entry.name,{recursive:true})}catch(e){}}
+    }
+   }catch(e){}
+   for(const gr of groups){
+    const gDir=await catDir.getDirectoryHandle(gr._folder,{create:true});
+    const collDir=await gDir.getDirectoryHandle('collection',{create:true});
+    const gItems=items.filter(function(i){return String(i.catId)===String(cat.id)&&String(i.groupId)===String(gr.groupId)});
+    await writeTextTo(collDir,'collection.json',JSON.stringify({catId:cat.id,groupId:gr.groupId,name:gr.name,abbreviation:gr.abbreviation,items:gItems,savedAt:Date.now()},null,1));
+    const pc=productCache[String(cat.id)+':'+String(gr.groupId)];
+    if(pc&&pc.status==='ready'&&pc.products){
+     const sDir=await gDir.getDirectoryHandle('source',{create:true});
+     await writeTextTo(sDir,'products.json',JSON.stringify({catId:cat.id,groupId:gr.groupId,name:gr.name,products:pc.products,savedAt:Date.now()},null,1));
+    }
+   }
+  }
+ }catch(e){}
+}
+// A set's raw source file, dropped into its group folder the moment
+// the set downloads from tcgcsv.
+function storeGroupCsv(catId,groupId,groupName,rawCsv){
+ if(!dirMode||!maiDirHandle||!dataFileReady||!rawCsv)return;
+ treeSyncChain=treeSyncChain.then(async function(){
+  try{
+   const catEntry=uniqueFolderNames(knownCats().map(function(c){return{key:String(c.id),name:c.name,id:c.id}}),'Category').find(function(c){return String(c.id)===String(catId)});
+   const catDir=await maiDirHandle.getDirectoryHandle(catEntry?catEntry._folder:safeFolderName((catInfo(catId)||{}).name,'Category '+catId),{create:true});
+   const gEntry=uniqueFolderNames(knownGroups(catId).map(function(g){return{key:String(g.groupId),name:g.name,groupId:g.groupId,abbreviation:g.abbreviation}}),'Set').find(function(g){return String(g.groupId)===String(groupId)});
+   const gDir=await catDir.getDirectoryHandle(gEntry?gEntry._folder:safeFolderName(groupName,'Set '+groupId),{create:true});
+   await writeTextTo(gDir,'ProductsAndPrices.csv',rawCsv);
+  }catch(e){}
+ }).catch(function(){});
 }
 function applyLoadedData(d){
  try{
@@ -708,6 +906,11 @@ function applyLoadedData(d){
     groups:Array.isArray(uc.groups)?uc.groups.filter(x=>x&&typeof x==='object'&&x.catId!=null&&x.groupId!=null).map(x=>({catId:x.catId,groupId:x.groupId,name:x.name||'',abbreviation:x.abbreviation||''})):[]
    };
   }
+  // Enforce the counting rule on data saved before it existed: Trade
+  // copies are part of Collected, so a stored Trade above Collected
+  // (phantom copies that double-counted) is pulled back to match.
+  items.forEach(function(i){i.c=Math.max(0,+i.c||0);i.t=Math.max(0,+i.t||0);if(i.t>i.c)i.t=i.c});
+  slabs.forEach(function(s){s.c=Math.max(0,+s.c||0);s.t=Math.max(0,+s.t||0);if(s.t>s.c)s.t=s.c});
   let maxId=0;items.forEach(function(i){if(i.id>maxId)maxId=i.id});slabs.forEach(function(s){if(s.id>maxId)maxId=s.id});if(itemSeq<=maxId)itemSeq=maxId+1;
  }catch(e){}
 }
@@ -726,7 +929,7 @@ function applySettingsToUI(){
  }catch(e){}
 }
 function catItems(){return items.filter(i=>nav.cat&&i.catId===nav.cat.id)}
-function setItemQty(id,kind,delta){const it=items.find(i=>i.id===id);if(!it)return;it[kind]=Math.max(0,it[kind]+delta);renderAll()}
+function setItemQty(id,kind,delta){const it=items.find(i=>i.id===id);if(!it)return;it[kind]=Math.max(0,it[kind]+delta);if(capTrade(it))toast(TRADE_CAP_MSG);renderAll()}
 
 // ---------- Navigation: overview home opens each section full-screen ----------
 // A history stack powers swipe-back (and the back buttons) in EVERY section:
@@ -770,7 +973,7 @@ function storedNavState(){
   if(!raw)return null;
   const s=JSON.parse(raw);
   if(!s||NAV_PANELS.indexOf(s.panel)===-1)return null;
-  return {panel:s.panel,game:s.game||null,catId:s.catId!=null?s.catId:null,group:(s.group&&typeof s.group==='object')?s.group:null,groupId:s.groupId||null};
+  return {panel:s.panel,game:s.game||null,catId:s.catId!=null?s.catId:null,group:(s.group&&typeof s.group==='object')?s.group:null,groupId:s.groupId||null,tree:(s.tree&&typeof s.tree==='object')?s.tree:null};
  }catch(e){return null}
 }
 // ---------- Real browser history (this is what stops a swipe closing the app) ----------
@@ -785,7 +988,10 @@ let historyArmed=false;
 function stackCopy(){return JSON.parse(JSON.stringify(historyStack))}
 function persistNav(){
  const s=snapshot();
- try{sessionStorage.setItem(NAV_STORE_KEY,JSON.stringify(s))}catch(e){}
+ // The Tracker tree's expanded game / category rows ride along, so
+ // coming back to Tracker (or reloading) finds the tree expanded the
+ // way it was left, not collapsed back to games only.
+ try{sessionStorage.setItem(NAV_STORE_KEY,JSON.stringify(Object.assign({},s,{tree:{games:treeOpen.games,cats:treeOpen.cats}})))}catch(e){}
  if(!historyArmed)return;
  try{history.replaceState({maiNavStack:stackCopy()},'','#'+encodeNavState(s))}catch(e){}
 }
@@ -800,6 +1006,21 @@ window.addEventListener('popstate',function(e){
  if(st&&st.maiNavStack&&st.maiNavStack.length){
   historyStack=JSON.parse(JSON.stringify(st.maiNavStack));
   applyState(historyStack[historyStack.length-1]);
+  return;
+ }
+ // A hash-only navigation (a deep link like #sealed, or the hash being
+ // set on the open page) arrives here with NO app state — and used to
+ // fall into the guard below, which slammed the app back to Home even
+ // though the hash named a real section. Honor the hash instead: open
+ // the screen it names and arm a proper app entry for it.
+ let hs=null;try{hs=decodeNavHash()}catch(err){}
+ if(hs&&(hs.panel!=='home'||hs.game||hs.catId!=null)){
+  applyState(hs);
+  historyStack=[{panel:'home',game:null,catId:null,group:null}];
+  const cur=snapshot();
+  if(JSON.stringify(cur)!==JSON.stringify(historyStack[0]))historyStack.push(cur);
+  try{history.pushState({maiNavStack:stackCopy()},'','#'+encodeNavState(snapshot()))}catch(err){}
+  persistNav();
   return;
  }
  // Guard / foreign entry: the user swiped back past the first app screen.
@@ -999,17 +1220,17 @@ function renderCrumbs(){
 }
 function itemCard(it){
  const qtyHtml=['c','t'].map(k=>`<div class="qtybox"><label>${k==='c'?'Collected':'Trade'}</label><div class="qtyctrl"><button data-q="${it.id}:${k}:-1" aria-label="minus">−</button><strong>${it[k]}</strong><button data-q="${it.id}:${k}:1" aria-label="plus">+</button></div></div>`).join('');
- return `<article class="carditem"><div class="cardbody"><b>${esc(it.name)}</b><div class="meta"><span>${it.kind==='sealed'?'Sealed · '+(it.sub==='box'?'Box / Case':'Pack'):'Single'}</span><span class="price">${money(it.price)}</span></div><div class="qtyrow">${qtyHtml}</div><div style="display:flex;gap:8px;margin-top:8px"><button class="btn small" data-edit-item="${it.id}">Edit</button><button class="btn small danger" data-del-item="${it.id}">Remove</button></div></div></article>`;
+ return `<article class="carditem"><div class="cardbody"><b>${esc(cleanDisplayName(it.name))}</b><div class="meta"><span>${it.kind==='sealed'?'Sealed · '+(it.sub==='box'?'Box / Case':'Pack'):'Single'}</span><span class="price">${money(it.price)}</span></div><div class="qtyrow">${qtyHtml}</div><div style="display:flex;gap:8px;margin-top:8px"><button class="btn small" data-edit-item="${it.id}">Edit</button><button class="btn small danger" data-del-item="${it.id}">Remove</button></div></div></article>`;
 }
 function slabRow(s){
  const r=research[s.key];
- return `<div class="row"><div class="grow"><b>${esc(s.name)}</b><small>${esc(s.company)} ${esc(s.grade)}${s.cert?' · Cert '+esc(s.cert):''} · Collected ${s.c} · Trade ${s.t} · Research price ${r?money(r.price):'not priced yet'}</small></div><span class="price">${money((r?r.price:0)*(s.c+s.t))}</span><button class="btn small" data-edit-slab="${s.id}">Edit</button><button class="btn small danger" data-del-slab="${s.id}">Remove</button></div>`;
+ return `<div class="row"><div class="grow"><b>${esc(s.name)}</b><small>${esc(s.company)} ${esc(s.grade)}${s.cert?' · Cert '+esc(s.cert):''} · Collected ${s.c} · Trade ${s.t} · Research price ${r?money(r.price):'not priced yet'}</small></div><span class="price">${money((r?r.price:0)*s.c)}</span><button class="btn small" data-edit-slab="${s.id}">Edit</button><button class="btn small danger" data-del-slab="${s.id}">Remove</button></div>`;
 }
 function wireItemControls(root){
  root.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{const[id,k,d]=b.dataset.q.split(':');setItemQty(+id,k,+d)});
- root.querySelectorAll('[data-del-item]').forEach(b=>b.onclick=()=>{items=items.filter(i=>i.id!==+b.dataset.delItem);renderAll()});
+ root.querySelectorAll('[data-del-item]').forEach(b=>b.onclick=()=>{const it=items.find(i=>i.id===+b.dataset.delItem);confirmAction(`Remove “${it?it.name:'this item'}” from your collection? This can’t be undone.`,()=>{items=items.filter(i=>i.id!==+b.dataset.delItem);renderAll()})});
  root.querySelectorAll('[data-edit-item]').forEach(b=>b.onclick=()=>openItemDialog(+b.dataset.editItem));
- root.querySelectorAll('[data-del-slab]').forEach(b=>b.onclick=()=>{slabs=slabs.filter(s=>s.id!==+b.dataset.delSlab);renderAll()});
+ root.querySelectorAll('[data-del-slab]').forEach(b=>b.onclick=()=>{const s=slabs.find(x=>x.id===+b.dataset.delSlab);confirmAction(`Remove the slab “${s?s.name:'this slab'}” from your collection? This can’t be undone.`,()=>{slabs=slabs.filter(x=>x.id!==+b.dataset.delSlab);renderAll()})});
  root.querySelectorAll('[data-edit-slab]').forEach(b=>b.onclick=()=>openSlabDialog(+b.dataset.editSlab));
 }
 // ---------- Live set data from tcgcsv (groups + full product lists) ----------
@@ -1082,7 +1303,7 @@ function ensureItemFor(p){
  }
  return it;
 }
-function setProductQty(p,kind,delta){const it=ensureItemFor(p);it[kind]=Math.max(0,it[kind]+delta);renderAll()}
+function setProductQty(p,kind,delta){const it=ensureItemFor(p);it[kind]=Math.max(0,it[kind]+delta);if(capTrade(it))toast(TRADE_CAP_MSG);renderAll()}
 // The full categories list goes through the same tcgFetchText helper
 // as the groups list, with the same JSON validation — but it is
 // fetched ONLY on demand, when the + Add menu is opened. Nothing about
@@ -1152,7 +1373,7 @@ function loadGroupsFor(catId){
  if(c&&c.status==='loading'&&c.promise)return c.promise;
  try{
   const raw=sessionStorage.getItem(GROUP_STORE_PREFIX+catId);
-  if(raw){const cached=JSON.parse(raw);if(Array.isArray(cached)){groupCache[catId]={status:'ready',groups:cached};if(currentPanel==='tracker')Promise.resolve().then(()=>renderTracker());return Promise.resolve(true)}}
+  if(raw){const cached=JSON.parse(raw);if(Array.isArray(cached)){groupCache[catId]={status:'ready',groups:cached};syncFolderTree();if(currentPanel==='tracker')Promise.resolve().then(()=>renderTracker());return Promise.resolve(true)}}
  }catch(e){}
  const promise=tcgFetchText('https://tcgcsv.com/tcgplayer/'+catId+'/groups',t=>{try{JSON.parse(t);return true}catch(e){return false}}).then(t=>{const j=JSON.parse(t);
   const groups=sortGroupList(j.results||[],'new');
@@ -1160,6 +1381,7 @@ function loadGroupsFor(catId){
   try{sessionStorage.setItem(GROUP_STORE_PREFIX+catId,JSON.stringify(groups))}catch(e){}
   if(nav.group&&!nav.group.name){const g=groups.find(x=>String(x.groupId)===String(nav.group.groupId));if(g)nav.group={groupId:g.groupId,name:g.name,abbreviation:g.abbreviation||''}}
   if(currentPanel==='tracker')renderTracker();
+  syncFolderTree(); // the downloaded category gets its folder + category.json in the background
   return true;
  }).catch(e=>{groupCache[catId]={status:'error',error:String((e&&e.message)||e)};if(currentPanel==='tracker')renderTracker();return false});
  groupCache[catId]={status:'loading',promise:promise};
@@ -1180,13 +1402,15 @@ function loadProducts(){
  // page load in this tab) comes straight from sessionStorage — no fetch.
  try{
   const raw=sessionStorage.getItem(PRODUCT_STORE_PREFIX+key);
-  if(raw){const cached=JSON.parse(raw);if(Array.isArray(cached)&&cached.length){productCache[key]={status:'ready',products:cached,catId:nav.cat.id,groupId:nav.group.groupId,groupName:nav.group.name||''};if(currentPanel==='tracker')Promise.resolve().then(()=>{renderTracker();renderTrade()});return}}
+  if(raw){const cached=JSON.parse(raw);if(Array.isArray(cached)&&cached.length){productCache[key]={status:'ready',products:cached,catId:nav.cat.id,groupId:nav.group.groupId,groupName:nav.group.name||''};syncFolderTree();if(currentPanel==='tracker')Promise.resolve().then(()=>{renderTracker();renderTrade()});return}}
  }catch(e){}
  productCache[key]={status:'loading',catId:nav.cat.id,groupId:nav.group.groupId,groupName:nav.group.name||''};
  tcgFetchText('https://tcgcsv.com/tcgplayer/'+nav.cat.id+'/'+nav.group.groupId+'/ProductsAndPrices.csv',t=>t.split('\n',1)[0].indexOf('productId')>-1).then(t=>{
+  markPricesPulled(); // opening a set pulls its prices fresh — the header pill and the Settings note must say so
   const products=parseProductsCSV(t);
   productCache[key]={status:'ready',products:products,catId:nav.cat.id,groupId:nav.group.groupId,groupName:nav.group.name||''};binderPage=0;
   try{sessionStorage.setItem(PRODUCT_STORE_PREFIX+key,JSON.stringify(products))}catch(e){/* quota: in-memory cache still makes re-opening instant this session */}
+  storeGroupCsv(nav.cat.id,nav.group.groupId,nav.group.name||'',t);syncFolderTree(); // the set's source file + parsed source land in its group folder
   if(currentPanel==='tracker')renderTracker();renderTrade();
  }).catch(e=>{productCache[key]={status:'error',error:String((e&&e.message)||e),catId:nav.cat.id,groupId:nav.group.groupId,groupName:nav.group.name||''};if(currentPanel==='tracker')renderTracker()});
 }
@@ -1195,20 +1419,25 @@ function qtyBtnsHTML(p,owned){
  return ['c','t'].map(k=>`<div class="pocket-qty"><span style="flex:1">${k==='c'?'Collected':'Trade'}</span><button data-pq="${p.productId}:${k}:-1" aria-label="minus">−</button><strong>${k==='c'?c:t}</strong><button data-pq="${p.productId}:${k}:1" aria-label="plus">+</button></div>`).join('');
 }
 // Every pocket shows the card's art from the CSV imageUrl (TCGplayer CDN),
-// owned or not. "Missing" is a small badge overlaid on the art, not a
-// replacement for it. If the image is missing or fails to load, the img
+// owned or not. Owned / Missing is a small badge overlaid on the art, not
+// a replacement for it. If the image is missing or fails to load, the img
 // hides itself (inline onerror) and the number placeholder behind it
-// shows instead — never a broken-image icon.
-function pocketArtHTML(p,missing){
- const img=p.imageUrl?`<img src="${esc(p.imageUrl)}" alt="${esc(p.name)}" loading="lazy" draggable="false" onerror="this.classList.add('img-hide');var f=this.parentElement.querySelector('.pocket-fallback');if(f)f.classList.add('show')">`:'';
+// shows instead — never a broken-image icon. Tapping the art or the name
+// opens the card detail view (data-detail, wired in wireProductControls).
+function pocketArtHTML(p,state){
+ const img=p.imageUrl?`<img src="${esc(p.imageUrl)}" alt="${esc(cleanDisplayName(p.name))}" loading="lazy" draggable="false" onerror="this.classList.add('img-hide');var f=this.parentElement.querySelector('.pocket-fallback');if(f)f.classList.add('show')">`:'';
  const fallback=`<div class="pocket-empty pocket-fallback${p.imageUrl?'':' show'}"><span class="pocket-num">${esc(p.number||'—')}</span></div>`;
- const badge=missing?`<span class="pocket-badge">Missing</span>`:'';
- return `<div class="pocket-art">${img}${fallback}${badge}</div>`;
+ const badge=state==='missing'?`<span class="pocket-badge">Missing</span>`:state==='owned'?`<span class="pocket-badge owned">Owned</span>`:'';
+ return `<div class="pocket-art" data-detail="${p.productId}" role="button" aria-label="View ${esc(cleanDisplayName(p.name))}">${img}${fallback}${badge}</div>`;
 }
 function pocketHTML(p){
- const owned=findOwned(p);const has=owned&&(owned.c+owned.t)>0;
- if(has)return `<div class="pocket owned">${pocketArtHTML(p,false)}<div class="pocket-info"><span class="pocket-num">${esc(p.number||'')} · ${money(p.marketPrice)}</span><b title="${esc(p.name)}">${esc(p.name)}</b></div>${qtyBtnsHTML(p,owned)}</div>`;
- return `<div class="pocket missing">${pocketArtHTML(p,true)}<div class="pocket-info"><span class="pocket-num">${esc(p.number||'')}${p.rarity?' · '+esc(p.rarity):''} · ${money(p.marketPrice)}</span><b title="${esc(p.name)}">${esc(p.name)}</b></div><button class="btn pocket-add" data-padd="${p.productId}">+ Collected</button></div>`;
+ const owned=findOwned(p);const has=owned&&owned.c>0;
+ // Owned and missing pockets share ONE fixed layout (the .pocket grid:
+ // flexible art, info lines, then a 51px footer) — the two stepper rows
+ // sit inside a .pocket-foot of exactly the same height as the missing
+ // pocket's + Collected button, so rows line up in 3×3 and 4×3 alike.
+ if(has)return `<div class="pocket owned">${pocketArtHTML(p,'owned')}<div class="pocket-info"><span class="pocket-num">${esc(p.number||'')} · ${money(p.marketPrice)}</span><b title="${esc(p.name)}" data-detail="${p.productId}" style="cursor:pointer">${esc(cleanDisplayName(p.name))}</b></div><div class="pocket-foot">${qtyBtnsHTML(p,owned)}</div></div>`;
+ return `<div class="pocket missing">${pocketArtHTML(p,'missing')}<div class="pocket-info"><span class="pocket-num">${esc(p.number||'')}${p.rarity?' · '+esc(p.rarity):''} · ${money(p.marketPrice)}</span><b title="${esc(p.name)}" data-detail="${p.productId}" style="cursor:pointer">${esc(cleanDisplayName(p.name))}</b></div><button class="btn pocket-add" data-padd="${p.productId}">+ Collected</button></div>`;
 }
 // Invisible skeleton pocket with the exact fixed dimensions of a real
 // one (art + info lines + footer block). The last binder page is padded
@@ -1219,7 +1448,7 @@ function blankPocketHTML(){
 }
 function sealedProductHTML(p){
  const owned=findOwned(p);
- return `<article class="carditem">${p.imageUrl?`<img src="${esc(p.imageUrl)}" alt="${esc(p.name)}" loading="lazy" onerror="this.style.display='none'" style="width:100%;aspect-ratio:1/1;object-fit:cover;background:var(--card2)">`:''}<div class="cardbody"><b>${esc(p.name)}</b><div class="meta"><span>Sealed</span><span class="price">${money(p.marketPrice)}</span></div>${owned&&(owned.c+owned.t)>0?qtyBtnsHTML(p,owned):`<button class="btn pocket-add" data-padd="${p.productId}">+ Collected</button>`}</div></article>`;
+ return `<article class="carditem">${p.imageUrl?`<img src="${esc(p.imageUrl)}" alt="${esc(cleanDisplayName(p.name))}" loading="lazy" onerror="this.style.display='none'" data-detail="${p.productId}" style="width:100%;aspect-ratio:1/1;object-fit:cover;background:var(--card2);cursor:pointer">`:''}<div class="cardbody"><b data-detail="${p.productId}" style="cursor:pointer">${esc(cleanDisplayName(p.name))}</b><div class="meta"><span>Sealed</span><span class="price">${money(p.marketPrice)}</span></div>${owned&&owned.c>0?qtyBtnsHTML(p,owned):`<button class="btn pocket-add" data-padd="${p.productId}">+ Collected</button>`}</div></article>`;
 }
 function binderHTML(singles){
  const cols=settings.grid===4?4:3;const perPage=cols*3;
@@ -1227,21 +1456,48 @@ function binderHTML(singles){
  if(binderPage>=pages)binderPage=pages-1;if(binderPage<0)binderPage=0;
  const slice=singles.slice(binderPage*perPage,binderPage*perPage+perPage);
  while(slice.length<perPage)slice.push(null); // pad a short last page to a full page of fixed-size pockets
- let dots='';
- if(pages<=24){dots=singles.length?Array.from({length:pages},(_,i)=>`<button class="binder-dot ${i===binderPage?'on':''}" data-page="${i}" aria-label="Page ${i+1}"></button>`).join(''):''}
- else{const win=[];for(let i=0;i<pages;i++){if(i===0||i===pages-1||Math.abs(i-binderPage)<=2)win.push(i);else if(win[win.length-1]!=='…')win.push('…')}dots=win.map(x=>x==='…'?'<span style="color:var(--muted)">…</span>':`<button class="binder-dot ${x===binderPage?'on':''}" data-page="${x}" aria-label="Page ${x+1}"></button>`).join('')}
+ // ONE page indicator only: Prev / Next around a "Page X of Y" pill.
+ // (There used to be a dot per page as well — two indicators for the
+ // same thing, and 18 dots on an 18-page set.)
  return `<div class="binder-wrap" id="binderWrap" data-pages="${pages}"><div class="binder-page" style="grid-template-columns:repeat(${cols},1fr)">${slice.map(p=>p?pocketHTML(p):blankPocketHTML()).join('')}</div></div>
- <div class="binder-controls"><button class="btn" data-turn="-1" ${binderPage===0?'disabled':''}>‹ Prev</button><span class="pill">Page ${binderPage+1} of ${pages}</span><button class="btn" data-turn="1" ${binderPage>=pages-1?'disabled':''}>Next ›</button><span class="binder-dots">${dots}</span><span style="color:var(--muted);font-size:11px">Swipe ↔</span></div>`;
+ <div class="binder-controls"><button class="btn" data-turn="-1" ${binderPage===0?'disabled':''}>‹ Prev</button><span class="pill">Page ${binderPage+1} of ${pages}</span><button class="btn" data-turn="1" ${binderPage>=pages-1?'disabled':''}>Next ›</button><span style="color:var(--muted);font-size:11px">Swipe ↔</span></div>`;
 }
 function productListHTML(singles){
- return `<div class="list">${singles.map(p=>{const owned=findOwned(p);const has=owned&&(owned.c+owned.t)>0;return `<div class="row">${p.imageUrl?`<img class="prodthumb" src="${esc(p.imageUrl)}" alt="" loading="lazy" onerror="this.style.display='none'">`:''}<div class="grow"><b>${esc(p.number?p.number+' · ':'')}${esc(p.name)}</b><small>${esc(p.rarity||'')}${p.subType?' · '+esc(p.subType):''} · ${money(p.marketPrice)}${has?'':' · Missing'}</small></div>${has?`<span style="display:grid;gap:4px;min-width:170px">${qtyBtnsHTML(p,owned)}</span>`:`<button class="btn" data-padd="${p.productId}">+ Collected</button>`}</div>`}).join('')}</div>`;
+ return `<div class="list">${singles.map(p=>{const owned=findOwned(p);const has=owned&&owned.c>0;return `<div class="row">${p.imageUrl?`<img class="prodthumb" src="${esc(p.imageUrl)}" alt="" loading="lazy" onerror="this.style.display='none'" data-detail="${p.productId}" style="cursor:pointer">`:''}<div class="grow"><b data-detail="${p.productId}" style="cursor:pointer">${esc(p.number?p.number+' · ':'')}${esc(cleanDisplayName(p.name))}</b><small>${esc(p.rarity||'')}${p.subType?' · '+esc(p.subType):''} · ${money(p.marketPrice)}${has?' · Owned':' · Missing'}</small></div>${has?`<span style="display:grid;gap:4px;min-width:170px">${qtyBtnsHTML(p,owned)}</span>`:`<button class="btn" data-padd="${p.productId}">+ Collected</button>`}</div>`}).join('')}</div>`;
 }
 // After a swipe turns a binder page, the re-render swaps the pockets under
 // the finger/cursor — swallow the click that trails the swipe so it can't
 // land on a button (e.g. + Collected) on the freshly turned page.
 let lastBinderSwipe=0;
 document.addEventListener('click',function(e){if(lastBinderSwipe&&Date.now()-lastBinderSwipe<400&&e.target&&e.target.closest&&e.target.closest('#binderWrap')){e.preventDefault();e.stopPropagation()}},true);
+// ---------- Card detail view ----------
+// Tapping a card's art or name (binder pocket, long list, or a sealed
+// product in a set) opens this: the big art, the card's facts, and the
+// same Collected / Trade steppers the pocket carries. Steppers file
+// through setProductQty as usual; the detail body re-renders after
+// each change so the counts and the Owned value stay live.
+let detailProduct=null;
+function openCardDetail(p){detailProduct=p;renderCardDetail();const d=document.getElementById('cardDialog');if(d&&!d.open)d.showModal()}
+function renderCardDetail(){
+ const p=detailProduct;if(!p)return;
+ const body=document.getElementById('cardDetailBody');if(!body)return;
+ const owned=findOwned(p);const has=owned&&owned.c>0;
+ const setName=(nav.group&&nav.group.name)||(nav.cat?(nav.cat.display||nav.cat.name):'');
+ const facts=[p.number?('Number '+p.number):'',p.rarity||'',p.subType||'',setName].filter(Boolean).join(' · ');
+ body.innerHTML=`
+ ${p.imageUrl?`<img src="${esc(p.imageUrl)}" alt="${esc(cleanDisplayName(p.name))}" onerror="this.style.display='none'" style="width:100%;max-height:44vh;object-fit:contain;background:var(--card2);border-radius:10px;display:block">`:`<div class="pocket-empty" style="aspect-ratio:63/88;max-height:44vh"><span class="pocket-num">${esc(p.number||'—')}</span></div>`}
+ <h3 style="margin:12px 0 2px">${esc(cleanDisplayName(p.name))}</h3>
+ <p style="color:var(--muted);font-size:13px;margin:0">${esc(facts)}</p>
+ <p style="margin:8px 0 0"><span class="price" style="font-size:17px">${money(p.marketPrice)}</span> <span style="color:var(--muted);font-size:12.5px">TCGplayer market</span></p>
+ <p style="margin:6px 0 0;font-size:13.5px">${has?`In your collection: <b>${owned.c} collected</b> · ${owned.t} marked for trade · owned value <b>${money(owned.c*p.marketPrice)}</b>`:`Not in your collection yet — this copy is <b>missing</b>.`}</p>
+ <div style="display:grid;gap:6px;margin-top:12px;max-width:300px">${has?qtyBtnsHTML(p,owned):`<button class="btn primary" data-dadd="${p.productId}">+ Collected</button>`}</div>
+ <div style="display:flex;gap:8px;margin-top:16px"><button class="btn" id="cardDetailClose">Close</button></div>`;
+ body.querySelectorAll('[data-pq]').forEach(b=>b.onclick=()=>{const parts=b.dataset.pq.split(':');setProductQty(p,parts[1],+parts[2]);renderCardDetail()});
+ const add=body.querySelector('[data-dadd]');if(add)add.onclick=()=>{setProductQty(p,'c',1);renderCardDetail()};
+ const cl=body.querySelector('#cardDetailClose');if(cl)cl.onclick=()=>document.getElementById('cardDialog').close();
+}
 function wireProductControls(body,products){
+ body.querySelectorAll('[data-detail]').forEach(el=>el.addEventListener('click',e=>{e.stopPropagation();const p=products.find(x=>String(x.productId)===String(el.dataset.detail));if(p)openCardDetail(p)}));
  body.querySelectorAll('[data-pq]').forEach(b=>b.onclick=()=>{const parts=b.dataset.pq.split(':');const p=products.find(x=>String(x.productId)===parts[0]);if(p)setProductQty(p,parts[1],+parts[2])});
  body.querySelectorAll('[data-padd]').forEach(b=>b.onclick=()=>{const p=products.find(x=>String(x.productId)===String(b.dataset.padd));if(p)setProductQty(p,'c',1)});
  body.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>{binderPage=+b.dataset.page;renderTracker()});
@@ -1310,13 +1566,13 @@ function toggleGameRow(n){
  // A single-category game opens its one category too, so its sets are
  // one tap away — the category row still shows, per the tree layout.
  if(open&&g.cats.length===1){treeOpen.cats[g.cats[0].id]=true;loadGroupsFor(g.cats[0].id)}
- renderTracker();
+ renderTracker();persistNav();
 }
 function toggleCatRow(id){
  const cat=GAMES.flatMap(g=>g.cats).find(c=>String(c.id)===String(id));if(!cat)return;
  const open=!treeCatOpen(cat);treeOpen.cats[id]=open;
  if(open)loadGroupsFor(id);
- renderTracker();
+ renderTracker();persistNav();
 }
 function treeRowKey(row){
  if(!row)return null;
@@ -1398,10 +1654,12 @@ function renderTrackerTree(body){
  body.querySelectorAll('[data-tremove-game]').forEach(el=>el.addEventListener('click',e=>{
   e.stopPropagation();
   const g=GAMES.find(x=>x.name===el.dataset.tremoveGame);
-  if(g&&g.solo)removeCat(g.cats[0].id);else removeGame(el.dataset.tremoveGame);
+  confirmAction(`Remove “${el.dataset.tremoveGame}” from your Tracker list? Cards you’ve already collected stay in your totals.`,()=>{
+   if(g&&g.solo)removeCat(g.cats[0].id);else removeGame(el.dataset.tremoveGame);
+  });
  }));
- body.querySelectorAll('[data-tremove-cat]').forEach(el=>el.addEventListener('click',e=>{e.stopPropagation();removeCat(el.dataset.tremoveCat)}));
- body.querySelectorAll('[data-tremove-group]').forEach(el=>el.addEventListener('click',e=>{e.stopPropagation();const parts=el.dataset.tremoveGroup.split(':');removeGroup(parts[0],parts[1])}));
+ body.querySelectorAll('[data-tremove-cat]').forEach(el=>el.addEventListener('click',e=>{e.stopPropagation();const c=GAMES.flatMap(g=>g.cats).find(x=>String(x.id)===String(el.dataset.tremoveCat));confirmAction(`Remove “${c?(c.display||c.name):'this category'}” from your Tracker list? Cards you’ve already collected stay in your totals.`,()=>removeCat(el.dataset.tremoveCat))}));
+ body.querySelectorAll('[data-tremove-group]').forEach(el=>el.addEventListener('click',e=>{e.stopPropagation();const parts=el.dataset.tremoveGroup.split(':');const sg=userCatalog.groups.find(x=>String(x.catId)===parts[0]&&String(x.groupId)===parts[1]);confirmAction(`Remove “${sg?(sg.name||'this set'):'this set'}” from your Tracker list? Cards you’ve already collected stay in your totals.`,()=>removeGroup(parts[0],parts[1]))}));
  body.querySelectorAll('[data-tset]').forEach(b=>b.onclick=()=>{
   const parts=b.dataset.tset.split(':');
   const sg=userCatalog.groups.find(x=>String(x.catId)===parts[0]&&String(x.groupId)===parts[1]);if(!sg)return;
@@ -1455,7 +1713,10 @@ function addGroupRowsHTML(catId){
  // Same main / Special split and ordering the Tracker tree uses.
  const sorted=sortGroupList(gc.groups,'new');
  const main=sorted.filter(gr=>!isSpecialGroup(gr)),special=sorted.filter(gr=>isSpecialGroup(gr));
- const row=gr=>{const added=isGroupAdded(catId,gr.groupId);return `<div class="row" style="padding:7px 9px"><div class="grow" style="min-width:120px"><b style="font-size:13px">${esc(gr.name)}</b><small>${gr.abbreviation?esc(gr.abbreviation)+' · ':''}${groupReleaseDate(gr)}</small></div>${added?`<span class="badge">Added</span><button class="btn small danger" data-addgroup-del="${catId}:${gr.groupId}">Remove</button>`:`<button class="btn small primary" data-addgroup="${catId}:${gr.groupId}">+ Add set</button>`}</div>`};
+ // A set whose category is already in the Tracker is already listed
+ // there — say so on the row instead of offering an Add that changes
+ // nothing visible.
+ const row=gr=>{const added=isGroupAdded(catId,gr.groupId);const viaCat=!added&&isCatAdded(catId);return `<div class="row" style="padding:7px 9px"><div class="grow" style="min-width:120px"><b style="font-size:13px">${esc(gr.name)}</b><small>${gr.abbreviation?esc(gr.abbreviation)+' · ':''}${groupReleaseDate(gr)}</small></div>${added?`<span class="badge">Added</span><button class="btn small danger" data-addgroup-del="${catId}:${gr.groupId}">Remove</button>`:viaCat?`<span class="badge">Already in Tracker</span>`:`<button class="btn small primary" data-addgroup="${catId}:${gr.groupId}">+ Add set</button>`}</div>`};
  let h='';
  if(main.length)h+=main.map(row).join('');else h+=`<div class="tnote">No main sets — every group in this category is a special set, listed below.</div>`;
  if(special.length)h+=`<div class="tspecial">Special sets</div>`+special.map(row).join('');
@@ -1486,16 +1747,22 @@ function renderAddMenu(){
   return `<div class="tnode">${row}</div>`;
  }).join('');
  body.innerHTML=h;
- body.querySelectorAll('[data-addcat]').forEach(b=>b.onclick=()=>{const c=liveCats.find(x=>String(x.categoryId)===String(b.dataset.addcat));addCat(b.dataset.addcat,c?c.name:'')});
- body.querySelectorAll('[data-addcat-del]').forEach(b=>b.onclick=()=>removeCat(b.dataset.addcatDel));
+ body.querySelectorAll('[data-addcat]').forEach(b=>b.onclick=()=>{const c=liveCats.find(x=>String(x.categoryId)===String(b.dataset.addcat));addCat(b.dataset.addcat,c?c.name:'');toast('Added to Tracker — it’s in your list now.')});
+ body.querySelectorAll('[data-addcat-del]').forEach(b=>b.onclick=()=>{const c=liveCats.find(x=>String(x.categoryId)===String(b.dataset.addcatDel));confirmAction(`Remove “${c?c.name:'this category'}” from your Tracker list? Cards you’ve already collected stay in your totals.`,()=>removeCat(b.dataset.addcatDel))});
  body.querySelectorAll('[data-addcat-toggle]').forEach(b=>b.onclick=()=>{const id=b.dataset.addcatToggle;addOpenCats[id]=!addOpenCats[id];if(addOpenCats[id])loadGroupsFor(id).then(()=>renderAddMenu());renderAddMenu()});
- body.querySelectorAll('[data-addgroup]').forEach(b=>b.onclick=()=>{const parts=b.dataset.addgroup.split(':');const gc=groupCache[parts[0]];const gr=gc&&gc.groups?gc.groups.find(x=>String(x.groupId)===parts[1]):null;if(gr)addGroup(parts[0],gr)});
- body.querySelectorAll('[data-addgroup-del]').forEach(b=>b.onclick=()=>{const parts=b.dataset.addgroupDel.split(':');removeGroup(parts[0],parts[1])});
+ body.querySelectorAll('[data-addgroup]').forEach(b=>b.onclick=()=>{const parts=b.dataset.addgroup.split(':');const gc=groupCache[parts[0]];const gr=gc&&gc.groups?gc.groups.find(x=>String(x.groupId)===parts[1]):null;if(gr){addGroup(parts[0],gr);toast('Set added — find it under “Sets you added” in Tracker.')}});
+ body.querySelectorAll('[data-addgroup-del]').forEach(b=>b.onclick=()=>{const parts=b.dataset.addgroupDel.split(':');const gc=groupCache[parts[0]];const gr=gc&&gc.groups?gc.groups.find(x=>String(x.groupId)===parts[1]):null;confirmAction(`Remove “${gr?gr.name:'this set'}” from your Tracker list? Cards you’ve already collected stay in your totals.`,()=>removeGroup(parts[0],parts[1]))});
  body.querySelectorAll('[data-addretry]').forEach(b=>b.onclick=()=>{const id=b.dataset.addretry;delete groupCache[id];try{sessionStorage.removeItem(GROUP_STORE_PREFIX+id)}catch(e){}renderAddMenu();loadGroupsFor(id).then(()=>renderAddMenu())});
 }
 document.getElementById('addSearch').addEventListener('input',e=>{addSearch=e.target.value;renderAddMenu()});
 
 function renderTracker(){
+ // Resolve the open set's name from the category's loaded groups list
+ // BEFORE the crumbs and heading render: on paths where nav.group was
+ // restored with an id only (a refresh / deep link), the name used to
+ // stay blank forever — heading stuck on "Loading set…", crumb on
+ // "Set" — even after the set had fully loaded.
+ if(nav.cat&&nav.group&&!nav.group.name){const gc=groupCache[nav.cat.id];if(gc&&gc.status==='ready'){const g=gc.groups.find(x=>String(x.groupId)===String(nav.group.groupId));if(g){nav.group.name=g.name;if(g.abbreviation&&!nav.group.abbreviation)nav.group.abbreviation=g.abbreviation}}}
  renderCrumbs();const body=document.getElementById('trackerBody');
  if(!nav.group){
   renderTrackerTree(body);
@@ -1512,8 +1779,8 @@ function renderTracker(){
    const allSingles=products.filter(p=>p.number), sealedProds=products.filter(p=>!p.number);
    const q=groupSearch.trim().toLowerCase();
    const singles=q?allSingles.filter(p=>p.name.toLowerCase().indexOf(q)>-1||String(p.number).toLowerCase().indexOf(q)>-1):allSingles;
-   const ownedCount=allSingles.filter(p=>{const o=findOwned(p);return o&&(o.c+o.t)>0}).length;
-   const ownedVal=allSingles.reduce((s,p)=>{const o=findOwned(p);return s+(o?(o.c+o.t)*p.marketPrice:0)},0);
+   const ownedCount=allSingles.filter(p=>{const o=findOwned(p);return o&&o.c>0}).length;
+   const ownedVal=allSingles.reduce((s,p)=>{const o=findOwned(p);return s+(o?o.c*p.marketPrice:0)},0);
    const legacy=items.filter(i=>i.catId===nav.cat.id&&!products.some(p=>String(p.productId)===String(i.productId)||normName(p.name)===normName(i.name)));
    // Slim sort / filter row for the cards in this set. 'number' keeps
    // the order parseProductsCSV already sorted by set number; Owned /
@@ -1521,7 +1788,7 @@ function renderTracker(){
    // narrows, and the binder pages re-slice from the result.
    const rarities=[...new Set(allSingles.map(p=>p.rarity).filter(Boolean))].sort();
    if(cardRarity!=='all'&&rarities.indexOf(cardRarity)===-1)cardRarity='all';
-   let shown=singles.filter(p=>{if(cardFilter==='all')return true;const o=findOwned(p);const has=o&&(o.c+o.t)>0;return cardFilter==='owned'?has:!has});
+   let shown=singles.filter(p=>{if(cardFilter==='all')return true;const o=findOwned(p);const has=o&&o.c>0;return cardFilter==='owned'?has:!has});
    if(cardRarity!=='all')shown=shown.filter(p=>p.rarity===cardRarity);
    shown=shown.slice();
    if(cardSort==='name')shown.sort((a,b)=>a.name.localeCompare(b.name));
@@ -1536,7 +1803,7 @@ function renderTracker(){
    ${legacy.length?`<h3 style="margin-top:22px">Your other items in this category</h3><div class="cards">${legacy.map(itemCard).join('')}</div>`:''}`;
   }
   body.innerHTML=`
-  <div class="section-head compact"><div style="min-width:0"><h2 style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(nav.group.name||'Loading set…')} ${nav.group.abbreviation?`<span class="badge">${esc(nav.group.abbreviation)}</span>`:''}</h2></div><div style="display:flex;gap:5px;flex-wrap:nowrap"><button class="btn primary small" id="addItemBtn">+ Add item</button><button class="btn small" data-scanlink>📷 Scan</button></div></div>${inner}`;
+  <div class="section-head compact"><div style="min-width:0"><h2 style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(nav.group.name||(pc&&pc.status==='ready'?'Set':'Loading set…'))} ${nav.group.abbreviation?`<span class="badge">${esc(nav.group.abbreviation)}</span>`:''}</h2></div><div style="display:flex;gap:5px;flex-wrap:nowrap"><button class="btn primary small" id="addItemBtn">+ Add item</button><button class="btn small" data-scanlink>📷 Scan</button></div></div>${inner}`;
   const rp=body.querySelector('[data-retry-products]');if(rp)rp.onclick=()=>{delete productCache[key];renderTracker()};
   if(pc&&pc.status==='ready'){wireProductControls(body,pc.products)}
   wireItemControls(body);
@@ -1569,47 +1836,63 @@ function openItemDialog(id){
 document.getElementById('saveItemBtn').onclick=()=>{
  const name=document.getElementById('itemName').value.trim();if(!name){document.getElementById('itemName').focus();return}
  const vals={name,kind:document.getElementById('itemKind').value,sub:document.getElementById('itemSub').value,price:Math.max(0,parseFloat(document.getElementById('itemPrice').value)||0),c:Math.max(0,+document.getElementById('itemCollected').value||0),t:Math.max(0,+document.getElementById('itemTrade').value||0)};
+ const capped=capTrade(vals);
  if(editingItemId!=null){const it=items.find(i=>i.id===editingItemId);if(it)Object.assign(it,vals)}
  else items.push(Object.assign({id:itemSeq++,catId:nav.cat?nav.cat.id:null,productId:null,groupId:nav.group?nav.group.groupId:null},vals));
  document.getElementById('itemDialog').close();renderAll();
+ if(capped)toast(TRADE_CAP_MSG);
 };
 document.getElementById('deleteItemBtn').onclick=()=>{
- if(editingItemId!=null)items=items.filter(i=>i.id!==editingItemId);
- document.getElementById('itemDialog').close();renderAll();
+ if(editingItemId==null)return;
+ const it=items.find(i=>i.id===editingItemId);
+ confirmAction(`Remove “${it?it.name:'this item'}” from your collection? This can’t be undone.`,()=>{
+  items=items.filter(i=>i.id!==editingItemId);
+  document.getElementById('itemDialog').close();renderAll();
+ });
 };
 
 // ---------- Totals / Home ----------
+// ONE counting rule everywhere: a copy counts once, as a Collected
+// copy — value is Collected qty × price, counts are Collected qty.
+// Trade qty only designates which of those copies are up for trade;
+// it never adds value or count. The Home rows are built to add up:
+// Tracker (singles) + Sealed + Slabs = the total. Trade is a subset
+// of those rows and is labeled as already counted, never added in.
+// Slab Research prices are NOT a row of their own any more — a priced
+// slab counts once, at its research price × Collected qty.
 function totals(){
  let v=0,o=0,t=0;
- items.forEach(p=>{v+=(p.c+p.t)*p.price;o+=p.c+p.t;t+=p.t});
- slabs.forEach(s=>{v+=((research[s.key]||{}).price||0)*(s.c+s.t);t+=s.t});
+ items.forEach(p=>{v+=p.c*p.price;o+=p.c;t+=p.t});
+ slabs.forEach(s=>{v+=((research[s.key]||{}).price||0)*s.c;t+=s.t});
  return{v,o,t};
 }
 function tabValues(){
  const t=totals();
  let trade=0;items.forEach(p=>trade+=p.t*p.price);slabs.forEach(s=>trade+=((research[s.key]||{}).price||0)*s.t);
+ const singleItems=items.filter(i=>i.kind!=='sealed');
+ const tracker=singleItems.reduce((s,p)=>s+p.c*p.price,0);
+ const trackerCount=singleItems.reduce((s,p)=>s+p.c,0);
  const sealedItems=items.filter(i=>i.kind==='sealed');
- const sealed=sealedItems.reduce((s,p)=>s+(p.c+p.t)*p.price,0);
- const sealedCount=sealedItems.reduce((s,p)=>s+p.c+p.t,0);
- const slab=slabs.reduce((s,x)=>s+((research[x.key]||{}).price||0)*(x.c+x.t),0);
- const slabCount=slabs.reduce((s,x)=>s+x.c+x.t,0);
+ const sealed=sealedItems.reduce((s,p)=>s+p.c*p.price,0);
+ const sealedCount=sealedItems.reduce((s,p)=>s+p.c,0);
+ const slab=slabs.reduce((s,x)=>s+((research[x.key]||{}).price||0)*x.c,0);
+ const slabCount=slabs.reduce((s,x)=>s+x.c,0);
  const scanVal=scans.reduce((s,x)=>s+(x.match?(x.match.price||0)*(x.fc+x.ft):0),0);
  const resKeys=Object.keys(research);
  const resTotal=resKeys.reduce((s,k)=>s+(research[k].price||0),0);
- return{total:t.v,owned:t.o,tradeQty:t.t,trade,sealed,sealedCount,slab,slabCount,scan:scanVal,research:resTotal,researchCount:resKeys.length};
+ return{total:t.v,owned:t.o,tradeQty:t.t,trade,tracker,trackerCount,sealed,sealedCount,slab,slabCount,scan:scanVal,research:resTotal,researchCount:resKeys.length};
 }
 function updateStats(){
  const v=tabValues();
  const set=(id,txt)=>{const el=document.getElementById(id);if(el)el.textContent=txt};
  set('homeTotal',money(v.total));
- set('homeTrackerVal',money(v.total));set('homeTrackerSub',v.owned?`${v.owned} item${v.owned===1?'':'s'} tracked`:"Nothing tracked yet");
+ set('homeTrackerVal',money(v.tracker));set('homeTrackerSub',v.trackerCount?`${v.trackerCount} item${v.trackerCount===1?'':'s'} tracked`:"Nothing tracked yet");
  set('homeScanVal',money(v.scan));set('homeScanSub',scans.length?`${scans.length} scan${scans.length===1?'':'s'} waiting to file`:"Nothing scanned yet");
- set('homeTradeVal',money(v.trade));set('homeTradeSub',v.tradeQty?`${v.tradeQty} item${v.tradeQty===1?'':'s'} up for trade`:"Nothing up for trade");
+ set('homeTradeVal',money(v.trade));set('homeTradeSub',v.tradeQty?`${v.tradeQty} item${v.tradeQty===1?'':'s'} up for trade · already counted in the rows above`:"Nothing up for trade");
  set('homeSealedVal',money(v.sealed));set('homeSealedSub',v.sealedCount?`${v.sealedCount} sealed item${v.sealedCount===1?'':'s'} owned`:"No sealed items yet");
- // Slabs row carries the combined slab totals now that Slab Research
- // lives inside the Slabs section: owned slab value plus every price
- // on file, and both counts in the sub-line.
- set('homeSlabsVal',money(v.slab+v.research));
+ // Slabs row: owned slab value ONLY — the research price is the slab's
+ // price, not a second amount on top of it.
+ set('homeSlabsVal',money(v.slab));
  const slabParts=[];
  if(v.slabCount)slabParts.push(`${v.slabCount} slab${v.slabCount===1?'':'s'} owned`);
  if(v.researchCount)slabParts.push(`${v.researchCount} slab price${v.researchCount===1?'':'s'} on file`);
@@ -1618,6 +1901,18 @@ function updateStats(){
 
 // ---------- Trade ----------
 let markedNeeds={};
+let needQuery='';
+// The real name of the set a product-cache entry belongs to: the name
+// captured when the set was opened, else the groups list for its
+// category, else the standalone set add — never a bare "Set".
+function setNameFor(pc){
+ if(pc.groupName)return pc.groupName;
+ const gc=groupCache[pc.catId];
+ if(gc&&gc.status==='ready'){const g=gc.groups.find(x=>String(x.groupId)===String(pc.groupId));if(g&&g.name)return g.name}
+ const ug=userCatalog.groups.find(x=>String(x.catId)===String(pc.catId)&&String(x.groupId)===String(pc.groupId));
+ if(ug&&ug.name)return ug.name;
+ return 'Set '+pc.groupId;
+}
 function renderTrade(){
  const body=document.getElementById('tradeBody');
  const tsEl=document.getElementById('tradeSort');if(tsEl)tradeSort=tsEl.value;
@@ -1629,7 +1924,7 @@ function renderTrade(){
  // together, by the trade value each row shows.
  const qtyOk=x=>tradeFilter==='collected'?x.c>0:tradeFilter==='tradeonly'?x.c===0:true;
  const rows=[];
- items.filter(p=>p.t>0&&qtyOk(p)).forEach(p=>rows.push({name:p.name,val:p.price*p.t,html:`<div class="row"><div class="grow"><b>${esc(p.name)}</b><small>${p.kind==='sealed'?'Sealed':'Single'} · Trade × ${p.t} · Collected × ${p.c}</small></div><span class="price">${money(p.price*p.t)}</span></div>`}));
+ items.filter(p=>p.t>0&&qtyOk(p)).forEach(p=>rows.push({name:p.name,val:p.price*p.t,html:`<div class="row"><div class="grow"><b>${esc(cleanDisplayName(p.name))}</b><small>${p.kind==='sealed'?'Sealed':'Single'} · Trade × ${p.t} · Collected × ${p.c}</small></div><span class="price">${money(p.price*p.t)}</span></div>`}));
  slabs.filter(s=>s.t>0&&qtyOk(s)).forEach(s=>rows.push({name:s.name,val:((research[s.key]||{}).price||0)*s.t,html:slabRow(s)}));
  rows.sort((a,b)=>tradeSort==='low'?a.val-b.val:tradeSort==='name'?a.name.localeCompare(b.name):b.val-a.val);
  if(!anyTrade){body.innerHTML=`<div class="notice"><b>Nothing up for trade yet</b><p>Set a Trade quantity on any item in Tracker (or file a scan with Trade qty) and it appears here automatically — Trade is just a view of Tracker.</p></div>`}
@@ -1638,25 +1933,41 @@ function renderTrade(){
   wireItemControls(body);}
  const need=document.getElementById('needList');
  const missing=[];const seenNeed={};
- Object.keys(productCache).forEach(k=>{const pc=productCache[k];if(pc&&pc.status==='ready')pc.products.filter(p=>p.number).forEach(p=>{if(seenNeed[p.productId])return;const o=items.find(i=>(i.productId!=null&&String(i.productId)===String(p.productId))||normName(i.name)===normName(p.name));if(!o||(o.c+o.t)===0){seenNeed[p.productId]=1;missing.push({p,setName:pc.groupName||'Set',catId:pc.catId,groupId:pc.groupId})}})});
+ Object.keys(productCache).forEach(k=>{const pc=productCache[k];if(pc&&pc.status==='ready')pc.products.filter(p=>p.number).forEach(p=>{const nk=pc.catId+':'+pc.groupId+':'+p.productId;if(seenNeed[nk])return;const o=items.find(i=>(i.productId!=null&&String(i.productId)===String(p.productId))||normName(i.name)===normName(p.name));if(!o||o.c===0){seenNeed[nk]=1;missing.push({p,setName:setNameFor(pc),catId:pc.catId,groupId:pc.groupId,key:nk})}})});
  if(!missing.length){need.innerHTML=`<div class="notice"><b>No needs yet</b><p>Missing cards come from a set’s live product list. Open a set in Tracker and the cards you don’t own yet will list here so you can mark the ones you want.</p></div>`}
  else{
-  need.innerHTML=missing.slice(0,300).map(({p,setName})=>`<div class="row"><input type="checkbox" data-need="${p.productId}" ${markedNeeds[p.productId]?'checked':''}><div class="grow"><b>${esc(p.number?p.number+' · ':'')}${esc(p.name)}</b><small>${esc(p.rarity||'')} · Missing from ${esc(setName)}</small></div><span class="price">${money(p.marketPrice)}</span></div>`).join('')+(missing.length>300?`<p style="color:var(--muted);font-size:13px">Showing the first 300 missing cards of ${missing.length}.</p>`:'');
-  need.querySelectorAll('[data-need]').forEach(cb=>cb.onchange=()=>{const m=missing.find(x=>String(x.p.productId)===String(cb.dataset.need));if(!m)return;if(cb.checked)markedNeeds[m.p.productId]={number:m.p.number,name:m.p.name,price:m.p.marketPrice,setName:m.setName};else delete markedNeeds[m.p.productId];saveState()});
+  // Searchable, and grouped under a header per set — a card missing
+  // from two sets is listed under each, since the need is per set.
+  const q=needQuery.trim().toLowerCase();
+  const shown=q?missing.filter(m=>m.p.name.toLowerCase().indexOf(q)>-1||String(m.p.number||'').toLowerCase().indexOf(q)>-1||m.setName.toLowerCase().indexOf(q)>-1):missing;
+  if(!shown.length){need.innerHTML=`<div class="notice"><b>No missing cards match “${esc(needQuery)}”</b><p>Try a different card name, set number, or set name.</p></div>`}
+  else{
+   const groups=[];const bySet={};
+   shown.forEach(m=>{if(!bySet[m.setName]){bySet[m.setName]=[];groups.push(m.setName)}bySet[m.setName].push(m)});
+   let count=0;let html='';
+   for(const setName of groups){
+    if(count>=300)break;
+    const arr=bySet[setName].slice(0,300-count);count+=arr.length;
+    html+=`<div class="special-head" style="margin-top:14px">${esc(setName)} — ${bySet[setName].length} missing</div>`+arr.map(m=>`<div class="row"><input type="checkbox" data-need="${esc(m.key)}" ${markedNeeds[m.key]?'checked':''}><div class="grow"><b>${esc(m.p.number?m.p.number+' · ':'')}${esc(cleanDisplayName(m.p.name))}</b><small>${esc(m.p.rarity||'')} · Missing from ${esc(setName)}</small></div><span class="price">${money(m.p.marketPrice)}</span></div>`).join('');
+   }
+   if(shown.length>count)html+=`<p style="color:var(--muted);font-size:13px">Showing the first ${count} missing cards of ${shown.length} — search to narrow it down.</p>`;
+   need.innerHTML=html;
+   need.querySelectorAll('[data-need]').forEach(cb=>cb.onchange=()=>{const m=missing.find(x=>x.key===cb.dataset.need);if(!m)return;if(cb.checked)markedNeeds[m.key]={number:m.p.number,name:m.p.name,price:m.p.marketPrice,setName:m.setName};else delete markedNeeds[m.key];saveState()});
+  }
  }
 }
 
 // ---------- Sealed ----------
 function renderSealed(){
  const sort=document.getElementById('sealedSort').value, f=document.getElementById('sealedFilter').value, qf=document.getElementById('sealedQty').value;
- let list=items.filter(i=>i.kind==='sealed'&&(i.c+i.t)>0);
+ let list=items.filter(i=>i.kind==='sealed'&&i.c>0);
  list=list.filter(p=>f==='all'||p.sub===f);
  list=list.filter(p=>qf==='all'||(qf==='collected'?p.c>0:p.t>0));
  list.sort((a,b)=>sort==='high'?b.price-a.price:sort==='low'?a.price-b.price:sort==='name'?a.name.localeCompare(b.name):b.id-a.id);
  const body=document.getElementById('sealedBody');
- body.innerHTML=list.length?`<div class="cards">${list.map(itemCard).join('')}</div>`:`<div class="notice"><b>No sealed items yet</b><p>Sealed products you add in Tracker show up here, all sets mixed together. Add one from a set in Tracker with type “Sealed”, or add a sealed product straight from its set page.</p></div>`;
+ body.innerHTML=list.length?`<div class="cards">${list.map(itemCard).join('')}</div>`:`<div class="notice"><b>No sealed items yet</b><p>Sealed products live inside their sets in Tracker. Open a set there, scroll to “Sealed in this set”, and tap + Collected on the ones you own — they show up here, all sets mixed together.</p></div>`;
  wireItemControls(body);
- const tot=items.filter(i=>i.kind==='sealed').reduce((s,p)=>s+(p.c+p.t)*p.price,0);document.getElementById('sealedTotal').textContent="Owned value: "+money(tot);
+ const tot=items.filter(i=>i.kind==='sealed').reduce((s,p)=>s+p.c*p.price,0);document.getElementById('sealedTotal').textContent="Owned value: "+money(tot);
 }
 
 // ---------- Slabs ----------
@@ -1668,7 +1979,7 @@ function renderSlabs(){
  const el=document.getElementById('slabList');
  el.innerHTML=list.length?list.map(s=>slabRow(s)).join(''):`<div class="notice"><b>No slabs yet</b><p>Tap “Add a slab”, type the card name, company, and grade. Then price it once in Slab Research — that price follows it everywhere.</p></div>`;
  wireItemControls(el);
- const tot=slabs.reduce((s,x)=>s+(((research[x.key]||{}).price)||0)*(x.c+x.t),0);document.getElementById('slabTotal').textContent="Slab value: "+money(tot);
+ const tot=slabs.reduce((s,x)=>s+(((research[x.key]||{}).price)||0)*x.c,0);document.getElementById('slabTotal').textContent="Slab value: "+money(tot);
 }
 // ---------- Slab dialog (add + edit + remove) ----------
 let editingSlabId=null;
@@ -1679,6 +1990,16 @@ function openSlabDialog(id){
  document.getElementById('slabCard').value=s?s.name:'';
  document.getElementById('slabCompany').value=s?s.company:'PSA';
  document.getElementById('slabGrade').value=s?s.grade:'10';
+ if(!s){
+  // Adding from Slab Research: the card name (and company / grade)
+  // typed there carries into this dialog instead of being retyped.
+  const rn=document.getElementById('resCard').value.trim();
+  if(rn){
+   document.getElementById('slabCard').value=rn;
+   const co=document.getElementById('resCompany').value.trim();if(co)document.getElementById('slabCompany').value=co;
+   const gr=document.getElementById('resGrade').value.trim();if(gr)document.getElementById('slabGrade').value=gr;
+  }
+ }
  document.getElementById('slabCert').value=s?(s.cert||''):'';
  document.getElementById('slabCollected').value=s?s.c:1;
  document.getElementById('slabTrade').value=s?s.t:0;
@@ -1693,13 +2014,19 @@ document.getElementById('saveSlabBtn').onclick=()=>{
  const key=researchKey(name,co,gr);
  if(!research[key])research[key]={label:`${name} · ${co} ${gr}`,price:0,date:new Date().toLocaleDateString(),notes:"",url:ebayUrl(`${name} ${co} ${gr}`)};
  const vals={name,key,company:co,grade:gr,cert:document.getElementById('slabCert').value.trim(),c:Math.max(0,+document.getElementById('slabCollected').value||0),t:Math.max(0,+document.getElementById('slabTrade').value||0)};
+ const capped=capTrade(vals);
  if(editingSlabId!=null){const s=slabs.find(x=>x.id===editingSlabId);if(s)Object.assign(s,vals)}
  else slabs.push(Object.assign({id:itemSeq++},vals));
  document.getElementById('slabDialog').close();renderAll();
+ if(capped)toast(TRADE_CAP_MSG);
 };
 document.getElementById('deleteSlabBtn').onclick=()=>{
- if(editingSlabId!=null)slabs=slabs.filter(s=>s.id!==editingSlabId);
- document.getElementById('slabDialog').close();renderAll();
+ if(editingSlabId==null)return;
+ const s=slabs.find(x=>x.id===editingSlabId);
+ confirmAction(`Remove the slab “${s?s.name:'this slab'}” from your collection? This can’t be undone.`,()=>{
+  slabs=slabs.filter(x=>x.id!==editingSlabId);
+  document.getElementById('slabDialog').close();renderAll();
+ });
 };
 
 // ---------- Slab Research ----------
@@ -1730,7 +2057,7 @@ function renderResearch(){
  keys.sort((a,b)=>{const ra=research[a],rb=research[b];if(resSort==='high')return (rb.price||0)-(ra.price||0);if(resSort==='low')return (ra.price||0)-(rb.price||0);const dd=(Date.parse(rb.date)||0)-(Date.parse(ra.date)||0);return dd||String(ra.label).localeCompare(String(rb.label))});
  list.innerHTML=keys.length?keys.map(k=>{const r=research[k];return `<div class="row"><div class="grow"><b>${esc(r.label)}</b><small>Updated ${esc(r.date)}${r.notes?' · '+esc(r.notes):''}</small></div><label style="font-weight:700">$ <input type="number" step="0.01" min="0" value="${r.price}" data-resprice="${esc(k)}" style="width:110px;background:var(--card2);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:0 10px"></label><a class="btn small" target="_blank" rel="noopener" href="${r.url}">Check eBay ↗</a><button class="btn small danger" data-del-research="${esc(k)}">Delete</button></div>`}).join(''):allKeys.length?`<div class="notice"><b>No prices for this company</b><p>Nothing on file matches the company filter — try “All companies”.</p></div>`:`<div class="notice"><b>No slab prices yet</b><p>Type a card name above, tap a Quick Link (top grades only — lower grades are typed manually), tap Check eBay, look at the last 5 sold, then save the middle price here. Slabs you add get their price from this list.</p></div>`;
  list.querySelectorAll('[data-resprice]').forEach(inp=>inp.onchange=()=>{research[inp.dataset.resprice].price=parseFloat(inp.value)||0;research[inp.dataset.resprice].date=new Date().toLocaleDateString();renderAll()});
- list.querySelectorAll('[data-del-research]').forEach(b=>b.onclick=()=>{delete research[b.dataset.delResearch];renderAll()});
+ list.querySelectorAll('[data-del-research]').forEach(b=>b.onclick=()=>{const r=research[b.dataset.delResearch];confirmAction(`Delete the saved price for “${r?r.label:'this entry'}”? Slabs with this price will show as not priced.`,()=>{delete research[b.dataset.delResearch];renderAll()})});
  updateEbay();
 }
 ['resCard','resCompany','resGrade'].forEach(id=>document.getElementById(id).addEventListener('input',updateEbay));
@@ -1919,7 +2246,7 @@ function renderLatestScan(){
  const m=s.match;
  const imgSrc=(m&&m.imageUrl)||s.thumb||'';
  const meta=m?[m.number,m.rarity,m.groupName].filter(Boolean).join(' · '):'No set match yet — name it or pick its set in the list below.';
- panel.innerHTML=`${imgSrc?`<img src="${esc(imgSrc)}" alt="">`:''}<div class="ls-grow"><div class="ls-label">Latest scan${s.checked?' · Double-checked':''}${s.dup?' · Possible duplicate':''}</div><div class="ls-name">${esc(s.name||'Unnamed scan')}</div><div class="ls-meta">${esc(meta)}</div></div>${m&&m.price?`<span class="ls-price">${money(m.price)}</span>`:''}`;
+ panel.innerHTML=`${imgSrc?`<img src="${esc(imgSrc)}" alt="">`:''}<div class="ls-grow"><div class="ls-label">Latest scan${s.checked?' · Double-checked':''}${s.dup?' · Possible duplicate':''}</div><div class="ls-name">${esc(cleanDisplayName(s.name)||'Unnamed scan')}</div><div class="ls-meta">${esc(meta)}</div></div>${m&&m.price?`<span class="ls-price">${money(m.price)}</span>`:''}`;
 }
 function renderScans(){
  renderLatestScan();
@@ -1931,8 +2258,8 @@ function renderScans(){
  el.innerHTML=scans.map((s,i)=>{
   const m=s.match;
   return `<div class="row">${s.thumb?`<img class="scan-thumb" src="${s.thumb}" alt="Scan ${i+1} photo">`:''}<input type="checkbox" data-sel="${i}" ${s.dup?'':'checked'}><div class="grow"><b>Scan ${i+1} ${s.checked?'<span class="badge">Double-checked</span>':''} ${s.dup?'<span class="badge warn">Possible duplicate — same card twice in a row</span>':''}</b>
- <small>${m?`Matched${s.via==='number'?' by set number':''}: ${esc(m.number?m.number+' · ':'')}${esc(s.name)} — ${esc(m.groupName||'')} · ${money(m.price)}<br>${esc(ownedLineFor(s))}`:`No set match yet. ${Object.keys(productCache).some(k=>productCache[k]&&productCache[k].status==='ready')?'Fix the name to match the card, or pick its set below.':'Open a set in Tracker first so scans can match it, or pick a set below once one is loaded.'}`}</small>
- ${!m&&s.candidates&&s.candidates.length?`<div style="margin-top:8px"><small style="font-weight:700">Closest matches — tap the right one:</small><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:5px">${s.candidates.map((c,j)=>`<button type="button" class="btn small" data-cand="${i}:${j}">${esc(c.name)}${c.number?' · '+esc(c.number):''} · ${money(c.price)}</button>`).join('')}</div></div>`:''}
+ <small>${m?`Matched${s.via==='number'?' by set number':''}: ${esc(m.number?m.number+' · ':'')}${esc(cleanDisplayName(s.name))} — ${esc(m.groupName||'')} · ${money(m.price)}<br>${esc(ownedLineFor(s))}`:`No set match yet. ${Object.keys(productCache).some(k=>productCache[k]&&productCache[k].status==='ready')?'Fix the name to match the card, or pick its set below.':'Open a set in Tracker first so scans can match it, or pick a set below once one is loaded.'}`}</small>
+ ${!m&&s.candidates&&s.candidates.length?`<div style="margin-top:8px"><small style="font-weight:700">Closest matches — tap the right one:</small><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:5px">${s.candidates.map((c,j)=>`<button type="button" class="btn small" data-cand="${i}:${j}">${esc(cleanDisplayName(c.name))}${c.number?' · '+esc(c.number):''} · ${money(c.price)}</button>`).join('')}</div></div>`:''}
  ${!m&&s.readText?`<small style="display:block;margin-top:6px">Mai AI read: “${esc(s.readText)}”</small>`:''}
  <div style="display:grid;gap:8px;margin-top:8px"><span>Card name <input type="text" value="${esc(s.name)}" data-sname="${i}" placeholder="Name this scan" style="width:min(320px,70vw);background:var(--card2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:0 8px"></span>
  <span>Belongs to <select data-sset="${i}" style="background:var(--card2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:0 8px;min-height:36px">${scanSetOptionsHTML(m?(m.catId+':'+m.groupId):'')}</select></span>
@@ -1948,8 +2275,8 @@ function renderScans(){
   else s.match={catId:pc.catId,groupId:pc.groupId,groupName:pc.groupName,productId:null,number:'',price:0,rarity:'',imageUrl:''};
   s.checked=false;renderScans();updateStats();
  });
- el.querySelectorAll('[data-fc]').forEach(inp=>inp.onchange=()=>{scans[+inp.dataset.fc].fc=Math.max(0,+inp.value||0);updateStats();saveState()});
- el.querySelectorAll('[data-ft]').forEach(inp=>inp.onchange=()=>{scans[+inp.dataset.ft].ft=Math.max(0,+inp.value||0);updateStats();saveState()});
+ el.querySelectorAll('[data-fc]').forEach(inp=>inp.onchange=()=>{const s=scans[+inp.dataset.fc];s.fc=Math.max(0,+inp.value||0);if(s.ft>s.fc){s.ft=s.fc;toast(TRADE_CAP_MSG);renderScans();return}updateStats();saveState()});
+ el.querySelectorAll('[data-ft]').forEach(inp=>inp.onchange=()=>{const s=scans[+inp.dataset.ft];s.ft=Math.max(0,+inp.value||0);if(s.ft>s.fc){s.ft=s.fc;inp.value=s.ft;toast(TRADE_CAP_MSG)}updateStats();saveState()});
  updateStats();saveState();
 }
 function loadOCR(){
@@ -2211,8 +2538,8 @@ document.getElementById('fileBtn').onclick=()=>{
   if(!visitedGroups[key]&&!settings.autoCreate){s.held=true;keep.push(s);notes.push(`Scan ${i+1} matches ${m.groupName||'a set'} — a set you haven’t opened yet. Open it in Tracker to file this scan there.`);return}
   const name=s.name.trim()||('Scanned card '+(i+1));
   const existing=m.productId!=null?items.find(x=>x.productId!=null&&String(x.productId)===String(m.productId)):items.find(x=>x.catId===m.catId&&x.groupId===m.groupId&&normName(x.name)===normName(name));
-  if(existing){existing.c+=s.fc;existing.t+=s.ft;if(m.price)existing.price=m.price}
-  else items.push({id:itemSeq++,name,kind:'single',sub:'pack',price:m.price||0,c:s.fc,t:s.ft,catId:m.catId,productId:m.productId!=null?m.productId:null,groupId:m.groupId});
+  if(existing){existing.c+=s.fc;existing.t+=s.ft;if(m.price)existing.price=m.price;if(capTrade(existing))notes.push(`Scan ${i+1}: Trade was capped at Collected — Trade copies are part of Collected.`)}
+  else{const ni={id:itemSeq++,name,kind:'single',sub:'pack',price:m.price||0,c:s.fc,t:s.ft,catId:m.catId,productId:m.productId!=null?m.productId:null,groupId:m.groupId};if(capTrade(ni))notes.push(`Scan ${i+1}: Trade was capped at Collected — Trade copies are part of Collected.`);items.push(ni)}
   filed++;
  });
  scans=keep;
@@ -2251,17 +2578,20 @@ document.getElementById('tradePdfBtn').onclick=async()=>{
   });
   y+=2;doc.line(14,y,196,y);y+=8;doc.setFont(undefined,'bold');doc.text('Trade total',120,y);doc.text(money(total),172,y);
   doc.save('mai-collector-trade.pdf');
+  const tm=document.getElementById('tradeMsg');if(tm)tm.textContent='Trade sheet downloaded — look for mai-collector-trade.pdf in your downloads.';
  }catch(e){
   // PDF engine unavailable (offline / blocked): fall back to the same
   // sheet as a printable HTML file rather than failing silently.
   const trs=rows.map(r=>`<tr><td>${esc(r[0])}</td><td>${esc(r[1])}</td><td>${esc(r[2])}</td><td>${esc(r[3])}</td></tr>`).join('')||'<tr><td colspan=4>Nothing up for trade yet.</td></tr>';
   download('mai-collector-trade.html',`<h1>Mai Collector — Trade List</h1><p>${new Date().toLocaleDateString()} · Prices shown · Slabs included</p><table border=1 cellpadding=8><tr><th>Card</th><th>Qty</th><th>Each</th><th>Total</th></tr>${trs}<tr><td colspan=3><b>Trade total</b></td><td><b>${money(total)}</b></td></tr></table><p>The PDF generator couldn’t load, so this sheet was saved as a printable HTML file instead.</p>`);
+  const tm=document.getElementById('tradeMsg');if(tm)tm.textContent='The PDF tool couldn’t load, so the trade sheet downloaded as a printable HTML file instead — look for mai-collector-trade.html in your downloads.';
  }
 };
 document.getElementById('needBtn').onclick=()=>{
  const vals=Object.values(markedNeeds);
- const rows=vals.map(p=>`<tr><td>${esc(p.number||'')}</td><td>${esc(p.name)}</td><td>${esc(p.setName||'')}</td><td>${money(p.price)}</td></tr>`).join('');
+ const rows=vals.map(p=>`<tr><td>${esc(p.number||'')}</td><td>${esc(cleanDisplayName(p.name))}</td><td>${esc(p.setName||'')}</td><td>${money(p.price)}</td></tr>`).join('');
  download('mai-collector-needs.html',vals.length?`<h1>Mai Collector — I Still Need</h1><p>${new Date().toLocaleDateString()} · Prices shown</p><table border=1 cellpadding=8><tr><th>Number</th><th>Card</th><th>Set</th><th>Price</th></tr>${rows}</table>`:`<h1>Mai Collector — I Still Need</h1><p>No needs marked yet.</p>`);
+ const tm=document.getElementById('tradeMsg');if(tm)tm.textContent=vals.length?'Needs list downloaded — look for mai-collector-needs.html in your downloads.':'Needs file downloaded — no needs are marked yet, so it says so.';
 };
 
 // ---------- Settings wiring ----------
@@ -2275,8 +2605,23 @@ document.getElementById('setAutoScan').onchange=e=>{settings.autoScan=e.target.c
 document.getElementById('sealedSort').onchange=()=>{renderSealed();saveState()};document.getElementById('sealedFilter').onchange=()=>{renderSealed();saveState()};document.getElementById('sealedQty').onchange=()=>{renderSealed();saveState()};
 document.getElementById('slabSort').onchange=()=>{renderSlabs();saveState()};document.getElementById('slabFilter').onchange=()=>{renderSlabs();saveState()};document.getElementById('slabQty').onchange=()=>{renderSlabs();saveState()};
 document.getElementById('tradeSort').onchange=()=>{renderTrade()};document.getElementById('tradeFilter').onchange=()=>{renderTrade()};
+document.getElementById('needSearch').addEventListener('input',e=>{needQuery=e.target.value;renderTrade()});
 document.getElementById('resSort').onchange=()=>{renderResearch()};document.getElementById('resFilter').onchange=()=>{renderResearch()};
 
+// ---------- Price pull status ----------
+// Prices pull fresh every time a set is opened (loadProducts), not
+// only on a manual Refresh — so the header pill and the Settings note
+// track the last actual pull instead of claiming "not refreshed yet"
+// after prices have already loaded.
+let pricesPulledAt=0;
+function markPricesPulled(){
+ pricesPulledAt=Date.now();
+ const when=new Date(pricesPulledAt).toLocaleString();
+ const label=document.getElementById('lastRefresh');
+ if(label&&!(typeof refreshing!=='undefined'&&refreshing))label.textContent='Prices: up to date · pulled '+when;
+ const note=document.getElementById('refreshNote');
+ if(note)note.textContent='Prices pull fresh every time you open a set — last pulled '+when+'. Refresh re-pulls every opened set. Updates prices only — quantities and check-offs never change.';
+}
 // ---------- Price refresh (real) ----------
 // Refresh re-pulls the ProductsAndPrices.csv for every set already
 // loaded this session and merges PRICES ONLY: each product's market
@@ -2310,6 +2655,7 @@ async function refreshPrices(){
   }catch(e){failed++}
  }
  refreshing=false;
+ pricesPulledAt=Date.now();
  const stamp=new Date().toLocaleString();
  if(done&&!failed)label.textContent='Prices: refreshed '+stamp+' · '+changed+' price'+(changed===1?'':'s')+' changed';
  else if(done)label.textContent='Prices: refreshed '+done+' of '+keys.length+' sets '+stamp+' · '+failed+' failed — pull again to retry those';
@@ -2334,7 +2680,11 @@ renderAll();
 // goes to its Category, not straight Home.
 (function(){
  let restored=null;
- try{restored=decodeNavHash()||storedNavState()}catch(e){restored=null}
+ try{
+  const sn=storedNavState();
+  if(sn&&sn.tree)treeOpen={games:sn.tree.games||{},cats:sn.tree.cats||{}}; // tree expansion survives a reload too
+  restored=decodeNavHash()||sn;
+ }catch(e){restored=null}
  const homeSnap={panel:'home',game:null,catId:null,group:null};
  if(restored&&(restored.panel!=='home'||restored.game||restored.catId!=null)){
   applyState(restored);
