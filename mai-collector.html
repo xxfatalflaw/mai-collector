@@ -143,6 +143,22 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent)}
 .pathline button:hover{color:var(--accent2)}
 .pathline span{color:var(--ink);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .special-head{margin:16px 0 6px;font-size:12px;font-weight:700;color:var(--muted)}
+.tree{display:grid;gap:8px}
+.tnode{display:grid;gap:6px}
+.trow{width:100%;display:flex;align-items:center;gap:8px;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;cursor:pointer;color:var(--ink)}
+.trow:hover{border-color:var(--accent)}
+.tchev{color:var(--accent2);font-size:13px;width:14px;flex:0 0 auto;text-align:center}
+.tg-name{font-weight:700;font-size:14px;min-width:0;overflow-wrap:anywhere}
+.tg-meta{color:var(--muted);font-size:12px;margin-left:auto;text-align:right}
+.trow.tcat{margin-left:18px;background:var(--card2)}
+.tkids{display:grid;gap:6px}
+.tkids.tk-group{margin-left:36px}
+.tarrow{color:var(--accent2);font-size:18px;margin-left:2px;flex:0 0 auto}
+.tnote{color:var(--muted);font-size:12.5px;padding:8px 10px;border:1px dashed var(--line);border-radius:10px;background:var(--card2)}
+.tspecial{margin:8px 0 0;font-size:12px;font-weight:700;color:var(--muted)}
+.ttoolbar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:6px;font-size:13px}
+.ttoolbar select{background:var(--card2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:0 8px;min-height:32px}
+@media(max-width:520px){.trow.tgame .tg-meta{display:none}}
 footer{color:var(--muted);font-size:12px;padding:18px 0 8px;border-top:1px solid var(--line);margin-top:20px}
 .badge{display:inline-block;background:var(--chip);border:1px solid var(--line);border-radius:999px;padding:2px 6px;font-size:10.5px;font-weight:700;vertical-align:middle}
 .badge.warn{background:#4c1d1d;border-color:#7f1d1d;color:#fecaca}
@@ -250,7 +266,7 @@ dialog::backdrop{background:rgba(5,0,15,.6)}dialog .in{padding:20px}
 </div>
 </section>
 
-<footer id="pageFooter">Mai Collector · Source data: <a href="https://tcgcsv.com/tcgplayer/categories" target="_blank" rel="noopener">tcgcsv.com</a> (TCGplayer, updated daily) · Set lists and prices pull live from tcgcsv — nothing is preloaded · Card images via TCGplayer CDN · Slab prices are manual — check eBay sold listings, never asking prices.</footer>
+<footer id="pageFooter">Mai Collector · Source data: <a href="https://tcgcsv.com/tcgplayer/categories" target="_blank" rel="noopener">tcgcsv.com</a> (TCGplayer, updated daily) · Game, category, and set lists load in the background when the app opens; a set’s cards and prices pull live from tcgcsv when the set is opened and stay cached after · Card images via TCGplayer CDN · Slab prices are manual — check eBay sold listings, never asking prices.</footer>
 </div>
 
 <div id="swipeHint" aria-hidden="true">‹</div>
@@ -260,7 +276,7 @@ dialog::backdrop{background:rgba(5,0,15,.6)}dialog .in{padding:20px}
 <dialog id="slabDialog"><div class="in"><h3 style="margin-top:0" id="slabDialogTitle">Add a slab</h3><div style="display:grid;gap:10px"><div class="field"><label>Card name</label><input type="text" id="slabCard" placeholder="Type the card name"></div><div class="two"><div class="field"><label>Company</label><input type="text" id="slabCompany" value="PSA"></div><div class="field"><label>Grade</label><input type="text" id="slabGrade" value="10"></div></div><div class="field"><label>Cert # (optional)</label><input type="text" id="slabCert" placeholder="e.g. 81234567"></div><div class="two"><div class="field"><label>Collected qty</label><input type="number" id="slabCollected" value="1" min="0"></div><div class="field"><label>Trade qty</label><input type="number" id="slabTrade" value="0" min="0"></div></div></div><div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap"><button class="btn primary" id="saveSlabBtn">Save slab</button><button class="btn danger" id="deleteSlabBtn" style="display:none">Remove slab</button><button class="btn" onclick="document.getElementById('slabDialog').close()">Cancel</button></div></div></dialog>
 
 <script>
-// ---------- Catalog directory (names + IDs only, from tcgcsv) — no cards or sets are preloaded ----------
+// ---------- Catalog directory (names + IDs only, from tcgcsv) — the structure (games, categories, groups) preloads in the background at startup and is cached; a set’s card list loads when the set is opened ----------
 // Category IDs verified against the live tcgcsv categories list:
 // Magic 1, YuGiOh 2, Pokemon 3, Dragon Ball Z 23, Dragon Ball Super CCG 27,
 // Digimon 63, One Piece 68, Lorcana 71, Fusion World 80, Pokemon Japan 85,
@@ -285,6 +301,14 @@ let research={}; // key -> {label,price,date,notes,url}
 let scans=[]; // {name,fc,ft,checked,thumb,match:{catId,groupId,groupName,productId,number,price}|null,dup,held}
 let itemSeq=1;
 let nav={game:null,cat:null,group:null}; let chipFilter="all";
+// Tracker tree expansion (session-only UI state). The tree is what
+// Tracker shows whenever no set is open: games expand in place to
+// their categories, categories to their groups, all from the catalog
+// structure preloaded at startup — no fetch per expansion.
+let treeOpen={games:{},cats:{}};
+// The game / category of the set currently open, so one back step out
+// of a set returns to the tree with exactly those rows expanded.
+let treeReturnGame=null,treeReturnCatId=null;
 let binderPage=0; let trackerView=null; let groupSearch="";
 // Slim sort / filter controls (session-only UI state; defaults match the
 // long-standing behaviour: groups newest-first, cards by set number,
@@ -479,6 +503,22 @@ function goBack(){
  // Already Home: a back does nothing — it must never close the app.
 }
 document.querySelectorAll('[data-goto]').forEach(b=>b.addEventListener('click',()=>navigateTo(b.dataset.goto)));
+// One back step out of an open set lands on the Tracker tree with that
+// set's game + category still expanded (the cascading tree replaced the
+// old level-by-level pages), not on a separate category page.
+const baseGoBack=goBack;
+goBack=function(){
+ const openDlg=document.querySelector('dialog[open]');if(openDlg){openDlg.close();return}
+ if(currentPanel==='tracker'&&nav.group){
+  if(treeReturnGame)treeOpen.games[treeReturnGame]=true;
+  if(treeReturnCatId!=null)treeOpen.cats[treeReturnCatId]=true;
+  nav.group=null;
+  if(historyStack.length>1)historyStack.pop();
+  if(historyArmed){try{history.replaceState({maiNavStack:stackCopy()},'','#'+encodeNavState(snapshot()))}catch(e){}}
+  renderTracker();persistNav();return;
+ }
+ baseGoBack();
+};
 
 // ---------- Header drop-down menu (the M in the top bar) ----------
 // Section navigation lives here now — there is no sticky shortcut bar.
@@ -577,23 +617,23 @@ function renderCrumbs(){
  // Game › Dragon Ball › Fusion World › Brightness of Hope
  c.className='pathline';
  if(!nav.game){
-  c.innerHTML=`<span>Game</span>`;
+  c.innerHTML=`<span>Games</span>`;
  } else if(!nav.cat){
-  c.innerHTML=`<button type="button" data-crumb="games">Game</button> › <span>${esc(nav.game)}</span>`;
+  c.innerHTML=`<button type="button" data-crumb="games">Games</button> › <span>${esc(nav.game)}</span>`;
  } else if(!nav.group){
-  c.innerHTML=`<button type="button" data-crumb="games">Game</button> › <button type="button" data-crumb="cats">${esc(nav.game)}</button> › <span>${esc(nav.cat.display||nav.cat.name)}</span>`;
+  c.innerHTML=`<button type="button" data-crumb="games">Games</button> › <button type="button" data-crumb="cats">${esc(nav.game)}</button> › <span>${esc(nav.cat.display||nav.cat.name)}</span>`;
  } else {
   // Shorten the category to its distinctive tail for the one-line path
   // (e.g. "Dragon Ball Super: Fusion World" -> "Fusion World") so the
   // whole path fits on one phone line.
   const catShort=(nav.cat.display||nav.cat.name||'').replace(/^.*:\s*/,'');
-  c.innerHTML=`<button type="button" data-crumb="games">Game</button> › <button type="button" data-crumb="cats">${esc(nav.game)}</button> › <button type="button" data-crumb="groups">${esc(catShort)}</button> › <span>${esc(nav.group.name||'Set')}</span>`;
+  c.innerHTML=`<button type="button" data-crumb="games">Games</button> › <button type="button" data-crumb="cats">${esc(nav.game)}</button> › <button type="button" data-crumb="groups">${esc(catShort)}</button> › <span>${esc(nav.group.name||'Set')}</span>`;
  }
- c.querySelectorAll('[data-crumb]').forEach(b=>b.onclick=()=>{const k=b.dataset.crumb;if(k==='games'){nav={game:null,cat:null,group:null}}else if(k==='cats'){nav.cat=null;nav.group=null}else if(k==='groups'){nav.group=null}renderTracker();pushHistory()});
+ c.querySelectorAll('[data-crumb]').forEach(b=>b.onclick=()=>{const k=b.dataset.crumb;if(k==='games'){nav={game:null,cat:null,group:null}}else if(k==='cats'){treeOpen.games[nav.game]=true;nav.cat=null;nav.group=null}else if(k==='groups'){treeOpen.games[nav.game]=true;if(nav.cat)treeOpen.cats[nav.cat.id]=true;nav.group=null}renderTracker();pushHistory()});
  // The Group page stays bare: no "Back" button (the shortcut bar's Home
  // and the Back step do that job) and no footer block — the groups list
  // is the whole page.
- const bare=currentPanel==='tracker'&&!!(nav.game&&nav.cat);
+ const bare=false;
  const bb=document.getElementById('trackerBackbar');if(bb)bb.style.display=bare?'none':'';
  const ft=document.getElementById('pageFooter');if(ft)ft.style.display=(currentPanel==='tracker'&&!!nav.cat)?'none':'';
 }
@@ -748,16 +788,16 @@ function loadGroupsFor(catId){
  if(c&&c.status==='loading'&&c.promise)return c.promise;
  try{
   const raw=sessionStorage.getItem(GROUP_STORE_PREFIX+catId);
-  if(raw){const cached=JSON.parse(raw);if(Array.isArray(cached)){groupCache[catId]={status:'ready',groups:cached};if(nav.cat&&String(nav.cat.id)===String(catId)&&currentPanel==='tracker')Promise.resolve().then(()=>renderTracker());return Promise.resolve(true)}}
+  if(raw){const cached=JSON.parse(raw);if(Array.isArray(cached)){groupCache[catId]={status:'ready',groups:cached};if(currentPanel==='tracker')Promise.resolve().then(()=>renderTracker());return Promise.resolve(true)}}
  }catch(e){}
  const promise=tcgFetchText('https://tcgcsv.com/tcgplayer/'+catId+'/groups',t=>{try{JSON.parse(t);return true}catch(e){return false}}).then(t=>{const j=JSON.parse(t);
   const groups=sortGroupList(j.results||[],'new');
   groupCache[catId]={status:'ready',groups:groups};
   try{sessionStorage.setItem(GROUP_STORE_PREFIX+catId,JSON.stringify(groups))}catch(e){}
   if(nav.group&&!nav.group.name){const g=groups.find(x=>String(x.groupId)===String(nav.group.groupId));if(g)nav.group={groupId:g.groupId,name:g.name,abbreviation:g.abbreviation||''}}
-  if(nav.cat&&String(nav.cat.id)===String(catId)&&currentPanel==='tracker')renderTracker();
+  if(currentPanel==='tracker')renderTracker();
   return true;
- }).catch(e=>{groupCache[catId]={status:'error',error:String((e&&e.message)||e)};if(nav.cat&&String(nav.cat.id)===String(catId)&&currentPanel==='tracker')renderTracker();return false});
+ }).catch(e=>{groupCache[catId]={status:'error',error:String((e&&e.message)||e)};if(currentPanel==='tracker')renderTracker();return false});
  groupCache[catId]={status:'loading',promise:promise};
  return promise;
 }
@@ -874,43 +914,89 @@ function wireProductControls(body,products){
   bw.addEventListener('pointercancel',()=>{px=null});
  }
 }
+// ---------- Tracker cascading tree ----------
+// One page, three levels deep: a Game row expands in place to its
+// Categories, a Category row expands in place to its Groups (main sets
+// first, then Special sets — same split and sort as the old group page),
+// and tapping a Group opens that set's page. Everything the tree shows
+// comes from the catalog structure preloaded in the background at
+// startup (categories + every category's groups, cached in memory and
+// sessionStorage), so expanding a row never waits on the network; only
+// a set's cards load on open, as before.
+function treeGameOpen(g){return treeOpen.games[g.name]!==undefined?treeOpen.games[g.name]:nav.game===g.name}
+function treeCatOpen(c){return treeOpen.cats[c.id]!==undefined?treeOpen.cats[c.id]:(nav.cat&&String(nav.cat.id)===String(c.id))}
+function groupSectionsHTML(gc,catId){
+ const sorted=sortGroupList(gc.groups,groupSort);
+ const mainGroups=sorted.filter(gr=>!isSpecialGroup(gr));
+ const specialGroups=sorted.filter(gr=>isSpecialGroup(gr));
+ const groupRow=gr=>`<button type="button" class="trow tgroup" data-tgroup="${gr.groupId}" data-tcat="${catId}"><span class="tg-name">${esc(gr.name)}</span><span class="tg-meta">${gr.abbreviation?esc(gr.abbreviation)+' · ':''}${groupReleaseDate(gr)?groupReleaseDate(gr)+' · ':''}groupId ${gr.groupId}</span><span class="tarrow">›</span></button>`;
+ let sections='';
+ if(groupFilter!=='special')sections+=mainGroups.length?mainGroups.map(groupRow).join(''):`<div class="tnote">No main sets here — every group in this category is a special set (promos, decks, kits), listed under Special sets below.</div>`;
+ if(groupFilter!=='main'&&specialGroups.length)sections+=(groupFilter==='all'?`<div class="tspecial">Special sets</div>`:'')+specialGroups.map(groupRow).join('');
+ if(groupFilter==='special'&&!specialGroups.length)sections=`<div class="tnote">No special sets — this category has no promo, deck, or kit groups.</div>`;
+ return `<div class="ttoolbar"><label style="font-weight:700">Sort <select data-gsort><option value="new" ${groupSort==='new'?'selected':''}>Newest first</option><option value="old" ${groupSort==='old'?'selected':''}>Oldest first</option><option value="name" ${groupSort==='name'?'selected':''}>Name A–Z</option></select></label><label style="font-weight:700">Show <select data-gfilter><option value="all" ${groupFilter==='all'?'selected':''}>All groups</option><option value="main" ${groupFilter==='main'?'selected':''}>Main sets</option><option value="special" ${groupFilter==='special'?'selected':''}>Special sets</option></select></label><span class="pill">${mainGroups.length} main · ${specialGroups.length} special</span></div>`+sections;
+}
+function renderTrackerTree(body){
+ let html=`<div class="section-head"><div><h2>Game</h2><p>Alphabetical. Games with multiple tcgcsv categories are grouped under one Game. Tap a game to open its categories, then a category to open its sets.</p></div><button class="btn" data-scanlink>📷 Scan</button></div><div class="tree">`;
+ for(const g of GAMES){
+  const gOpen=treeGameOpen(g);
+  html+=`<div class="tnode"><button type="button" class="trow tgame" data-tgame="${esc(g.name)}" aria-expanded="${gOpen}"><span class="tchev">${gOpen?'▾':'▸'}</span><span class="tg-name">${esc(g.name)}</span><span class="tg-meta">${g.cats.length} ${g.cats.length===1?'category':'categories'} · ${g.cats.map(c=>esc(c.display||c.name)).join(' · ')}</span></button>`;
+  if(gOpen){
+   html+=`<div class="tkids">`;
+   for(const c of g.cats){
+    const gc=groupCache[c.id];
+    const cOpen=treeCatOpen(c);
+    const setCount=gc&&gc.status==='ready'?` · ${gc.groups.length} sets`:'';
+    html+=`<div class="tnode"><button type="button" class="trow tcat" data-tcat="${c.id}" aria-expanded="${cOpen}"><span class="tchev">${cOpen?'▾':'▸'}</span><span class="tg-name">${esc(c.display||c.name)}</span><span class="tg-meta">categoryId ${c.id}${setCount}</span></button>`;
+    if(cOpen){
+     html+=`<div class="tkids tk-group">`;
+     if(!gc||gc.status==='loading'){html+=`<div class="tnote">Loading this category’s sets…</div>`;loadGroupsFor(c.id)}
+     else if(gc.status==='error'){html+=`<div class="tnote">Couldn’t load this category’s sets (${esc(gc.error||'network error')}). <button type="button" class="btn small" data-tretry="${c.id}">↻ Retry</button></div>`}
+     else if(!gc.groups.length){html+=`<div class="tnote">tcgcsv returned an empty set list for this category.</div>`}
+     else html+=groupSectionsHTML(gc,c.id);
+     html+=`</div>`;
+    }
+    html+=`</div>`;
+   }
+   html+=`</div>`;
+  }
+  html+=`</div>`;
+ }
+ html+=`</div>`;
+ body.innerHTML=html;
+ body.querySelectorAll('[data-tgame]').forEach(b=>b.onclick=()=>{
+  const n=b.dataset.tgame;const g=GAMES.find(x=>x.name===n);if(!g)return;
+  const open=!treeGameOpen(g);treeOpen.games[n]=open;
+  // A single-category game opens its one category too, so its sets are
+  // one tap away — the category row still shows, per the tree layout.
+  if(open&&g.cats.length===1){treeOpen.cats[g.cats[0].id]=true;loadGroupsFor(g.cats[0].id)}
+  renderTracker();
+ });
+ body.querySelectorAll('[data-tcat]').forEach(b=>b.onclick=()=>{
+  const id=b.dataset.tcat;const cat=GAMES.flatMap(g=>g.cats).find(c=>String(c.id)===String(id));if(!cat)return;
+  const open=!treeCatOpen(cat);treeOpen.cats[id]=open;
+  if(open)loadGroupsFor(id);
+  renderTracker();
+ });
+ body.querySelectorAll('[data-tgroup]').forEach(b=>b.onclick=()=>{
+  const catId=b.dataset.tcat,gid=b.dataset.tgroup;
+  const g=GAMES.find(x=>x.cats.some(c=>String(c.id)===String(catId)));if(!g)return;
+  const cat=g.cats.find(c=>String(c.id)===String(catId));const gc=groupCache[catId];if(!gc||gc.status!=='ready')return;
+  const gr=gc.groups.find(x=>String(x.groupId)===String(gid));if(!gr)return;
+  nav.game=g.name;nav.cat=cat;nav.group={groupId:gr.groupId,name:gr.name,abbreviation:gr.abbreviation||''};
+  visitedGroups[catId+':'+gr.groupId]=true;binderPage=0;trackerView=null;groupSearch="";
+  renderTracker();pushHistory();
+ });
+ body.querySelectorAll('[data-tretry]').forEach(b=>b.onclick=()=>{const id=b.dataset.tretry;delete groupCache[id];try{sessionStorage.removeItem(GROUP_STORE_PREFIX+id)}catch(e){}loadGroupsFor(id);renderTracker()});
+ body.querySelectorAll('[data-gsort]').forEach(s=>s.onchange=()=>{groupSort=s.value;renderTracker()});
+ body.querySelectorAll('[data-gfilter]').forEach(s=>s.onchange=()=>{groupFilter=s.value;renderTracker()});
+}
 function renderTracker(){
  renderCrumbs();const body=document.getElementById('trackerBody');
- if(!nav.game){
-  body.innerHTML=`<div class="section-head"><div><h2>Game</h2><p>Alphabetical. Games with multiple tcgcsv categories are grouped under one Game.</p></div><button class="btn" data-scanlink>📷 Scan</button></div><div class="grid">${GAMES.map(g=>`<button class="pick" data-game="${esc(g.name)}"><span class="arrow">›</span><b>${esc(g.name)}</b><span>${g.cats.length} ${g.cats.length===1?'category':'categories'} · ${g.cats.map(c=>esc(c.name)).join(' · ')}</span></button>`).join('')}</div>`;
-  body.querySelectorAll('[data-game]').forEach(b=>b.onclick=()=>{const g=GAMES.find(x=>x.name===b.dataset.game);if(g.cats.length===1){nav.game=g.name;nav.cat=g.cats[0]}else{nav.game=g.name;nav.cat=null}nav.group=null;renderTracker();pushHistory()});
- } else if(!nav.cat){
-  const g=GAMES.find(x=>x.name===nav.game);
-  body.innerHTML=`<div class="section-head"><div><h2>Category</h2><p>${esc(nav.game)} — exact tcgcsv category names &amp; IDs.</p></div><button class="btn" data-scanlink>📷 Scan</button></div><div class="grid">${g.cats.map(c=>`<button class="pick" data-cat="${c.id}"><span class="arrow">›</span><b>${esc(c.display||c.name)}</b><span>categoryId ${c.id} · stored by ID, not just name</span></button>`).join('')}</div>`;
-  body.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{nav.cat=g.cats.find(x=>String(x.id)===b.dataset.cat);nav.group=null;renderTracker();pushHistory()});
- } else if(!nav.group){
-  const gc=groupCache[nav.cat.id];
-  let inner='';
-  if(!gc||gc.status==='loading'){inner=`<div class="notice"><b>Loading groups from tcgcsv…</b><p>Pulling the live set list for ${esc(nav.cat.display||nav.cat.name)} — newest first.</p></div>`;loadGroups()}
-  else if(gc.status==='error'){inner=`<div class="notice"><b>Couldn’t load this category’s groups</b><p>The live pull from tcgcsv failed (${esc(gc.error||'network error')}). Check your connection and try again.</p><p><button class="btn primary" data-retry-groups>↻ Retry</button></p></div>`}
-  else if(!gc.groups.length){inner=`<div class="notice"><b>No groups found</b><p>tcgcsv returned an empty group list for this category.</p></div>`}
-  else{
-   // Main booster sets first, then every non-booster group — promos,
-   // starter decks, kits, event cards (see isSpecialGroup) — under a
-   // small "Special sets" heading at the bottom. Sort + filter are
-   // slim selects in the content area; the defaults are newest first
-   // with everything shown.
-   const groupPick=gr=>`<button class="pick" data-group="${gr.groupId}"><span class="arrow">›</span><b>${esc(gr.name)}</b><span>${gr.abbreviation?esc(gr.abbreviation)+' · ':''}groupId ${gr.groupId}${groupReleaseDate(gr)?' · '+groupReleaseDate(gr):''}</span></button>`;
-   const sorted=sortGroupList(gc.groups,groupSort);
-   const mainGroups=sorted.filter(gr=>!isSpecialGroup(gr));
-   const specialGroups=sorted.filter(gr=>isSpecialGroup(gr));
-   let sections='';
-   if(groupFilter!=='special')sections+=mainGroups.length?`<div class="grid">${mainGroups.map(groupPick).join('')}</div>`:`<div class="notice"><b>No main sets here</b><p>Every group in this category is a special set — promos, decks, and kits are listed under Special sets.</p></div>`;
-   if(groupFilter!=='main'&&specialGroups.length)sections+=(groupFilter==='all'?`<h3 class="special-head">Special sets</h3>`:'')+`<div class="grid">${specialGroups.map(groupPick).join('')}</div>`;
-   if(groupFilter==='special'&&!specialGroups.length)sections=`<div class="notice"><b>No special sets</b><p>This category has no promo, deck, or kit groups.</p></div>`;
-   inner=`<div class="toolbar" style="margin-bottom:12px"><label style="font-weight:700">Sort <select id="groupSortSel"><option value="new" ${groupSort==='new'?'selected':''}>Newest first</option><option value="old" ${groupSort==='old'?'selected':''}>Oldest first</option><option value="name" ${groupSort==='name'?'selected':''}>Name A–Z</option></select></label><label style="font-weight:700">Show <select id="groupFilterSel"><option value="all" ${groupFilter==='all'?'selected':''}>All groups</option><option value="main" ${groupFilter==='main'?'selected':''}>Main sets</option><option value="special" ${groupFilter==='special'?'selected':''}>Special sets</option></select></label><span class="pill">${mainGroups.length} main · ${specialGroups.length} special</span></div>`+sections;
-  }
-  body.innerHTML=inner;
-  body.querySelectorAll('[data-group]').forEach(b=>b.onclick=()=>{const gr=gc.groups.find(x=>String(x.groupId)===b.dataset.group);if(!gr)return;nav.group={groupId:gr.groupId,name:gr.name,abbreviation:gr.abbreviation||''};visitedGroups[nav.cat.id+':'+gr.groupId]=true;binderPage=0;trackerView=null;groupSearch="";renderTracker();pushHistory()});
-  const gss=body.querySelector('#groupSortSel');if(gss)gss.onchange=()=>{groupSort=gss.value;renderTracker()};
-  const gfs=body.querySelector('#groupFilterSel');if(gfs)gfs.onchange=()=>{groupFilter=gfs.value;renderTracker()};
-  const rg=body.querySelector('[data-retry-groups]');if(rg)rg.onclick=()=>{delete groupCache[nav.cat.id];try{sessionStorage.removeItem(GROUP_STORE_PREFIX+nav.cat.id)}catch(e){}renderTracker()};
+ if(!nav.group){
+  renderTrackerTree(body);
  } else {
+  treeReturnGame=nav.game;treeReturnCatId=nav.cat?nav.cat.id:null;
   if(!nav.group.name)loadGroups();
   const key=nav.cat.id+':'+nav.group.groupId;const pc=productCache[key];
   const view=trackerView||settings.view||'binder';
