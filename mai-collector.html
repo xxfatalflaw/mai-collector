@@ -119,6 +119,18 @@ body{touch-action:pan-y}
 .scan-status{display:none}
 @media(max-width:520px){.camera{height:calc(100dvh - 104px)}}
 .scan-thumb{width:52px;height:72px;object-fit:cover;border-radius:6px;background:var(--card2);flex:0 0 auto}
+/* Scan-entry form: the text column must be allowed to shrink (flex
+   items otherwise refuse to go below their content's width), and
+   each field is a label over a full-column-width control. The old
+   markup left the "Belongs to" select with no width at all — a
+   select sizes itself to its widest option — and the name input at
+   70vw, so both forced the column wider than the card and ran off
+   the right edge of the screen, clipping the select's arrow. */
+#scanList .row .grow{min-width:0}
+.scan-form{display:grid;gap:8px;margin-top:8px}
+.scan-form .sf{display:grid;gap:4px;min-width:0}
+.scan-form .sf input[type=text],.scan-form .sf select{width:100%;max-width:100%;min-width:0}
+.scan-form .sf-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;min-width:0}
 input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent)}
 .toggle{display:flex;gap:10px;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;cursor:pointer}
 .toggle input{margin-top:2px}.toggle span small{display:block;color:var(--muted)}
@@ -2562,9 +2574,9 @@ function renderScans(){
  <small>${m?`Matched${s.via==='number'?' by set number':''}: ${esc(m.number?m.number+' · ':'')}${esc(cleanDisplayName(s.name))}${matchSetName(m)?' — '+esc(matchSetName(m)):''} · ${money(m.price)}<br>${esc(ownedLineFor(s))}`:`No set match yet. ${noMatchHint()}`}</small>
  ${!m&&s.candidates&&s.candidates.length?`<div style="margin-top:8px"><small style="font-weight:700">Closest matches — tap the right one:</small><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:5px">${s.candidates.map((c,j)=>`<button type="button" class="btn small" data-cand="${i}:${j}">${esc(cleanDisplayName(c.name))}${c.number?' · '+esc(c.number):''} · ${money(c.price)}</button>`).join('')}</div></div>`:''}
  ${!m&&s.readText?`<small style="display:block;margin-top:6px">Scanner read: “${esc(s.readText)}”</small>`:''}
- <div style="display:grid;gap:8px;margin-top:8px"><span>Card name <input type="text" value="${esc(s.name)}" data-sname="${i}" placeholder="Name this scan" style="width:min(320px,70vw);background:var(--card2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:0 8px"></span>
- <span>Belongs to <select data-sset="${i}" style="background:var(--card2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:0 8px;min-height:36px">${scanSetOptionsHTML(m?(m.catId+':'+m.groupId):(scanContextKey()||''))}</select></span>
- <span style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"><span>File as Collected <input type="number" min="0" value="${s.fc}" data-fc="${i}" style="width:64px;background:var(--card2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:0 8px"></span><span>Trade <input type="number" min="0" value="${s.ft}" data-ft="${i}" style="width:64px;background:var(--card2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:0 8px"></span><button class="btn small" data-del="${i}">Delete &amp; rescan</button></span></div></div></div>`}).join('');
+ <div class="scan-form"><span class="sf">Card name <input type="text" value="${esc(s.name)}" data-sname="${i}" placeholder="Name this scan" style="background:var(--card2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:0 8px"></span>
+ <span class="sf">Belongs to <select data-sset="${i}" style="background:var(--card2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:0 8px;min-height:36px">${scanSetOptionsHTML(m?(m.catId+':'+m.groupId):(scanContextKey()||''))}</select></span>
+ <span class="sf-row"><span>File as Collected <input type="number" min="0" value="${s.fc}" data-fc="${i}" style="width:64px;background:var(--card2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:0 8px"></span><span>Trade <input type="number" min="0" value="${s.ft}" data-ft="${i}" style="width:64px;background:var(--card2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:0 8px"></span><button class="btn small" data-del="${i}">Delete &amp; rescan</button></span></div></div></div>`}).join('');
  el.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{scans.splice(+b.dataset.del,1);renderScans()});
  el.querySelectorAll('[data-cand]').forEach(b=>b.onclick=()=>{const parts=b.dataset.cand.split(':');const s=scans[+parts[0]];const c=s&&s.candidates?s.candidates[+parts[1]]:null;if(!c)return;s.match={name:c.name,catId:c.catId,groupId:c.groupId,groupName:c.groupName,productId:c.productId,number:c.number,price:c.price,rarity:c.rarity||'',imageUrl:c.imageUrl||''};s.name=c.name;s.candidates=null;s.via='picked';renderScans();updateStats()});
  el.querySelectorAll('[data-sname]').forEach(inp=>inp.onchange=()=>{const s=scans[+inp.dataset.sname];s.name=inp.value;s.checked=false;applyMatch(s);renderScans();updateStats()});
@@ -2643,8 +2655,24 @@ async function startCamera(){
  if(scanStream){scanStream.getTracks().forEach(t=>t.stop());scanStream=null;stopAutoScan();view.classList.remove('live');document.getElementById('cameraBtn').textContent='Start camera';scanStatus('Camera off.');return}
  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){scanStatus('This browser can’t open a camera here. Use “Add by name” instead — matching and filing work the same.');return}
  try{
-  scanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});
+  // Ask for a genuinely high-resolution stream and continuous
+  // autofocus. With no constraints beyond facingMode the browser
+  // hands back its low default (often 640x480) and leaves focus
+  // wherever it started — the preview fills a tall full-screen view
+  // from that small, unfocused picture, which is exactly the soft,
+  // blurry image that then starves the card reader of detail too.
+  scanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1920},height:{ideal:1080},frameRate:{ideal:30}},audio:false});
   video.srcObject=scanStream;await video.play();
+  try{
+   const track=scanStream.getVideoTracks()[0];
+   if(track&&track.getCapabilities&&track.applyConstraints){
+    const caps=track.getCapabilities(),adv=[];
+    if(caps.focusMode&&caps.focusMode.indexOf('continuous')>=0)adv.push({focusMode:'continuous'});
+    if(caps.exposureMode&&caps.exposureMode.indexOf('continuous')>=0)adv.push({exposureMode:'continuous'});
+    if(caps.whiteBalanceMode&&caps.whiteBalanceMode.indexOf('continuous')>=0)adv.push({whiteBalanceMode:'continuous'});
+    if(adv.length)await track.applyConstraints({advanced:adv});
+   }
+  }catch(e){/* focus hints are best-effort — the sharper stream still helps */}
   view.classList.add('live');document.getElementById('cameraBtn').textContent='Stop camera';
   startAutoScan();
   scanStatus(settings.autoScan!==false?'Camera on. Hold a card steady in the frame — Auto scan reads it by itself.':'Camera on. Hold a card steady in the frame, then tap Scan card.');
