@@ -113,6 +113,16 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent)}
 .field{display:grid;gap:6px}.field label{font-weight:700;font-size:13px}.field input,.field select{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:10px;color:var(--ink);padding:0 12px}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:640px){.two{grid-template-columns:1fr}}
 .binder-wrap{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:6px;touch-action:pan-y;box-shadow:var(--shadow);height:calc(100vh - 322px);height:calc(100dvh - 322px);min-height:230px;max-height:1000px}
+/* One-screen set view: a flex column exactly one viewport tall (minus
+   the top bar, back bar, and crumbs above the Tracker body) holding the
+   set heading, the chip rows, the binder, and its pagination. The
+   binder flexes to whatever space is left, so the grid AND the
+   pagination are always fully on screen with no scrolling; the Sealed
+   and legacy sections render after this box, so they can never push
+   the pagination below the fold. */
+.setfit{display:flex;flex-direction:column;height:calc(100vh - 116px);height:calc(100dvh - 116px)}
+.setfit>*{flex:0 0 auto}
+.setfit .binder-wrap{flex:1 1 auto;height:auto;min-height:0;max-height:none}
 .binder-page{display:grid;gap:6px;height:100%;grid-template-rows:repeat(3,minmax(0,1fr));align-items:stretch}
 .pocket{background:var(--card);border:1px solid var(--line);border-radius:9px;padding:5px;display:grid;grid-template-rows:minmax(0,1fr) auto 51px;gap:3px;min-width:0;height:100%;min-height:0;overflow:hidden}
 .pocket-art{position:relative;min-height:0;overflow:hidden;border-radius:6px;background:var(--card2);cursor:pointer}
@@ -125,14 +135,16 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent)}
 .pocket-badge{position:absolute;top:4px;left:4px;background:rgba(12,6,28,.85);color:#fff;border:1px solid rgba(255,255,255,.35);font-size:8.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:2px 5px;border-radius:999px;pointer-events:none}
 .pocket-info{display:grid;gap:0;flex:0 0 auto;min-width:0;overflow:hidden}.pocket-info b{font-size:11px;line-height:1.2;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pocket-num{font-size:10px;font-weight:800;color:var(--accent2);letter-spacing:.03em;line-height:1.2;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pocket-price{font-size:11px;font-weight:800;color:var(--accent2);line-height:1.2}
+.pocket-price{font-size:11px;font-weight:800;color:var(--accent2);line-height:1.2;white-space:nowrap}
 .pocket-meta{font-size:10.5px;color:var(--muted);line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pocket-empty{aspect-ratio:63/88;border:1px dashed var(--line);border-radius:6px;display:grid;place-items:center;align-content:center;gap:2px;color:var(--muted);background:var(--card2);text-align:center;padding:4px}
 .pocket-art .pocket-empty{aspect-ratio:auto;height:100%}
 .pocket-fallback{display:none}
 .pocket-fallback.show{display:grid}
 .pocket-qty{display:flex;align-items:center;gap:3px;font-size:10.5px;font-weight:700;color:var(--muted);line-height:1.1;height:24px;flex:0 0 24px;min-width:0}
-.pocket-qty span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pocket-qty .pq-label{flex:1;white-space:nowrap}
+.pocket-toggle{height:24px;flex:0 0 24px;width:100%;border-radius:6px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-weight:800;font-size:11px;cursor:pointer;padding:0 4px;white-space:nowrap}
+.pocket-toggle.on{background:var(--accent);border-color:var(--accent);color:#fff}
 .pocket-qty button{width:24px;height:24px;min-height:24px;border-radius:6px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-weight:800;cursor:pointer;padding:0;font-size:13px}
 .pocket-qty strong{min-width:14px;text-align:center;color:var(--ink)}
 .pocket-add{min-height:28px;padding:3px 6px;font-size:11.5px;border-radius:7px}
@@ -192,7 +204,7 @@ dialog::backdrop{background:rgba(5,0,15,.6)}dialog .in{padding:20px}
 <!-- HOME / OVERVIEW -->
 <section class="panel active" id="panel-home">
 <div class="home-total" style="margin-top:14px"><div><small>Total collection value</small><strong id="homeTotal">$0.00</strong></div>
-<div style="color:var(--muted);font-size:13px;max-width:420px">Your collection starts empty. Add cards in Tracker, scan them in, or price a slab — totals build from what you add.</div></div>
+<div id="homeEmptyNote" style="color:var(--muted);font-size:13px;max-width:420px">Your collection starts empty. Add cards in Tracker, scan them in, or price a slab — totals build from what you add.</div></div>
 <div class="list">
 <button class="row homerow" data-goto="tracker"><span class="grow"><b>Tracker</b><small id="homeTrackerSub">Nothing tracked yet</small></span><span class="val" id="homeTrackerVal">$0.00</span><span class="arrow">›</span></button>
 <button class="row homerow" data-goto="trade"><span class="grow"><b>Trade</b><small id="homeTradeSub">Nothing up for trade</small></span><span class="val" id="homeTradeVal">$0.00</span><span class="arrow">›</span></button>
@@ -275,7 +287,7 @@ dialog::backdrop{background:rgba(5,0,15,.6)}dialog .in{padding:20px}
 <div style="display:grid;gap:14px">
 <div class="hero-card"><h3 style="margin-top:0">Tracker defaults</h3><div class="two"><div class="field"><label>Default view</label><select id="setView"><option value="binder">Binder Page</option><option value="list">Long List</option></select></div><div class="field"><label>Binder grid</label><select id="setGrid"><option value="3">3 × 3</option><option value="4">4 × 3</option></select></div></div></div>
 <div class="hero-card"><h3 style="margin-top:0">Sealed &amp; Slabs defaults</h3><div class="two"><div class="field"><label>Sealed default sort</label><select id="setSealedSort"><option value="high">Price high → low</option><option value="low">Price low → high</option><option value="name">Name A–Z</option></select></div><div class="field"><label>Slabs default sort</label><select id="setSlabSort"><option value="high">Price high → low</option><option value="low">Price low → high</option><option value="name">Name A–Z</option></select></div></div><p style="color:var(--muted);font-size:13px">These become the sort each section opens with. You can still change the sort in the section itself.</p></div>
-<div class="hero-card"><h3 style="margin-top:0">Scan</h3><label class="toggle"><input type="checkbox" id="setAutoCreate"><span><b>Auto-create groups I haven’t opened</b><small>When a scan matches a set you haven’t opened in Tracker, file it there without asking. If this is off, that scan is held back in the list with a note until you open the set — and the app never nags you to turn this on.</small></span></label><label class="toggle" style="margin-top:10px"><input type="checkbox" id="setSameGuard" checked><span><b>Same-card guard</b><small>When the same card is scanned twice in a row, the second scan is flagged as a possible duplicate and left unselected, so a card held still doesn’t get counted twice. Turn it off to file back-to-back copies without the flag.</small></span></label><label class="toggle" style="margin-top:10px"><input type="checkbox" id="setAutoScan" checked><span><b>Auto scan</b><small>With the camera on, holding a card steady in the frame scans it automatically — no tap needed. The same card won’t scan twice; swap it for the next one. You can also switch this on the camera itself.</small></span></label></div>
+<div class="hero-card"><h3 style="margin-top:0">Scan</h3><label class="toggle"><input type="checkbox" id="setAutoCreate"><span><b>Auto-create groups I haven’t opened</b><small>File scans that match a set you haven’t opened yet, instead of holding them back.</small></span></label><label class="toggle" style="margin-top:10px"><input type="checkbox" id="setSameGuard" checked><span><b>Same-card guard</b><small>Flags a card scanned twice in a row as a possible duplicate.</small></span></label><label class="toggle" style="margin-top:10px"><input type="checkbox" id="setAutoScan" checked><span><b>Auto scan</b><small>Scans automatically when a card is held steady in the frame.</small></span></label></div>
 <div class="hero-card"><h3 style="margin-top:0">Your data</h3><p style="color:var(--muted);margin:0" id="dataHomeStatus">Saved in this browser only. Pick a folder and your collection saves to a <b style="color:var(--ink)">mai_collector</b> folder there instead.</p><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button type="button" class="btn primary" id="linkFileBtn">Pick a folder…</button><button type="button" class="btn" id="openFileBtn">Use an existing data file…</button><button type="button" class="btn primary" id="reconnectFileBtn" style="display:none">Reconnect</button><button type="button" class="btn" id="unlinkFileBtn" style="display:none">Stop using it</button></div></div>
 <div class="hero-card"><h3 style="margin-top:0">Prices</h3><p style="color:var(--muted);margin-top:0">Singles &amp; sealed: TCGplayer prices from tcgcsv. Slabs: manual, set in Slabs.</p><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn primary" id="refreshBtn2">↻ Refresh prices now</button></div><p style="font-size:13px;color:var(--muted)" id="refreshNote">Updates prices only — quantities and check-offs never change.</p></div>
 <div class="hero-card"><h3 style="margin-top:0">About</h3><p style="color:var(--muted);margin:0">Mai Collector, powered by Mai AI — recognition runs on this device. Set lists and prices from tcgcsv.</p></div>
@@ -397,6 +409,9 @@ function cleanDisplayName(name){return String(name||'').replace(/\s+-\s+[A-Za-z]
 // ---------- Toast (small in-page status note) ----------
 let toastTimer=null;
 function toast(msg){const t=document.getElementById('toast');if(!t)return;t.textContent=msg;t.classList.add('show');if(toastTimer)clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2800)}
+// A toast belongs to the section where it fired — switching sections
+// dismisses it at once instead of letting it linger over the new page.
+function hideToast(){const t=document.getElementById('toast');if(t)t.classList.remove('show');if(toastTimer){clearTimeout(toastTimer);toastTimer=null}}
 // ---------- Remove confirmation ----------
 // Every Remove / Delete in the app asks first, through this dialog —
 // nothing deletes on a single tap any more.
@@ -404,12 +419,14 @@ let confirmCb=null;
 function confirmAction(msg,cb){const m=document.getElementById('confirmMsg');if(m)m.textContent=msg;confirmCb=cb;const d=document.getElementById('confirmDialog');if(d&&!d.open)d.showModal()}
 document.getElementById('confirmYes').addEventListener('click',()=>{const cb=confirmCb;confirmCb=null;document.getElementById('confirmDialog').close();if(cb)cb()});
 document.getElementById('confirmNo').addEventListener('click',()=>{confirmCb=null;document.getElementById('confirmDialog').close()});
-// ---------- Trade is a subset of Collected ----------
-// One physical card can be marked for trade, but Trade copies are
-// part of the Collected copies — never extra. Everywhere a quantity
-// changes, Trade is capped at Collected; hitting the cap warns.
-const TRADE_CAP_MSG='Trade can’t be more than Collected — Trade copies are part of your Collected copies, so Trade was set to match.';
-function capTrade(obj){if((obj.t||0)>(obj.c||0)){obj.t=obj.c||0;return true}return false}
+// ---------- Collected is yes/no; Trade counts extra copies ----------
+// For a card, Collected is just whether it's in the collection (c is
+// 0 or 1) and Trade counts the EXTRA copies beyond the collection
+// copy, with no cap: physical copies = (c ? 1 : 0) + t, and owned
+// value = copies × price. Sealed products keep plain quantity
+// counters instead, and there Trade stays a part of Collected.
+function copiesOf(x){return x.kind==='sealed'?(x.c||0):(x.c>0?1:0)+(x.t||0)}
+function capSealedTrade(obj){if(obj.kind==='sealed'&&(obj.t||0)>(obj.c||0))obj.t=obj.c||0}
 
 // ---------- State — starts empty, then loadState() restores anything saved in localStorage ----------
 let items=[]; // {id,name,kind:'single'|'sealed',sub,price,c,t,catId,productId,groupId}
@@ -906,11 +923,13 @@ function applyLoadedData(d){
     groups:Array.isArray(uc.groups)?uc.groups.filter(x=>x&&typeof x==='object'&&x.catId!=null&&x.groupId!=null).map(x=>({catId:x.catId,groupId:x.groupId,name:x.name||'',abbreviation:x.abbreviation||''})):[]
    };
   }
-  // Enforce the counting rule on data saved before it existed: Trade
-  // copies are part of Collected, so a stored Trade above Collected
-  // (phantom copies that double-counted) is pulled back to match.
-  items.forEach(function(i){i.c=Math.max(0,+i.c||0);i.t=Math.max(0,+i.t||0);if(i.t>i.c)i.t=i.c});
-  slabs.forEach(function(s){s.c=Math.max(0,+s.c||0);s.t=Math.max(0,+s.t||0);if(s.t>s.c)s.t=s.c});
+  // Migrate data saved under the old counting rule: a card's
+  // Collected is yes/no now, so a stored Collected above 1 folds into
+  // Trade — every copy past the collection copy is an extra, and the
+  // physical copy count is preserved. Sealed keeps quantity counters,
+  // with Trade still a part of Collected there.
+  items.forEach(function(i){i.c=Math.max(0,+i.c||0);i.t=Math.max(0,+i.t||0);if(i.kind==='sealed'){if(i.t>i.c)i.t=i.c}else if(i.c>1){i.t+=(i.c-1);i.c=1}});
+  slabs.forEach(function(s){s.c=Math.max(0,+s.c||0);s.t=Math.max(0,+s.t||0)});
   let maxId=0;items.forEach(function(i){if(i.id>maxId)maxId=i.id});slabs.forEach(function(s){if(s.id>maxId)maxId=s.id});if(itemSeq<=maxId)itemSeq=maxId+1;
  }catch(e){}
 }
@@ -929,7 +948,18 @@ function applySettingsToUI(){
  }catch(e){}
 }
 function catItems(){return items.filter(i=>nav.cat&&i.catId===nav.cat.id)}
-function setItemQty(id,kind,delta){const it=items.find(i=>i.id===id);if(!it)return;it[kind]=Math.max(0,it[kind]+delta);if(capTrade(it))toast(TRADE_CAP_MSG);renderAll()}
+function setItemQty(id,kind,delta){const it=items.find(i=>i.id===id);if(!it)return;
+ if(it.kind==='sealed'){
+  // Sealed keeps quantity counters: a Collected 1 → 0 step asks first
+  // (as removal does), and Trade stays a part of Collected.
+  if(kind==='c'&&delta<0&&it.c===1){confirmAction(`Remove “${it.name}” from your collection?`,()=>{it.c=0;capSealedTrade(it);renderAll()});return}
+  it[kind]=Math.max(0,it[kind]+delta);capSealedTrade(it);renderAll();return;
+ }
+ // Cards: Collected changes only through the toggle; the Trade
+ // stepper counts extra copies, with no cap.
+ if(kind==='t')it.t=Math.max(0,it.t+delta);
+ renderAll()}
+function toggleItemCollected(id){const it=items.find(i=>i.id===id);if(!it||it.kind==='sealed')return;it.c=it.c>0?0:1;renderAll()}
 
 // ---------- Navigation: overview home opens each section full-screen ----------
 // A history stack powers swipe-back (and the back buttons) in EVERY section:
@@ -1046,7 +1076,7 @@ function pushHistory(){
  if(historyArmed){try{history.pushState({maiNavStack:stackCopy()},'','#'+encodeNavState(snapshot()))}catch(e){}}
  persistNav();
 }
-function showPanel(name){currentPanel=name;document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active',p.id==='panel-'+name));window.scrollTo({top:0,behavior:'smooth'});persistNav();syncMenu()}
+function showPanel(name){hideToast();currentPanel=name;document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active',p.id==='panel-'+name));window.scrollTo({top:0,behavior:'smooth'});persistNav();syncMenu()}
 function applyState(s){
  nav.game=s.game||null;nav.cat=null;
  nav.group=null;
@@ -1219,7 +1249,11 @@ function renderCrumbs(){
  const ft=document.getElementById('pageFooter');if(ft)ft.style.display=(currentPanel==='tracker'&&!!nav.cat)?'none':'';
 }
 function itemCard(it){
- const qtyHtml=['c','t'].map(k=>`<div class="qtybox"><label>${k==='c'?'Collected':'Trade'}</label><div class="qtyctrl"><button data-q="${it.id}:${k}:-1" aria-label="minus">−</button><strong>${it[k]}</strong><button data-q="${it.id}:${k}:1" aria-label="plus">+</button></div></div>`).join('');
+ // Cards get the Collected toggle + Trade-extras stepper; sealed
+ // items keep their quantity steppers.
+ const qtyHtml=it.kind==='sealed'
+  ?['c','t'].map(k=>`<div class="qtybox"><label>${k==='c'?'Collected':'Trade'}</label><div class="qtyctrl"><button data-q="${it.id}:${k}:-1" aria-label="minus">−</button><strong>${it[k]}</strong><button data-q="${it.id}:${k}:1" aria-label="plus">+</button></div></div>`).join('')
+  :`<div class="qtybox"><label>Collected</label><button type="button" class="btn small ${it.c>0?'primary':''}" data-ctoggle="${it.id}" aria-pressed="${it.c>0}" style="width:100%;min-height:30px">${it.c>0?'✓ Collected':'＋ Collected'}</button></div><div class="qtybox"><label>Trade extras</label><div class="qtyctrl"><button data-q="${it.id}:t:-1" aria-label="minus">−</button><strong>${it.t}</strong><button data-q="${it.id}:t:1" aria-label="plus">+</button></div></div>`;
  return `<article class="carditem"><div class="cardbody"><b>${esc(cleanDisplayName(it.name))}</b><div class="meta"><span>${it.kind==='sealed'?'Sealed · '+(it.sub==='box'?'Box / Case':'Pack'):'Single'}</span><span class="price">${money(it.price)}</span></div><div class="qtyrow">${qtyHtml}</div><div style="display:flex;gap:8px;margin-top:8px"><button class="btn small" data-edit-item="${it.id}">Edit</button><button class="btn small danger" data-del-item="${it.id}">Remove</button></div></div></article>`;
 }
 function slabRow(s){
@@ -1228,6 +1262,7 @@ function slabRow(s){
 }
 function wireItemControls(root){
  root.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{const[id,k,d]=b.dataset.q.split(':');setItemQty(+id,k,+d)});
+ root.querySelectorAll('[data-ctoggle]').forEach(b=>b.onclick=()=>toggleItemCollected(+b.dataset.ctoggle));
  root.querySelectorAll('[data-del-item]').forEach(b=>b.onclick=()=>{const it=items.find(i=>i.id===+b.dataset.delItem);confirmAction(`Remove “${it?it.name:'this item'}” from your collection? This can’t be undone.`,()=>{items=items.filter(i=>i.id!==+b.dataset.delItem);renderAll()})});
  root.querySelectorAll('[data-edit-item]').forEach(b=>b.onclick=()=>openItemDialog(+b.dataset.editItem));
  root.querySelectorAll('[data-del-slab]').forEach(b=>b.onclick=()=>{const s=slabs.find(x=>x.id===+b.dataset.delSlab);confirmAction(`Remove the slab “${s?s.name:'this slab'}” from your collection? This can’t be undone.`,()=>{slabs=slabs.filter(x=>x.id!==+b.dataset.delSlab);renderAll()})});
@@ -1303,7 +1338,17 @@ function ensureItemFor(p){
  }
  return it;
 }
-function setProductQty(p,kind,delta){const it=ensureItemFor(p);it[kind]=Math.max(0,it[kind]+delta);if(capTrade(it))toast(TRADE_CAP_MSG);renderAll()}
+function setProductQty(p,kind,delta){const it=ensureItemFor(p);
+ if(p.number){
+  // A card: Collected is yes/no (a + step collects it); Trade counts
+  // extra copies beyond the collection copy, with no cap.
+  if(kind==='c')it.c=delta>0?1:0;else it.t=Math.max(0,(it.t||0)+delta);
+ }else{
+  // A sealed product: quantity counters, Trade a part of Collected.
+  it[kind]=Math.max(0,(it[kind]||0)+delta);capSealedTrade(it);
+ }
+ renderAll()}
+function toggleProductCollected(p){const it=ensureItemFor(p);it.c=it.c>0?0:1;renderAll()}
 // The full categories list goes through the same tcgFetchText helper
 // as the groups list, with the same JSON validation — but it is
 // fetched ONLY on demand, when the + Add menu is opened. Nothing about
@@ -1378,6 +1423,10 @@ function loadGroupsFor(catId){
  const promise=tcgFetchText('https://tcgcsv.com/tcgplayer/'+catId+'/groups',t=>{try{JSON.parse(t);return true}catch(e){return false}}).then(t=>{const j=JSON.parse(t);
   const groups=sortGroupList(j.results||[],'new');
   groupCache[catId]={status:'ready',groups:groups};
+  // Backfill set names onto product lists pulled while their set's
+  // name was still unknown (e.g. a restored id-only navigation), so
+  // scan matches and the "Belongs to" list show the name, not the id.
+  Object.keys(productCache).forEach(k=>{const pc=productCache[k];if(pc&&String(pc.catId)===String(catId)&&!pc.groupName){const g=groups.find(x=>String(x.groupId)===String(pc.groupId));if(g)pc.groupName=g.name}});
   try{sessionStorage.setItem(GROUP_STORE_PREFIX+catId,JSON.stringify(groups))}catch(e){}
   if(nav.group&&!nav.group.name){const g=groups.find(x=>String(x.groupId)===String(nav.group.groupId));if(g)nav.group={groupId:g.groupId,name:g.name,abbreviation:g.abbreviation||''}}
   if(currentPanel==='tracker')renderTracker();
@@ -1402,7 +1451,8 @@ function loadProducts(){
  // page load in this tab) comes straight from sessionStorage — no fetch.
  try{
   const raw=sessionStorage.getItem(PRODUCT_STORE_PREFIX+key);
-  if(raw){const cached=JSON.parse(raw);if(Array.isArray(cached)&&cached.length){productCache[key]={status:'ready',products:cached,catId:nav.cat.id,groupId:nav.group.groupId,groupName:nav.group.name||''};syncFolderTree();if(currentPanel==='tracker')Promise.resolve().then(()=>{renderTracker();renderTrade()});return}}
+  if(raw){const cached=JSON.parse(raw);if(Array.isArray(cached)&&cached.length){productCache[key]={status:'ready',products:cached,catId:nav.cat.id,groupId:nav.group.groupId,groupName:nav.group.name||''};restorePriceStatus(); // these prices came from a real pull — the header must not claim otherwise
+syncFolderTree();if(currentPanel==='tracker')Promise.resolve().then(()=>{renderTracker();renderTrade()});return}}
  }catch(e){}
  productCache[key]={status:'loading',catId:nav.cat.id,groupId:nav.group.groupId,groupName:nav.group.name||''};
  tcgFetchText('https://tcgcsv.com/tcgplayer/'+nav.cat.id+'/'+nav.group.groupId+'/ProductsAndPrices.csv',t=>t.split('\n',1)[0].indexOf('productId')>-1).then(t=>{
@@ -1415,8 +1465,16 @@ function loadProducts(){
  }).catch(e=>{productCache[key]={status:'error',error:String((e&&e.message)||e),catId:nav.cat.id,groupId:nav.group.groupId,groupName:nav.group.name||''};if(currentPanel==='tracker')renderTracker()});
 }
 function qtyBtnsHTML(p,owned){
- const c=owned?owned.c:0,t=owned?owned.t:0;
- return ['c','t'].map(k=>`<div class="pocket-qty"><span style="flex:1">${k==='c'?'Collected':'Trade'}</span><button data-pq="${p.productId}:${k}:-1" aria-label="minus">−</button><strong>${k==='c'?c:t}</strong><button data-pq="${p.productId}:${k}:1" aria-label="plus">+</button></div>`).join('');
+ if(!p.number){
+  // A sealed product: quantity steppers, exactly as before.
+  const c=owned?owned.c:0,t=owned?owned.t:0;
+  return ['c','t'].map(k=>`<div class="pocket-qty"><span class="pq-label">${k==='c'?'Collected':'Trade'}</span><button data-pq="${p.productId}:${k}:-1" aria-label="minus">−</button><strong>${k==='c'?c:t}</strong><button data-pq="${p.productId}:${k}:1" aria-label="plus">+</button></div>`).join('');
+ }
+ // A card: a Collected toggle (in the collection or not — no counter)
+ // plus a Trade stepper counting extra copies beyond the collection
+ // copy, with no cap.
+ const collected=!!(owned&&owned.c>0),t=owned?owned.t:0;
+ return `<button type="button" class="pocket-toggle${collected?' on':''}" data-ptoggle="${p.productId}" aria-pressed="${collected}">${collected?'✓ Collected':'＋ Collected'}</button><div class="pocket-qty"><span class="pq-label">Trade</span><button data-pq="${p.productId}:t:-1" aria-label="Trade minus">−</button><strong>${t}</strong><button data-pq="${p.productId}:t:1" aria-label="Trade plus">+</button></div>`;
 }
 // Every pocket shows the card's art from the CSV imageUrl (TCGplayer CDN),
 // owned or not. Owned / Missing is a small badge overlaid on the art, not
@@ -1431,13 +1489,15 @@ function pocketArtHTML(p,state){
  return `<div class="pocket-art" data-detail="${p.productId}" role="button" aria-label="View ${esc(cleanDisplayName(p.name))}">${img}${fallback}${badge}</div>`;
 }
 function pocketHTML(p){
- const owned=findOwned(p);const has=owned&&owned.c>0;
+ const owned=findOwned(p);const has=owned&&copiesOf(owned)>0;
  // Owned and missing pockets share ONE fixed layout (the .pocket grid:
- // flexible art, info lines, then a 51px footer) — the two stepper rows
- // sit inside a .pocket-foot of exactly the same height as the missing
- // pocket's + Collected button, so rows line up in 3×3 and 4×3 alike.
- if(has)return `<div class="pocket owned">${pocketArtHTML(p,'owned')}<div class="pocket-info"><span class="pocket-num">${esc(p.number||'')} · ${money(p.marketPrice)}</span><b title="${esc(p.name)}" data-detail="${p.productId}" style="cursor:pointer">${esc(cleanDisplayName(p.name))}</b></div><div class="pocket-foot">${qtyBtnsHTML(p,owned)}</div></div>`;
- return `<div class="pocket missing">${pocketArtHTML(p,'missing')}<div class="pocket-info"><span class="pocket-num">${esc(p.number||'')}${p.rarity?' · '+esc(p.rarity):''} · ${money(p.marketPrice)}</span><b title="${esc(p.name)}" data-detail="${p.productId}" style="cursor:pointer">${esc(cleanDisplayName(p.name))}</b></div><button class="btn pocket-add" data-padd="${p.productId}">+ Collected</button></div>`;
+ // flexible art, info lines, then a 51px footer) — the toggle + Trade
+ // stepper sit inside a .pocket-foot of exactly the same height as the
+ // missing pocket's + Collected button, so rows line up in 3×3 and 4×3 alike.
+ // The price gets its own line (.pocket-price, nowrap, never
+ // truncated) — sharing the number line cut prices off with "…".
+ if(has)return `<div class="pocket owned">${pocketArtHTML(p,'owned')}<div class="pocket-info"><span class="pocket-num">${esc(p.number||'')}${p.rarity?' · '+esc(p.rarity):''}</span><b title="${esc(p.name)}" data-detail="${p.productId}" style="cursor:pointer">${esc(cleanDisplayName(p.name))}</b><span class="pocket-price">${money(p.marketPrice)}</span></div><div class="pocket-foot">${qtyBtnsHTML(p,owned)}</div></div>`;
+ return `<div class="pocket missing">${pocketArtHTML(p,'missing')}<div class="pocket-info"><span class="pocket-num">${esc(p.number||'')}${p.rarity?' · '+esc(p.rarity):''}</span><b title="${esc(p.name)}" data-detail="${p.productId}" style="cursor:pointer">${esc(cleanDisplayName(p.name))}</b><span class="pocket-price">${money(p.marketPrice)}</span></div><button class="btn pocket-add" data-padd="${p.productId}">+ Collected</button></div>`;
 }
 // Invisible skeleton pocket with the exact fixed dimensions of a real
 // one (art + info lines + footer block). The last binder page is padded
@@ -1463,7 +1523,7 @@ function binderHTML(singles){
  <div class="binder-controls"><button class="btn" data-turn="-1" ${binderPage===0?'disabled':''}>‹ Prev</button><span class="pill">Page ${binderPage+1} of ${pages}</span><button class="btn" data-turn="1" ${binderPage>=pages-1?'disabled':''}>Next ›</button><span style="color:var(--muted);font-size:11px">Swipe ↔</span></div>`;
 }
 function productListHTML(singles){
- return `<div class="list">${singles.map(p=>{const owned=findOwned(p);const has=owned&&owned.c>0;return `<div class="row">${p.imageUrl?`<img class="prodthumb" src="${esc(p.imageUrl)}" alt="" loading="lazy" onerror="this.style.display='none'" data-detail="${p.productId}" style="cursor:pointer">`:''}<div class="grow"><b data-detail="${p.productId}" style="cursor:pointer">${esc(p.number?p.number+' · ':'')}${esc(cleanDisplayName(p.name))}</b><small>${esc(p.rarity||'')}${p.subType?' · '+esc(p.subType):''} · ${money(p.marketPrice)}${has?' · Owned':' · Missing'}</small></div>${has?`<span style="display:grid;gap:4px;min-width:170px">${qtyBtnsHTML(p,owned)}</span>`:`<button class="btn" data-padd="${p.productId}">+ Collected</button>`}</div>`}).join('')}</div>`;
+ return `<div class="list">${singles.map(p=>{const owned=findOwned(p);const has=owned&&copiesOf(owned)>0;return `<div class="row">${p.imageUrl?`<img class="prodthumb" src="${esc(p.imageUrl)}" alt="" loading="lazy" onerror="this.style.display='none'" data-detail="${p.productId}" style="cursor:pointer">`:''}<div class="grow"><b data-detail="${p.productId}" style="cursor:pointer">${esc(p.number?p.number+' · ':'')}${esc(cleanDisplayName(p.name))}</b><small>${esc(p.rarity||'')}${p.subType?' · '+esc(p.subType):''} · ${money(p.marketPrice)}${has?' · Owned':' · Missing'}</small></div>${has?`<span style="display:grid;gap:4px;min-width:170px">${qtyBtnsHTML(p,owned)}</span>`:`<button class="btn" data-padd="${p.productId}">+ Collected</button>`}</div>`}).join('')}</div>`;
 }
 // After a swipe turns a binder page, the re-render swaps the pockets under
 // the finger/cursor — swallow the click that trails the swipe so it can't
@@ -1473,15 +1533,15 @@ document.addEventListener('click',function(e){if(lastBinderSwipe&&Date.now()-las
 // ---------- Card detail view ----------
 // Tapping a card's art or name (binder pocket, long list, or a sealed
 // product in a set) opens this: the big art, the card's facts, and the
-// same Collected / Trade steppers the pocket carries. Steppers file
-// through setProductQty as usual; the detail body re-renders after
-// each change so the counts and the Owned value stay live.
+// same Collected toggle / Trade stepper the pocket carries. Changes
+// file through setProductQty as usual; the detail body re-renders
+// after each change so the state and the Owned value stay live.
 let detailProduct=null;
 function openCardDetail(p){detailProduct=p;renderCardDetail();const d=document.getElementById('cardDialog');if(d&&!d.open)d.showModal()}
 function renderCardDetail(){
  const p=detailProduct;if(!p)return;
  const body=document.getElementById('cardDetailBody');if(!body)return;
- const owned=findOwned(p);const has=owned&&owned.c>0;
+ const owned=findOwned(p);const copies=owned?copiesOf(owned):0;const has=copies>0;
  const setName=(nav.group&&nav.group.name)||(nav.cat?(nav.cat.display||nav.cat.name):'');
  const facts=[p.number?('Number '+p.number):'',p.rarity||'',p.subType||'',setName].filter(Boolean).join(' · ');
  body.innerHTML=`
@@ -1489,16 +1549,18 @@ function renderCardDetail(){
  <h3 style="margin:12px 0 2px">${esc(cleanDisplayName(p.name))}</h3>
  <p style="color:var(--muted);font-size:13px;margin:0">${esc(facts)}</p>
  <p style="margin:8px 0 0"><span class="price" style="font-size:17px">${money(p.marketPrice)}</span> <span style="color:var(--muted);font-size:12.5px">TCGplayer market</span></p>
- <p style="margin:6px 0 0;font-size:13.5px">${has?`In your collection: <b>${owned.c} collected</b> · ${owned.t} marked for trade · owned value <b>${money(owned.c*p.marketPrice)}</b>`:`Not in your collection yet — this copy is <b>missing</b>.`}</p>
+ <p style="margin:6px 0 0;font-size:13.5px">${has?`${owned.c>0?`In your collection`:`Not in your collection`} · <b>${owned.t} trade extra${owned.t===1?'':'s'}</b> · owned value <b>${money(copies*p.marketPrice)}</b>`:`Not in your collection yet — this copy is <b>missing</b>.`}</p>
  <div style="display:grid;gap:6px;margin-top:12px;max-width:300px">${has?qtyBtnsHTML(p,owned):`<button class="btn primary" data-dadd="${p.productId}">+ Collected</button>`}</div>
  <div style="display:flex;gap:8px;margin-top:16px"><button class="btn" id="cardDetailClose">Close</button></div>`;
  body.querySelectorAll('[data-pq]').forEach(b=>b.onclick=()=>{const parts=b.dataset.pq.split(':');setProductQty(p,parts[1],+parts[2]);renderCardDetail()});
+ const tg=body.querySelector('[data-ptoggle]');if(tg)tg.onclick=()=>{toggleProductCollected(p);renderCardDetail()};
  const add=body.querySelector('[data-dadd]');if(add)add.onclick=()=>{setProductQty(p,'c',1);renderCardDetail()};
  const cl=body.querySelector('#cardDetailClose');if(cl)cl.onclick=()=>document.getElementById('cardDialog').close();
 }
 function wireProductControls(body,products){
  body.querySelectorAll('[data-detail]').forEach(el=>el.addEventListener('click',e=>{e.stopPropagation();const p=products.find(x=>String(x.productId)===String(el.dataset.detail));if(p)openCardDetail(p)}));
  body.querySelectorAll('[data-pq]').forEach(b=>b.onclick=()=>{const parts=b.dataset.pq.split(':');const p=products.find(x=>String(x.productId)===parts[0]);if(p)setProductQty(p,parts[1],+parts[2])});
+ body.querySelectorAll('[data-ptoggle]').forEach(b=>b.onclick=()=>{const p=products.find(x=>String(x.productId)===String(b.dataset.ptoggle));if(p)toggleProductCollected(p)});
  body.querySelectorAll('[data-padd]').forEach(b=>b.onclick=()=>{const p=products.find(x=>String(x.productId)===String(b.dataset.padd));if(p)setProductQty(p,'c',1)});
  body.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>{binderPage=+b.dataset.page;renderTracker()});
  body.querySelectorAll('[data-turn]').forEach(b=>b.onclick=()=>{binderPage+=+b.dataset.turn;renderTracker()});
@@ -1570,7 +1632,7 @@ function toggleGameRow(n){
 }
 function toggleCatRow(id){
  const cat=GAMES.flatMap(g=>g.cats).find(c=>String(c.id)===String(id));if(!cat)return;
- const open=!treeCatOpen(cat);treeOpen.cats[id]=open;
+ const open=!treeCatOpen(cat);treeOpen.cats[cat.id]=open;
  if(open)loadGroupsFor(id);
  renderTracker();persistNav();
 }
@@ -1614,13 +1676,13 @@ function renderTrackerTree(body){
  }
  html+=`<div class="tree">`;
  for(const g of GAMES){
-  const gOpen=treeGameOpen(g);
+  const gOpen=treeGameOpen(g);treeOpen.games[g.name]=gOpen; // write the rendered state back, so the stored state always matches the arrow on screen
   html+=`<div class="tnode"><button type="button" class="trow tgame" data-tgame="${esc(g.name)}" aria-expanded="${gOpen}"><span class="tchev">${gOpen?'▾':'▸'}</span><span class="tg-name">${esc(g.name)}</span><span class="tg-meta">${g.cats.length} ${g.cats.length===1?'category':'categories'} · ${g.cats.map(c=>esc(c.display||c.name)).join(' · ')}</span><span class="tremove" data-tremove-game="${esc(g.name)}" role="button" aria-label="Remove ${esc(g.name)} from your Tracker">Remove</span></button>`;
   if(gOpen){
    html+=`<div class="tkids">`;
    for(const c of g.cats){
     const gc=groupCache[c.id];
-    const cOpen=treeCatOpen(c);
+    const cOpen=treeCatOpen(c);treeOpen.cats[c.id]=cOpen; // write the rendered state back, so the stored state always matches the arrow on screen
     const setCount=gc&&gc.status==='ready'?` · ${gc.groups.length} sets`:'';
     html+=`<div class="tnode"><button type="button" class="trow tcat" data-tcat="${c.id}" aria-expanded="${cOpen}"><span class="tchev">${cOpen?'▾':'▸'}</span><span class="tg-name">${esc(c.display||c.name)}</span><span class="tg-meta">categoryId ${c.id}${setCount}</span>${g.solo?'':`<span class="tremove" data-tremove-cat="${c.id}" role="button" aria-label="Remove ${esc(c.display||c.name)} from your Tracker">Remove</span>`}</button>`;
     if(cOpen){
@@ -1771,7 +1833,7 @@ function renderTracker(){
   if(!nav.group.name)loadGroups();
   const key=nav.cat.id+':'+nav.group.groupId;const pc=productCache[key];
   const view=trackerView||settings.view||'binder';
-  let inner='';
+  let inner='';let below='';let useFit=false;
   if(!pc||pc.status==='loading'){inner=`<div class="notice"><b>Loading the full set from tcgcsv…</b><p>Pulling every product in ${esc(nav.group.name||'this group')} so the binder shows owned and missing cards alike.</p></div>`;loadProducts()}
   else if(pc.status==='error'){inner=`<div class="notice"><b>Couldn’t load this set</b><p>The live pull from tcgcsv failed (${esc(pc.error||'network error')}), so there’s nothing to show yet — this isn’t an empty set, it’s a failed load. Check your connection and try again.</p><p><button class="btn primary" data-retry-products>↻ Retry</button></p></div>`}
   else{
@@ -1780,7 +1842,7 @@ function renderTracker(){
    const q=groupSearch.trim().toLowerCase();
    const singles=q?allSingles.filter(p=>p.name.toLowerCase().indexOf(q)>-1||String(p.number).toLowerCase().indexOf(q)>-1):allSingles;
    const ownedCount=allSingles.filter(p=>{const o=findOwned(p);return o&&o.c>0}).length;
-   const ownedVal=allSingles.reduce((s,p)=>{const o=findOwned(p);return s+(o?o.c*p.marketPrice:0)},0);
+   const ownedVal=allSingles.reduce((s,p)=>{const o=findOwned(p);return s+(o?copiesOf(o)*p.marketPrice:0)},0);
    const legacy=items.filter(i=>i.catId===nav.cat.id&&!products.some(p=>String(p.productId)===String(i.productId)||normName(p.name)===normName(i.name)));
    // Slim sort / filter row for the cards in this set. 'number' keeps
    // the order parseProductsCSV already sorted by set number; Owned /
@@ -1788,7 +1850,7 @@ function renderTracker(){
    // narrows, and the binder pages re-slice from the result.
    const rarities=[...new Set(allSingles.map(p=>p.rarity).filter(Boolean))].sort();
    if(cardRarity!=='all'&&rarities.indexOf(cardRarity)===-1)cardRarity='all';
-   let shown=singles.filter(p=>{if(cardFilter==='all')return true;const o=findOwned(p);const has=o&&o.c>0;return cardFilter==='owned'?has:!has});
+   let shown=singles.filter(p=>{if(cardFilter==='all')return true;const o=findOwned(p);const has=o&&copiesOf(o)>0;return cardFilter==='owned'?has:!has});
    if(cardRarity!=='all')shown=shown.filter(p=>p.rarity===cardRarity);
    shown=shown.slice();
    if(cardSort==='name')shown.sort((a,b)=>a.name.localeCompare(b.name));
@@ -1798,12 +1860,15 @@ function renderTracker(){
    inner=`
    <div class="chips" style="margin:2px 0 5px"><button class="chip ${view==='binder'?'on':''}" data-view="binder">Binder</button><button class="chip ${view==='list'?'on':''}" data-view="list">List</button>${view==='binder'?`<span style="display:inline-flex;gap:3px;align-items:center" aria-label="Binder grid size"><button class="chip gridchip ${settings.grid!==4?'on':''}" data-grid="3">3×3</button><button class="chip gridchip ${settings.grid===4?'on':''}" data-grid="4">4×3</button></span>`:''}<input type="text" id="groupSearch" placeholder="Search…" value="${esc(groupSearch)}" aria-label="Search this set" style="flex:1;min-width:90px;background:var(--card2);color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:0 10px;min-height:30px;font-size:12.5px"><span style="font-size:11.5px;color:var(--muted);white-space:nowrap">Owned ${ownedCount}/${allSingles.length} · ${money(ownedVal)}</span></div>
    <div class="chips" style="margin:0 0 6px"><label style="font-weight:700;font-size:11.5px">Sort <select class="mini-sel" id="cardSortSel"><option value="number" ${cardSort==='number'?'selected':''}>Set number</option><option value="name" ${cardSort==='name'?'selected':''}>Name A–Z</option><option value="high" ${cardSort==='high'?'selected':''}>Price high → low</option><option value="low" ${cardSort==='low'?'selected':''}>Price low → high</option><option value="rarity" ${cardSort==='rarity'?'selected':''}>Rarity</option></select></label><label style="font-weight:700;font-size:11.5px">Show <select class="mini-sel" id="cardFilterSel"><option value="all" ${cardFilter==='all'?'selected':''}>All cards</option><option value="owned" ${cardFilter==='owned'?'selected':''}>Owned</option><option value="missing" ${cardFilter==='missing'?'selected':''}>Missing</option></select></label><label style="font-weight:700;font-size:11.5px">Rarity <select class="mini-sel" id="cardRaritySel"><option value="all">All rarities</option>${rarities.map(r=>`<option value="${esc(r)}" ${cardRarity===r?'selected':''}>${esc(r)}</option>`).join('')}</select></label><span style="font-size:11.5px;color:var(--muted)">Showing ${shown.length}/${allSingles.length}</span></div>
-   ${q&&!singles.length?`<div class="notice"><b>No cards match “${esc(groupSearch)}”</b><p>Try a different name or set number.</p></div>`:shown.length?(view==='binder'?binderHTML(shown):productListHTML(shown)):singles.length?`<div class="notice"><b>No cards match these filters</b><p>Try Show: All cards, or a different rarity.</p></div>`:`<div class="notice"><b>No numbered cards in this group</b><p>This group has no cards with set numbers — see its sealed products below.</p></div>`}
-   ${sealedProds.length?`<h3 style="margin-top:22px">Sealed in this set</h3><div class="cards">${sealedProds.map(sealedProductHTML).join('')}</div>`:''}
-   ${legacy.length?`<h3 style="margin-top:22px">Your other items in this category</h3><div class="cards">${legacy.map(itemCard).join('')}</div>`:''}`;
+   ${q&&!singles.length?`<div class="notice"><b>No cards match “${esc(groupSearch)}”</b><p>Try a different name or set number.</p></div>`:shown.length?(view==='binder'?binderHTML(shown):productListHTML(shown)):singles.length?`<div class="notice"><b>No cards match these filters</b><p>Try Show: All cards, or a different rarity.</p></div>`:`<div class="notice"><b>No numbered cards in this group</b><p>This group has no cards with set numbers — see its sealed products below.</p></div>`}`;
+   // Sealed / legacy render AFTER the one-screen fit box (below), never
+   // inside it — inside, they would eat the binder's flexed space and
+   // push the pagination off screen.
+   if(view==='binder'&&shown.length)useFit=true;
+   below=`${sealedProds.length?`<h3 style="margin-top:22px">Sealed in this set</h3><div class="cards">${sealedProds.map(sealedProductHTML).join('')}</div>`:''}${legacy.length?`<h3 style="margin-top:22px">Your other items in this category</h3><div class="cards">${legacy.map(itemCard).join('')}</div>`:''}`;
   }
   body.innerHTML=`
-  <div class="section-head compact"><div style="min-width:0"><h2 style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(nav.group.name||(pc&&pc.status==='ready'?'Set':'Loading set…'))} ${nav.group.abbreviation?`<span class="badge">${esc(nav.group.abbreviation)}</span>`:''}</h2></div><div style="display:flex;gap:5px;flex-wrap:nowrap"><button class="btn primary small" id="addItemBtn">+ Add item</button><button class="btn small" data-scanlink>📷 Scan</button></div></div>${inner}`;
+  ${useFit?`<div class="setfit">`:''}<div class="section-head compact"><div style="min-width:0"><h2 style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(nav.group.name||(pc&&pc.status==='ready'?'Set':'Loading set…'))} ${nav.group.abbreviation?`<span class="badge">${esc(nav.group.abbreviation)}</span>`:''}</h2></div><div style="display:flex;gap:5px;flex-wrap:nowrap"><button class="btn primary small" id="addItemBtn">+ Add item</button><button class="btn small" data-scanlink>📷 Scan</button></div></div>${inner}${useFit?`</div>`:''}${below}`;
   const rp=body.querySelector('[data-retry-products]');if(rp)rp.onclick=()=>{delete productCache[key];renderTracker()};
   if(pc&&pc.status==='ready'){wireProductControls(body,pc.products)}
   wireItemControls(body);
@@ -1836,11 +1901,13 @@ function openItemDialog(id){
 document.getElementById('saveItemBtn').onclick=()=>{
  const name=document.getElementById('itemName').value.trim();if(!name){document.getElementById('itemName').focus();return}
  const vals={name,kind:document.getElementById('itemKind').value,sub:document.getElementById('itemSub').value,price:Math.max(0,parseFloat(document.getElementById('itemPrice').value)||0),c:Math.max(0,+document.getElementById('itemCollected').value||0),t:Math.max(0,+document.getElementById('itemTrade').value||0)};
- const capped=capTrade(vals);
+ // Cards: Collected is yes/no — a quantity above 1 folds into Trade
+ // extras. Sealed: quantity counters, Trade a part of Collected.
+ if(vals.kind==='sealed'){if(vals.t>vals.c)vals.t=vals.c}
+ else if(vals.c>1){vals.t+=(vals.c-1);vals.c=1}
  if(editingItemId!=null){const it=items.find(i=>i.id===editingItemId);if(it)Object.assign(it,vals)}
  else items.push(Object.assign({id:itemSeq++,catId:nav.cat?nav.cat.id:null,productId:null,groupId:nav.group?nav.group.groupId:null},vals));
  document.getElementById('itemDialog').close();renderAll();
- if(capped)toast(TRADE_CAP_MSG);
 };
 document.getElementById('deleteItemBtn').onclick=()=>{
  if(editingItemId==null)return;
@@ -1852,17 +1919,17 @@ document.getElementById('deleteItemBtn').onclick=()=>{
 };
 
 // ---------- Totals / Home ----------
-// ONE counting rule everywhere: a copy counts once, as a Collected
-// copy — value is Collected qty × price, counts are Collected qty.
-// Trade qty only designates which of those copies are up for trade;
-// it never adds value or count. The Home rows are built to add up:
-// Tracker (singles) + Sealed + Slabs = the total. Trade is a subset
-// of those rows and is labeled as already counted, never added in.
-// Slab Research prices are NOT a row of their own any more — a priced
-// slab counts once, at its research price × Collected qty.
+// ONE counting rule everywhere. For a card, Collected is yes/no and
+// Trade counts extra copies beyond the collection copy, so physical
+// copies = (Collected ? 1 : 0) + Trade and value = copies × price.
+// Sealed products keep quantity counters (copies = Collected qty,
+// Trade a part of it). Home counts total physical copies, and the
+// rows add up: Tracker (singles) + Sealed + Slabs = the total. The
+// Trade row shows the trade copies' value, already inside those
+// rows. A priced slab counts once, at its research price × qty.
 function totals(){
  let v=0,o=0,t=0;
- items.forEach(p=>{v+=p.c*p.price;o+=p.c;t+=p.t});
+ items.forEach(p=>{const n=copiesOf(p);v+=n*p.price;o+=n;t+=p.t});
  slabs.forEach(s=>{v+=((research[s.key]||{}).price||0)*s.c;t+=s.t});
  return{v,o,t};
 }
@@ -1870,8 +1937,8 @@ function tabValues(){
  const t=totals();
  let trade=0;items.forEach(p=>trade+=p.t*p.price);slabs.forEach(s=>trade+=((research[s.key]||{}).price||0)*s.t);
  const singleItems=items.filter(i=>i.kind!=='sealed');
- const tracker=singleItems.reduce((s,p)=>s+p.c*p.price,0);
- const trackerCount=singleItems.reduce((s,p)=>s+p.c,0);
+ const tracker=singleItems.reduce((s,p)=>s+copiesOf(p)*p.price,0);
+ const trackerCount=singleItems.reduce((s,p)=>s+copiesOf(p),0);
  const sealedItems=items.filter(i=>i.kind==='sealed');
  const sealed=sealedItems.reduce((s,p)=>s+p.c*p.price,0);
  const sealedCount=sealedItems.reduce((s,p)=>s+p.c,0);
@@ -1885,6 +1952,10 @@ function tabValues(){
 function updateStats(){
  const v=tabValues();
  const set=(id,txt)=>{const el=document.getElementById(id);if(el)el.textContent=txt};
+ // The "starts empty" note is first-run guidance only — once anything
+ // is tracked (or a slab price is on file) it goes away.
+ const hn=document.getElementById('homeEmptyNote');
+ if(hn)hn.style.display=(v.trackerCount+v.sealedCount+v.slabCount>0||v.researchCount>0)?'none':'';
  set('homeTotal',money(v.total));
  set('homeTrackerVal',money(v.tracker));set('homeTrackerSub',v.trackerCount?`${v.trackerCount} item${v.trackerCount===1?'':'s'} tracked`:"Nothing tracked yet");
  set('homeScanVal',money(v.scan));set('homeScanSub',scans.length?`${scans.length} scan${scans.length===1?'':'s'} waiting to file`:"Nothing scanned yet");
@@ -1913,6 +1984,16 @@ function setNameFor(pc){
  if(ug&&ug.name)return ug.name;
  return 'Set '+pc.groupId;
 }
+// Display name for a scan match: the name the match itself carries,
+// else the same resolution the set lists use — and '' when only the
+// "Set N" fallback remains, so a sentence can omit the segment
+// entirely instead of printing an empty "()" or a bare group number.
+function matchSetName(m){
+ if(!m)return '';
+ if(m.groupName)return m.groupName;
+ const n=setNameFor({catId:m.catId,groupId:m.groupId,groupName:''});
+ return /^Set \d+$/.test(n)?'':n;
+}
 function renderTrade(){
  const body=document.getElementById('tradeBody');
  const tsEl=document.getElementById('tradeSort');if(tsEl)tradeSort=tsEl.value;
@@ -1924,7 +2005,7 @@ function renderTrade(){
  // together, by the trade value each row shows.
  const qtyOk=x=>tradeFilter==='collected'?x.c>0:tradeFilter==='tradeonly'?x.c===0:true;
  const rows=[];
- items.filter(p=>p.t>0&&qtyOk(p)).forEach(p=>rows.push({name:p.name,val:p.price*p.t,html:`<div class="row"><div class="grow"><b>${esc(cleanDisplayName(p.name))}</b><small>${p.kind==='sealed'?'Sealed':'Single'} · Trade × ${p.t} · Collected × ${p.c}</small></div><span class="price">${money(p.price*p.t)}</span></div>`}));
+ items.filter(p=>p.t>0&&qtyOk(p)).forEach(p=>rows.push({name:p.name,val:p.price*p.t,html:`<div class="row"><div class="grow"><b>${esc(cleanDisplayName(p.name))}</b><small>${p.kind==='sealed'?`Sealed · Trade × ${p.t} · Collected × ${p.c}`:`Single · Trade × ${p.t} extra${p.t===1?'':'s'} · ${p.c>0?'In collection':'Not in collection'}`}</small></div><span class="price">${money(p.price*p.t)}</span></div>`}));
  slabs.filter(s=>s.t>0&&qtyOk(s)).forEach(s=>rows.push({name:s.name,val:((research[s.key]||{}).price||0)*s.t,html:slabRow(s)}));
  rows.sort((a,b)=>tradeSort==='low'?a.val-b.val:tradeSort==='name'?a.name.localeCompare(b.name):b.val-a.val);
  if(!anyTrade){body.innerHTML=`<div class="notice"><b>Nothing up for trade yet</b><p>Set a Trade quantity on any item in Tracker (or file a scan with Trade qty) and it appears here automatically — Trade is just a view of Tracker.</p></div>`}
@@ -1933,7 +2014,7 @@ function renderTrade(){
   wireItemControls(body);}
  const need=document.getElementById('needList');
  const missing=[];const seenNeed={};
- Object.keys(productCache).forEach(k=>{const pc=productCache[k];if(pc&&pc.status==='ready')pc.products.filter(p=>p.number).forEach(p=>{const nk=pc.catId+':'+pc.groupId+':'+p.productId;if(seenNeed[nk])return;const o=items.find(i=>(i.productId!=null&&String(i.productId)===String(p.productId))||normName(i.name)===normName(p.name));if(!o||o.c===0){seenNeed[nk]=1;missing.push({p,setName:setNameFor(pc),catId:pc.catId,groupId:pc.groupId,key:nk})}})});
+ Object.keys(productCache).forEach(k=>{const pc=productCache[k];if(pc&&pc.status==='ready')pc.products.filter(p=>p.number).forEach(p=>{const nk=pc.catId+':'+pc.groupId+':'+p.productId;if(seenNeed[nk])return;const o=items.find(i=>(i.productId!=null&&String(i.productId)===String(p.productId))||normName(i.name)===normName(p.name));if(!o||copiesOf(o)===0){seenNeed[nk]=1;missing.push({p,setName:setNameFor(pc),catId:pc.catId,groupId:pc.groupId,key:nk})}})});
  if(!missing.length){need.innerHTML=`<div class="notice"><b>No needs yet</b><p>Missing cards come from a set’s live product list. Open a set in Tracker and the cards you don’t own yet will list here so you can mark the ones you want.</p></div>`}
  else{
   // Searchable, and grouped under a header per set — a card missing
@@ -2014,11 +2095,9 @@ document.getElementById('saveSlabBtn').onclick=()=>{
  const key=researchKey(name,co,gr);
  if(!research[key])research[key]={label:`${name} · ${co} ${gr}`,price:0,date:new Date().toLocaleDateString(),notes:"",url:ebayUrl(`${name} ${co} ${gr}`)};
  const vals={name,key,company:co,grade:gr,cert:document.getElementById('slabCert').value.trim(),c:Math.max(0,+document.getElementById('slabCollected').value||0),t:Math.max(0,+document.getElementById('slabTrade').value||0)};
- const capped=capTrade(vals);
  if(editingSlabId!=null){const s=slabs.find(x=>x.id===editingSlabId);if(s)Object.assign(s,vals)}
  else slabs.push(Object.assign({id:itemSeq++},vals));
  document.getElementById('slabDialog').close();renderAll();
- if(capped)toast(TRADE_CAP_MSG);
 };
 document.getElementById('deleteSlabBtn').onclick=()=>{
  if(editingSlabId==null)return;
@@ -2085,7 +2164,7 @@ let scanStream=null,ocrLoading=null;
 function scanStatus(msg){const el=document.getElementById('scanStatus');if(el)el.textContent=msg||''}
 function scanSetOptionsHTML(selKey){
  let opts=`<option value="">Choose the set this scan belongs to…</option>`;
- Object.keys(productCache).forEach(k=>{const pc=productCache[k];if(pc&&pc.status==='ready')opts+=`<option value="${esc(k)}" ${k===selKey?'selected':''}>${esc(pc.groupName||('Set '+pc.groupId))}</option>`});
+ Object.keys(productCache).forEach(k=>{const pc=productCache[k];if(pc&&pc.status==='ready')opts+=`<option value="${esc(k)}" ${k===selKey?'selected':''}>${esc(setNameFor(pc))}</option>`});
  return opts;
 }
 // ----- Matching engine -----
@@ -2216,7 +2295,7 @@ function ownedLineFor(s){
  if(!s.match)return '';
  const o=items.find(i=>i.productId!=null&&String(i.productId)===String(s.match.productId));
  if(!o)return 'Not in your Tracker yet.';
- return `Already in Tracker: ${o.c} collected · ${o.t} trade — filing adds to those.`;
+ return `Already in Tracker: ${o.c>0?'in your collection':'not in your collection'} · ${o.t} trade extra${o.t===1?'':'s'} — filing adds to those.`;
 }
 function pushScan(name,thumb,pre){
  const s={name:name||'',fc:1,ft:0,checked:false,thumb:thumb||null,match:null,dup:false,held:false,candidates:null,via:null,readText:''};
@@ -2245,7 +2324,7 @@ function renderLatestScan(){
  if(!s){panel.innerHTML=`<div class="ls-grow"><div class="ls-label">Latest scan</div><div class="ls-name">No scan yet</div><div class="ls-meta">Scan a card and its match will show here.</div></div>`;return}
  const m=s.match;
  const imgSrc=(m&&m.imageUrl)||s.thumb||'';
- const meta=m?[m.number,m.rarity,m.groupName].filter(Boolean).join(' · '):'No set match yet — name it or pick its set in the list below.';
+ const meta=m?[m.number,m.rarity,matchSetName(m)].filter(Boolean).join(' · '):'No set match yet — name it or pick its set in the list below.';
  panel.innerHTML=`${imgSrc?`<img src="${esc(imgSrc)}" alt="">`:''}<div class="ls-grow"><div class="ls-label">Latest scan${s.checked?' · Double-checked':''}${s.dup?' · Possible duplicate':''}</div><div class="ls-name">${esc(cleanDisplayName(s.name)||'Unnamed scan')}</div><div class="ls-meta">${esc(meta)}</div></div>${m&&m.price?`<span class="ls-price">${money(m.price)}</span>`:''}`;
 }
 function renderScans(){
@@ -2258,7 +2337,7 @@ function renderScans(){
  el.innerHTML=scans.map((s,i)=>{
   const m=s.match;
   return `<div class="row">${s.thumb?`<img class="scan-thumb" src="${s.thumb}" alt="Scan ${i+1} photo">`:''}<input type="checkbox" data-sel="${i}" ${s.dup?'':'checked'}><div class="grow"><b>Scan ${i+1} ${s.checked?'<span class="badge">Double-checked</span>':''} ${s.dup?'<span class="badge warn">Possible duplicate — same card twice in a row</span>':''}</b>
- <small>${m?`Matched${s.via==='number'?' by set number':''}: ${esc(m.number?m.number+' · ':'')}${esc(cleanDisplayName(s.name))} — ${esc(m.groupName||'')} · ${money(m.price)}<br>${esc(ownedLineFor(s))}`:`No set match yet. ${Object.keys(productCache).some(k=>productCache[k]&&productCache[k].status==='ready')?'Fix the name to match the card, or pick its set below.':'Open a set in Tracker first so scans can match it, or pick a set below once one is loaded.'}`}</small>
+ <small>${m?`Matched${s.via==='number'?' by set number':''}: ${esc(m.number?m.number+' · ':'')}${esc(cleanDisplayName(s.name))}${matchSetName(m)?' — '+esc(matchSetName(m)):''} · ${money(m.price)}<br>${esc(ownedLineFor(s))}`:`No set match yet. ${Object.keys(productCache).some(k=>productCache[k]&&productCache[k].status==='ready')?'Fix the name to match the card, or pick its set below.':'Open a set in Tracker first so scans can match it, or pick a set below once one is loaded.'}`}</small>
  ${!m&&s.candidates&&s.candidates.length?`<div style="margin-top:8px"><small style="font-weight:700">Closest matches — tap the right one:</small><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:5px">${s.candidates.map((c,j)=>`<button type="button" class="btn small" data-cand="${i}:${j}">${esc(cleanDisplayName(c.name))}${c.number?' · '+esc(c.number):''} · ${money(c.price)}</button>`).join('')}</div></div>`:''}
  ${!m&&s.readText?`<small style="display:block;margin-top:6px">Mai AI read: “${esc(s.readText)}”</small>`:''}
  <div style="display:grid;gap:8px;margin-top:8px"><span>Card name <input type="text" value="${esc(s.name)}" data-sname="${i}" placeholder="Name this scan" style="width:min(320px,70vw);background:var(--card2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:0 8px"></span>
@@ -2275,8 +2354,8 @@ function renderScans(){
   else s.match={catId:pc.catId,groupId:pc.groupId,groupName:pc.groupName,productId:null,number:'',price:0,rarity:'',imageUrl:''};
   s.checked=false;renderScans();updateStats();
  });
- el.querySelectorAll('[data-fc]').forEach(inp=>inp.onchange=()=>{const s=scans[+inp.dataset.fc];s.fc=Math.max(0,+inp.value||0);if(s.ft>s.fc){s.ft=s.fc;toast(TRADE_CAP_MSG);renderScans();return}updateStats();saveState()});
- el.querySelectorAll('[data-ft]').forEach(inp=>inp.onchange=()=>{const s=scans[+inp.dataset.ft];s.ft=Math.max(0,+inp.value||0);if(s.ft>s.fc){s.ft=s.fc;inp.value=s.ft;toast(TRADE_CAP_MSG)}updateStats();saveState()});
+ el.querySelectorAll('[data-fc]').forEach(inp=>inp.onchange=()=>{const s=scans[+inp.dataset.fc];s.fc=Math.max(0,+inp.value||0);updateStats();saveState()});
+ el.querySelectorAll('[data-ft]').forEach(inp=>inp.onchange=()=>{const s=scans[+inp.dataset.ft];s.ft=Math.max(0,+inp.value||0);updateStats();saveState()});
  updateStats();saveState();
 }
 function loadOCR(){
@@ -2480,7 +2559,7 @@ async function scanNow(){
   return;
  }
  const s=pushScan(decision.name||'',thumb,decision);
- scanStatus(decision.match?(decision.via==='number'?`Matched by set number ${decision.match.number} · ${s.name} (${decision.match.groupName||''}) — ${money(decision.match.price)}. It’s in the list below; check it, then file.`:`Matched ${decision.match.number?decision.match.number+' · ':''}${s.name} (${decision.match.groupName||''}) — ${money(decision.match.price)}. It’s in the list below; check it, then file.`):(decision.candidates&&decision.candidates.length?`Couldn’t pin that card down for sure — the closest matches are on the scan below. Tap the right one, or fix the name on the scan.`:`Couldn’t read a name or set number from that photo. The scan is in the list below — type the card name on it, or delete and rescan with the card filling the frame.`));
+ scanStatus(decision.match?(decision.via==='number'?`Matched by set number ${decision.match.number} · ${s.name}${matchSetName(decision.match)?' ('+matchSetName(decision.match)+')':''} — ${money(decision.match.price)}. It’s in the list below; check it, then file.`:`Matched ${decision.match.number?decision.match.number+' · ':''}${s.name}${matchSetName(decision.match)?' ('+matchSetName(decision.match)+')':''} — ${money(decision.match.price)}. It’s in the list below; check it, then file.`):(decision.candidates&&decision.candidates.length?`Couldn’t pin that card down for sure — the closest matches are on the scan below. Tap the right one, or fix the name on the scan.`:`Couldn’t read a name or set number from that photo. The scan is in the list below — type the card name on it, or delete and rescan with the card filling the frame.`));
  }finally{scanBusy=false}
 }
 document.getElementById('scanBtn').onclick=scanNow;
@@ -2538,8 +2617,15 @@ document.getElementById('fileBtn').onclick=()=>{
   if(!visitedGroups[key]&&!settings.autoCreate){s.held=true;keep.push(s);notes.push(`Scan ${i+1} matches ${m.groupName||'a set'} — a set you haven’t opened yet. Open it in Tracker to file this scan there.`);return}
   const name=s.name.trim()||('Scanned card '+(i+1));
   const existing=m.productId!=null?items.find(x=>x.productId!=null&&String(x.productId)===String(m.productId)):items.find(x=>x.catId===m.catId&&x.groupId===m.groupId&&normName(x.name)===normName(name));
-  if(existing){existing.c+=s.fc;existing.t+=s.ft;if(m.price)existing.price=m.price;if(capTrade(existing))notes.push(`Scan ${i+1}: Trade was capped at Collected — Trade copies are part of Collected.`)}
-  else{const ni={id:itemSeq++,name,kind:'single',sub:'pack',price:m.price||0,c:s.fc,t:s.ft,catId:m.catId,productId:m.productId!=null?m.productId:null,groupId:m.groupId};if(capTrade(ni))notes.push(`Scan ${i+1}: Trade was capped at Collected — Trade copies are part of Collected.`);items.push(ni)}
+  // Filing under the card rule: the first "Collected" copy collects
+  // the card, any further Collected copies and all Trade copies are
+  // extra copies — nothing is capped.
+  if(existing){
+   if(existing.kind==='sealed'){existing.c+=s.fc;existing.t+=s.ft;capSealedTrade(existing)}
+   else{if(s.fc>0){existing.t+=(s.fc-1);existing.c=1}existing.t+=s.ft}
+   if(m.price)existing.price=m.price;
+  }
+  else items.push({id:itemSeq++,name,kind:'single',sub:'pack',price:m.price||0,c:s.fc>0?1:0,t:(s.fc>0?s.fc-1:0)+s.ft,catId:m.catId,productId:m.productId!=null?m.productId:null,groupId:m.groupId});
   filed++;
  });
  scans=keep;
@@ -2614,13 +2700,29 @@ document.getElementById('resSort').onchange=()=>{renderResearch()};document.getE
 // track the last actual pull instead of claiming "not refreshed yet"
 // after prices have already loaded.
 let pricesPulledAt=0;
-function markPricesPulled(){
- pricesPulledAt=Date.now();
+const PRICES_AT_KEY='mai-collector-prices-at';
+function paintPriceStatus(){
+ if(!pricesPulledAt)return;
  const when=new Date(pricesPulledAt).toLocaleString();
  const label=document.getElementById('lastRefresh');
  if(label&&!(typeof refreshing!=='undefined'&&refreshing))label.textContent='Prices: up to date · pulled '+when;
  const note=document.getElementById('refreshNote');
  if(note)note.textContent='Prices pull fresh every time you open a set — last pulled '+when+'. Refresh re-pulls every opened set. Updates prices only — quantities and check-offs never change.';
+}
+function markPricesPulled(){
+ pricesPulledAt=Date.now();
+ try{sessionStorage.setItem(PRICES_AT_KEY,String(pricesPulledAt))}catch(e){}
+ paintPriceStatus();
+}
+// On a cold load the header used to claim "not refreshed yet" while
+// prices were already on screen: a set restored from this tab's
+// session cache shows prices from its earlier pull, and that path
+// never marked a pull. The pull time is kept in sessionStorage so
+// the status can be repainted truthfully on first load.
+function restorePriceStatus(){
+ if(pricesPulledAt){paintPriceStatus();return}
+ let ts=0;try{ts=+sessionStorage.getItem(PRICES_AT_KEY)||0}catch(e){}
+ if(ts){pricesPulledAt=ts;paintPriceStatus()}
 }
 // ---------- Price refresh (real) ----------
 // Refresh re-pulls the ProductsAndPrices.csv for every set already
@@ -2656,6 +2758,7 @@ async function refreshPrices(){
  }
  refreshing=false;
  pricesPulledAt=Date.now();
+ try{sessionStorage.setItem(PRICES_AT_KEY,String(pricesPulledAt))}catch(e){}
  const stamp=new Date().toLocaleString();
  if(done&&!failed)label.textContent='Prices: refreshed '+stamp+' · '+changed+' price'+(changed===1?'':'s')+' changed';
  else if(done)label.textContent='Prices: refreshed '+done+' of '+keys.length+' sets '+stamp+' · '+failed+' failed — pull again to retry those';
@@ -2669,6 +2772,7 @@ function renderAll(){renderTracker();renderTrade();renderSealed();renderSlabs();
 loadState();applySettingsToUI();
 refreshGames(); // build the Tracker tree from THIS user's saved additions (empty for a first-time user)
 renderAll();
+restorePriceStatus(); // if prices were already pulled this session (and are on screen), the header says so from the first paint
 // Nothing is preloaded. The catalog is fetched on demand only: the
 // categories list when the + Add menu opens, a category's groups when
 // that category is expanded (in the menu or in your own tree), and a
