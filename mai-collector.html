@@ -133,12 +133,14 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent)}
    clipped by the pocket's overflow:hidden. Pin the toggle to its
    designed 24px inside the pocket foot only: 24 + 3 + 24 = 51. */
 .pocket-foot .pocket-toggle{min-height:24px}
-.pocket-badge.owned{background:var(--accent);border-color:var(--accent);color:#fff}
+.pocket.missing .pocket-art img{filter:grayscale(1);opacity:.55}
+.pocket.missing .pocket-info{opacity:.75}
+.prodthumb.missing-thumb{filter:grayscale(1);opacity:.55}
 .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(16px);background:var(--card);color:var(--ink);border:1px solid var(--accent);border-radius:999px;padding:10px 16px;font-size:13.5px;font-weight:600;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .2s ease,transform .2s ease;z-index:90;max-width:92vw;text-align:center}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .pocket-art img{width:100%;height:100%;object-fit:contain;border-radius:6px;background:var(--card2);display:block;-webkit-user-drag:none;user-select:none}
 .pocket-art img.img-hide{display:none}
-.pocket-badge{position:absolute;top:4px;left:4px;background:rgba(12,6,28,.85);color:#fff;border:1px solid rgba(255,255,255,.35);font-size:8.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:2px 5px;border-radius:999px;pointer-events:none}
+.card-detail-img.missing-img{filter:grayscale(1);opacity:.6}
 .pocket-info{display:grid;gap:0;flex:0 0 auto;min-width:0;overflow:hidden}.pocket-info b{font-size:11px;line-height:1.2;display:block;white-space:normal;overflow-wrap:break-word}
 .pocket-num{font-size:10px;font-weight:800;color:var(--accent2);letter-spacing:.03em;line-height:1.2;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pocket-price{font-size:11px;font-weight:800;color:var(--accent2);line-height:1.2;white-space:nowrap}
@@ -1492,16 +1494,17 @@ function qtyBtnsHTML(p,owned){
  return `<button type="button" class="pocket-toggle${collected?' on':''}" data-ptoggle="${p.productId}" aria-pressed="${collected}">${collected?'✓ Collected':'＋ Collected'}</button><div class="pocket-qty"><span class="pq-label">Trade</span><button data-pq="${p.productId}:t:-1" aria-label="Trade minus">−</button><strong>${t}</strong><button data-pq="${p.productId}:t:1" aria-label="Trade plus">+</button></div>`;
 }
 // Every pocket shows the card's art from the CSV imageUrl (TCGplayer CDN),
-// owned or not. Owned / Missing is a small badge overlaid on the art, not
-// a replacement for it. If the image is missing or fails to load, the img
-// hides itself (inline onerror) and the number placeholder behind it
-// shows instead — never a broken-image icon. Tapping the art or the name
-// opens the card detail view (data-detail, wired in wireProductControls).
+// owned or not. Nothing is overlaid on the art: a card that isn't
+// collected yet is grayed out (grayscale + dimmed via .pocket.missing
+// in CSS) and returns to full colour once collected. If the image is
+// missing or fails to load, the img hides itself (inline onerror) and
+// the number placeholder behind it shows instead — never a
+// broken-image icon. Tapping the art or the name opens the card
+// detail view (data-detail, wired in wireProductControls).
 function pocketArtHTML(p,state){
  const img=p.imageUrl?`<img src="${esc(p.imageUrl)}" alt="${esc(cleanDisplayName(p.name))}" loading="lazy" draggable="false" onerror="this.classList.add('img-hide');var f=this.parentElement.querySelector('.pocket-fallback');if(f)f.classList.add('show')">`:'';
  const fallback=`<div class="pocket-empty pocket-fallback${p.imageUrl?'':' show'}"><span class="pocket-num">${esc(p.number||'—')}</span></div>`;
- const badge=state==='missing'?`<span class="pocket-badge">Missing</span>`:state==='owned'?`<span class="pocket-badge owned">Owned</span>`:'';
- return `<div class="pocket-art" data-detail="${p.productId}" role="button" aria-label="View ${esc(cleanDisplayName(p.name))}">${img}${fallback}${badge}</div>`;
+ return `<div class="pocket-art" data-detail="${p.productId}" role="button" aria-label="View ${esc(cleanDisplayName(p.name))}">${img}${fallback}</div>`;
 }
 function pocketHTML(p){
  const owned=findOwned(p);const has=owned&&copiesOf(owned)>0;
@@ -1538,7 +1541,7 @@ function binderHTML(singles){
  <div class="binder-controls"><button class="btn" data-turn="-1" ${binderPage===0?'disabled':''}>‹ Prev</button><span class="pill">Page ${binderPage+1} of ${pages}</span><button class="btn" data-turn="1" ${binderPage>=pages-1?'disabled':''}>Next ›</button><span style="color:var(--muted);font-size:11px">Swipe ↔</span></div>`;
 }
 function productListHTML(singles){
- return `<div class="list">${singles.map(p=>{const owned=findOwned(p);const has=owned&&copiesOf(owned)>0;return `<div class="row">${p.imageUrl?`<img class="prodthumb" src="${esc(p.imageUrl)}" alt="" loading="lazy" onerror="this.style.display='none'" data-detail="${p.productId}" style="cursor:pointer">`:''}<div class="grow"><b data-detail="${p.productId}" style="cursor:pointer">${esc(p.number?p.number+' · ':'')}${esc(cleanDisplayName(p.name))}</b><small>${esc(p.rarity||'')}${p.subType?' · '+esc(p.subType):''} · ${money(p.marketPrice)}${has?' · Owned':' · Missing'}</small></div>${has?`<span style="display:grid;gap:4px;min-width:170px">${qtyBtnsHTML(p,owned)}</span>`:`<button class="btn" data-padd="${p.productId}">+ Collected</button>`}</div>`}).join('')}</div>`;
+ return `<div class="list">${singles.map(p=>{const owned=findOwned(p);const has=owned&&copiesOf(owned)>0;return `<div class="row">${p.imageUrl?`<img class="prodthumb${has?'':' missing-thumb'}" src="${esc(p.imageUrl)}" alt="" loading="lazy" onerror="this.style.display='none'" data-detail="${p.productId}" style="cursor:pointer">`:''}<div class="grow"><b data-detail="${p.productId}" style="cursor:pointer">${esc(p.number?p.number+' · ':'')}${esc(cleanDisplayName(p.name))}</b><small>${esc(p.rarity||'')}${p.subType?' · '+esc(p.subType):''} · ${money(p.marketPrice)}${has?' · Owned':' · Missing'}</small></div>${has?`<span style="display:grid;gap:4px;min-width:170px">${qtyBtnsHTML(p,owned)}</span>`:`<button class="btn" data-padd="${p.productId}">+ Collected</button>`}</div>`}).join('')}</div>`;
 }
 // After a swipe turns a binder page, the re-render swaps the pockets under
 // the finger/cursor — swallow the click that trails the swipe so it can't
@@ -1560,7 +1563,7 @@ function renderCardDetail(){
  const setName=(nav.group&&nav.group.name)||(nav.cat?(nav.cat.display||nav.cat.name):'');
  const facts=[p.number?('Number '+p.number):'',p.rarity||'',p.subType||'',setName].filter(Boolean).join(' · ');
  body.innerHTML=`
- ${p.imageUrl?`<img src="${esc(p.imageUrl)}" alt="${esc(cleanDisplayName(p.name))}" onerror="this.style.display='none'" style="width:100%;max-height:44vh;object-fit:contain;background:var(--card2);border-radius:10px;display:block">`:`<div class="pocket-empty" style="aspect-ratio:63/88;max-height:44vh"><span class="pocket-num">${esc(p.number||'—')}</span></div>`}
+ ${p.imageUrl?`<img class="card-detail-img${has?'':' missing-img'}" src="${esc(p.imageUrl)}" alt="${esc(cleanDisplayName(p.name))}" onerror="this.style.display='none'" style="width:100%;max-height:44vh;object-fit:contain;background:var(--card2);border-radius:10px;display:block">`:`<div class="pocket-empty" style="aspect-ratio:63/88;max-height:44vh"><span class="pocket-num">${esc(p.number||'—')}</span></div>`}
  <h3 style="margin:12px 0 2px">${esc(cleanDisplayName(p.name))}</h3>
  <p style="color:var(--muted);font-size:13px;margin:0">${esc(facts)}</p>
  <p style="margin:8px 0 0"><span class="price" style="font-size:17px">${money(p.marketPrice)}</span> <span style="color:var(--muted);font-size:12.5px">TCGplayer market</span></p>
