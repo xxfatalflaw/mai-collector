@@ -157,6 +157,7 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent)}
 .tkids{display:grid;gap:6px}
 .tkids.tk-group{margin-left:36px}
 .tarrow{color:var(--accent2);font-size:18px;margin-left:2px;flex:0 0 auto}
+.tremove{color:var(--danger);font-size:11.5px;font-weight:700;border:1px solid var(--line);background:var(--card2);border-radius:7px;padding:3px 7px;flex:0 0 auto;line-height:1.2;white-space:nowrap}
 .tnote{color:var(--muted);font-size:12.5px;padding:8px 10px;border:1px dashed var(--line);border-radius:10px;background:var(--card2)}
 .tspecial{margin:8px 0 0;font-size:12px;font-weight:700;color:var(--muted)}
 .ttoolbar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:6px;font-size:13px}
@@ -269,22 +270,27 @@ dialog::backdrop{background:rgba(5,0,15,.6)}dialog .in{padding:20px}
 </div>
 </section>
 
-<footer id="pageFooter">Mai Collector · Source data: <a href="https://tcgcsv.com/tcgplayer/categories" target="_blank" rel="noopener">tcgcsv.com</a> (TCGplayer, updated daily) · Game, category, and set lists load in the background when the app opens; a set’s cards and prices pull live from tcgcsv when the set is opened and stay cached after · Card images via TCGplayer CDN · Slab prices are manual — check eBay sold listings, never asking prices.</footer>
+<footer id="pageFooter">Mai Collector · Source data: <a href="https://tcgcsv.com/tcgplayer/categories" target="_blank" rel="noopener">tcgcsv.com</a> (TCGplayer, updated daily) · The catalog loads on demand: tap + Add in Tracker to browse every game, category, and set on tcgcsv and add just what you collect — your list saves on this device only · A set’s cards and prices pull live from tcgcsv when the set is opened and stay cached after · Card images via TCGplayer CDN · Slab prices are manual — check eBay sold listings, never asking prices.</footer>
 </div>
 
 <div id="swipeHint" aria-hidden="true">‹</div>
+
+<dialog id="addDialog"><div class="in"><h3 style="margin-top:0">Add to Tracker</h3><p style="color:var(--muted);font-size:13px;margin-top:0">The full tcgcsv catalog, loaded now on demand — nothing is preloaded. Add a whole game, a single category, or one set. Your list saves on this device only; everyone starts with the same empty Tracker.</p><input type="text" id="addSearch" placeholder="Search games &amp; categories…" aria-label="Search the catalog" style="width:100%;background:var(--card2);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:0 12px"><div id="addBody" style="display:grid;gap:6px;max-height:52vh;overflow:auto;margin-top:12px;padding-right:2px"></div><div style="display:flex;gap:8px;margin-top:14px"><button class="btn primary" onclick="document.getElementById('addDialog').close()">Done</button></div></div></dialog>
 
 <dialog id="itemDialog"><div class="in"><h3 style="margin-top:0" id="itemDialogTitle">Add an item</h3><div style="display:grid;gap:10px"><div class="field"><label>Name</label><input type="text" id="itemName" placeholder="Card or product name"></div><div class="two"><div class="field"><label>Type</label><select id="itemKind"><option value="single">Single</option><option value="sealed">Sealed</option></select></div><div class="field"><label>Sealed type</label><select id="itemSub"><option value="box">Box / Case</option><option value="pack">Pack</option></select></div></div><div class="field"><label>Price ($)</label><input type="number" id="itemPrice" min="0" step="0.01" value="0"></div><div class="two"><div class="field"><label>Collected qty</label><input type="number" id="itemCollected" value="1" min="0"></div><div class="field"><label>Trade qty</label><input type="number" id="itemTrade" value="0" min="0"></div></div></div><div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap"><button class="btn primary" id="saveItemBtn">Save item</button><button class="btn danger" id="deleteItemBtn" style="display:none">Remove item</button><button class="btn" onclick="document.getElementById('itemDialog').close()">Cancel</button></div></div></dialog>
 
 <dialog id="slabDialog"><div class="in"><h3 style="margin-top:0" id="slabDialogTitle">Add a slab</h3><div style="display:grid;gap:10px"><div class="field"><label>Card name</label><input type="text" id="slabCard" placeholder="Type the card name"></div><div class="two"><div class="field"><label>Company</label><input type="text" id="slabCompany" value="PSA"></div><div class="field"><label>Grade</label><input type="text" id="slabGrade" value="10"></div></div><div class="field"><label>Cert # (optional)</label><input type="text" id="slabCert" placeholder="e.g. 81234567"></div><div class="two"><div class="field"><label>Collected qty</label><input type="number" id="slabCollected" value="1" min="0"></div><div class="field"><label>Trade qty</label><input type="number" id="slabTrade" value="0" min="0"></div></div></div><div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap"><button class="btn primary" id="saveSlabBtn">Save slab</button><button class="btn danger" id="deleteSlabBtn" style="display:none">Remove slab</button><button class="btn" onclick="document.getElementById('slabDialog').close()">Cancel</button></div></div></dialog>
 
 <script>
-// ---------- Catalog directory (names + IDs only, from tcgcsv) — the structure (games, categories, groups) preloads in the background at startup and is cached; a set’s card list loads when the set is opened ----------
+// ---------- Catalog directory (names + IDs only, from tcgcsv) — nothing is preloaded: the Tracker starts empty for everyone, the full catalog loads on demand from the + Add menu, and a set’s card list loads when the set is opened ----------
+// MASTER_GAMES is only a grouping definition — which tcgcsv categories
+// belong to one game, plus display names. NOTHING from it appears in
+// the Tracker until the user adds it through the + Add menu.
 // Category IDs verified against the live tcgcsv categories list:
 // Magic 1, YuGiOh 2, Pokemon 3, Dragon Ball Z 23, Dragon Ball Super CCG 27,
 // Digimon 63, One Piece 68, Lorcana 71, Fusion World 80, Pokemon Japan 85,
 // Gundam 86.
-const GAMES=[
+const MASTER_GAMES=[
 {name:"Digimon",cats:[{id:63,name:"Digimon Card Game"}]},
 {name:"Dragon Ball",cats:[{id:23,name:"Dragon Ball Z TCG"},{id:27,name:"Dragon Ball Super CCG"},{id:80,name:"Dragon Ball Super Fusion World",display:"Dragon Ball Super: Fusion World"}]},
 {name:"Gundam",cats:[{id:86,name:"Gundam Card Game"}]},
@@ -294,6 +300,75 @@ const GAMES=[
 {name:"Pokémon",cats:[{id:3,name:"Pokémon"},{id:85,name:"Pokémon Japan"}]},
 {name:"Yu-Gi-Oh!",cats:[{id:2,name:"Yu-Gi-Oh!"}]},
 ];
+// ---------- Per-user catalog (what THIS user added to their Tracker) ----------
+// Saved in localStorage with the rest of the user's data (see
+// saveState/loadState), so what one user adds shows only on their
+// device — a friend opening the app gets the same empty Tracker.
+//   games:  master names added whole, e.g. "Dragon Ball"
+//   cats:   single categories added on their own [{id, name}]
+//   groups: single sets added on their own [{catId, groupId, name, abbreviation}]
+let userCatalog={games:[],cats:[],groups:[]};
+let liveCats=[]; // the full tcgcsv categories list — fetched on demand only, when the Add menu opens
+let GAMES=[]; // the effective game list the Tracker tree renders, rebuilt by refreshGames()
+function liveCatName(id){const c=liveCats.find(x=>String(x.categoryId)===String(id));return c?c.name:null}
+function catInfo(id){
+ for(const g of MASTER_GAMES){const c=g.cats.find(x=>String(x.id)===String(id));if(c)return{name:liveCatName(id)||c.name,display:c.display}}
+ const ln=liveCatName(id);if(ln)return{name:ln};
+ const uc=userCatalog.cats.find(x=>String(x.id)===String(id));if(uc&&uc.name)return{name:uc.name};
+ return null;
+}
+function refreshGames(){
+ const out=[];
+ userCatalog.games.forEach(name=>{
+  const m=MASTER_GAMES.find(x=>x.name===name);if(!m)return;
+  out.push({name:m.name,cats:m.cats.map(c=>({id:c.id,name:liveCatName(c.id)||c.name,display:c.display}))});
+ });
+ userCatalog.cats.forEach(entry=>{
+  const id=entry.id;
+  if(out.some(g=>g.cats.some(c=>String(c.id)===String(id))))return; // already in via an added game
+  const info=catInfo(id);
+  out.push({name:info?(info.display||info.name):(entry.name||('Category '+id)),solo:true,cats:[{id:id,name:info?info.name:(entry.name||('Category '+id)),display:info?info.display:undefined}]});
+ });
+ out.sort((a,b)=>a.name.localeCompare(b.name));
+ GAMES=out;
+}
+function isGameAdded(name){return userCatalog.games.indexOf(name)>-1}
+function gameCoveringCat(catId){return userCatalog.games.find(name=>{const m=MASTER_GAMES.find(x=>x.name===name);return m&&m.cats.some(c=>String(c.id)===String(catId))})||null}
+function isCatAdded(catId){return !!gameCoveringCat(catId)||userCatalog.cats.some(x=>String(x.id)===String(catId))}
+function isGroupAdded(catId,groupId){return userCatalog.groups.some(x=>String(x.catId)===String(catId)&&String(x.groupId)===String(groupId))}
+function afterCatalogChange(){refreshGames();saveState();if(currentPanel==='tracker')renderTracker();const ad=document.getElementById('addDialog');if(ad&&ad.open)renderAddMenu()}
+function addGame(name){
+ if(isGameAdded(name))return;
+ userCatalog.games.push(name);
+ const m=MASTER_GAMES.find(x=>x.name===name);
+ if(m)userCatalog.cats=userCatalog.cats.filter(x=>!m.cats.some(c=>String(c.id)===String(x.id))); // now covered by the game
+ afterCatalogChange();
+}
+function removeGame(name){userCatalog.games=userCatalog.games.filter(x=>x!==name);afterCatalogChange()}
+function addCat(catId,name){
+ if(isCatAdded(catId))return;
+ userCatalog.cats.push({id:isNaN(+catId)?catId:+catId,name:name||''});
+ afterCatalogChange();
+}
+function removeCat(catId){
+ const gname=gameCoveringCat(catId);
+ if(gname){
+  // Removing one category out of an added game: the game comes off
+  // and its other categories stay behind as standalone categories.
+  const m=MASTER_GAMES.find(x=>x.name===gname);
+  userCatalog.games=userCatalog.games.filter(x=>x!==gname);
+  if(m)m.cats.forEach(c=>{if(String(c.id)!==String(catId))userCatalog.cats.push({id:c.id,name:c.name})});
+ } else {
+  userCatalog.cats=userCatalog.cats.filter(x=>String(x.id)!==String(catId));
+ }
+ afterCatalogChange();
+}
+function addGroup(catId,gr){
+ if(isGroupAdded(catId,gr.groupId))return;
+ userCatalog.groups.push({catId:isNaN(+catId)?catId:+catId,groupId:gr.groupId,name:gr.name||'',abbreviation:gr.abbreviation||''});
+ afterCatalogChange();
+}
+function removeGroup(catId,groupId){userCatalog.groups=userCatalog.groups.filter(x=>!(String(x.catId)===String(catId)&&String(x.groupId)===String(groupId)));afterCatalogChange()}
 const money=n=>"$"+Number(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
 const esc=s=>String(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 
@@ -306,8 +381,8 @@ let itemSeq=1;
 let nav={game:null,cat:null,group:null}; let chipFilter="all";
 // Tracker tree expansion (session-only UI state). The tree is what
 // Tracker shows whenever no set is open: games expand in place to
-// their categories, categories to their groups, all from the catalog
-// structure preloaded at startup — no fetch per expansion.
+// their categories, categories to their groups. A category's groups
+// load on demand at first expansion and are cached after that.
 let treeOpen={games:{},cats:{}};
 // The game / category of the set currently open, so one back step out
 // of a set returns to the tree with exactly those rows expanded.
@@ -334,14 +409,14 @@ let settings={view:"binder",grid:3,sealedSort:"high",slabSort:"high",autoCreate:
 const STORAGE_KEY='mai-collector-v1';
 function saveState(){
  try{
-  const data={items:items,slabs:slabs,research:research,scans:scans,settings:settings,itemSeq:itemSeq,markedNeeds:(typeof markedNeeds!=='undefined'?markedNeeds:{}),visitedGroups:visitedGroups};
+  const data={items:items,slabs:slabs,research:research,scans:scans,settings:settings,itemSeq:itemSeq,markedNeeds:(typeof markedNeeds!=='undefined'?markedNeeds:{}),visitedGroups:visitedGroups,userCatalog:userCatalog};
   localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
  }catch(e){
   // Quota (usually scan thumbnails): retry once without thumbnails so
   // the collection itself still saves.
   try{
    const slim=scans.map(function(s){const c={};Object.keys(s).forEach(function(k){if(k!=='thumb')c[k]=s[k]});c.thumb=null;return c});
-   const data={items:items,slabs:slabs,research:research,scans:slim,settings:settings,itemSeq:itemSeq,markedNeeds:(typeof markedNeeds!=='undefined'?markedNeeds:{}),visitedGroups:visitedGroups};
+   const data={items:items,slabs:slabs,research:research,scans:slim,settings:settings,itemSeq:itemSeq,markedNeeds:(typeof markedNeeds!=='undefined'?markedNeeds:{}),visitedGroups:visitedGroups,userCatalog:userCatalog};
    localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
   }catch(e2){}
  }
@@ -360,6 +435,14 @@ function loadState(){
   if(typeof d.itemSeq==='number'&&d.itemSeq>0)itemSeq=d.itemSeq;
   if(d.markedNeeds&&typeof d.markedNeeds==='object'&&!Array.isArray(d.markedNeeds)){try{markedNeeds=d.markedNeeds}catch(e){}}
   if(d.visitedGroups&&typeof d.visitedGroups==='object'&&!Array.isArray(d.visitedGroups))visitedGroups=d.visitedGroups;
+  if(d.userCatalog&&typeof d.userCatalog==='object'&&!Array.isArray(d.userCatalog)){
+   const uc=d.userCatalog;
+   userCatalog={
+    games:Array.isArray(uc.games)?uc.games.filter(x=>typeof x==='string'):[],
+    cats:Array.isArray(uc.cats)?uc.cats.filter(x=>x&&typeof x==='object'&&x.id!=null).map(x=>({id:x.id,name:x.name||''})):[],
+    groups:Array.isArray(uc.groups)?uc.groups.filter(x=>x&&typeof x==='object'&&x.catId!=null&&x.groupId!=null).map(x=>({catId:x.catId,groupId:x.groupId,name:x.name||'',abbreviation:x.abbreviation||''})):[]
+   };
+  }
   let maxId=0;items.forEach(function(i){if(i.id>maxId)maxId=i.id});slabs.forEach(function(s){if(s.id>maxId)maxId=s.id});if(itemSeq<=maxId)itemSeq=maxId+1;
  }catch(e){}
 }
@@ -483,6 +566,13 @@ function applyState(s){
  else if(s.groupId!=null)nav.group={groupId:isNaN(+s.groupId)?s.groupId:+s.groupId,name:'',abbreviation:''};
  binderPage=0;
  if(s.catId!=null){for(const g of GAMES){const c=g.cats.find(x=>String(x.id)===String(s.catId));if(c){nav.cat=c;if(!nav.game)nav.game=g.name;break}}}
+ if(s.catId!=null&&!nav.cat){
+  // The category isn't in the user's game list — e.g. a set restored
+  // from a standalone group add. Build the category from the grouping
+  // definition / saved name so the set page still opens.
+  const info=catInfo(s.catId);
+  nav.cat={id:isNaN(+s.catId)?s.catId:+s.catId,name:info?info.name:('Category '+s.catId),display:info?info.display:undefined};
+ }
  if(nav.cat&&nav.group)visitedGroups[nav.cat.id+':'+nav.group.groupId]=true;
  showPanel(s.panel);renderTracker();
 }
@@ -726,21 +816,25 @@ function ensureItemFor(p){
  return it;
 }
 function setProductQty(p,kind,delta){const it=ensureItemFor(p);it[kind]=Math.max(0,it[kind]+delta);renderAll()}
-// The categories list goes through the same tcgFetchText helper as the
-// groups list, with the same JSON validation. The Game grouping is our
-// own mapping (not in tcgcsv) and the baked-in GAMES list is the
-// offline fallback, so the live pull only refreshes the name on each
-// category we already carry, matched by categoryId; if it fails, the
-// baked-in names stay and nothing else changes.
-function loadCategories(){
- if(categoryCache.status==='loading'||categoryCache.status==='ready')return;
+// The full categories list goes through the same tcgFetchText helper
+// as the groups list, with the same JSON validation — but it is
+// fetched ONLY on demand, when the + Add menu is opened. Nothing about
+// the catalog is preloaded: the menu shows every category tcgcsv has,
+// and a category's groups load when that category is expanded there
+// (loadGroupsFor below). The Game grouping is our own mapping (not in
+// tcgcsv) — MASTER_GAMES above.
+function loadLiveCategories(){
+ if(categoryCache.status==='loading'&&categoryCache.promise)return categoryCache.promise;
+ if(categoryCache.status==='ready')return Promise.resolve(true);
  categoryCache.status='loading';
- tcgFetchText('https://tcgcsv.com/tcgplayer/categories',t=>{try{JSON.parse(t);return true}catch(e){return false}}).then(t=>{
-  const j=JSON.parse(t);const live=j.results||[];
-  for(const g of GAMES)for(const c of g.cats){const m=live.find(x=>String(x.categoryId)===String(c.id));if(m&&m.name)c.name=m.name}
+ const promise=tcgFetchText('https://tcgcsv.com/tcgplayer/categories',t=>{try{JSON.parse(t);return true}catch(e){return false}}).then(t=>{
+  const j=JSON.parse(t);liveCats=j.results||[];
   categoryCache.status='ready';
-  if(currentPanel==='tracker')renderTracker();
- }).catch(e=>{categoryCache.status='error';categoryCache.error=String((e&&e.message)||e)});
+  refreshGames(); // live names may sharpen any standalone category labels
+  return true;
+ }).catch(e=>{categoryCache.status='error';categoryCache.error=String((e&&e.message)||e);return false});
+ categoryCache.promise=promise;
+ return promise;
 }
 // ---------- Group ordering & the main / Special split ----------
 // tcgcsv stamps a batch of legacy groups — old promos, trainer kits,
@@ -805,21 +899,6 @@ function loadGroupsFor(catId){
  return promise;
 }
 function loadGroups(){if(!nav.cat)return;loadGroupsFor(nav.cat.id)}
-// ---------- Startup preload (structure only, in the background) ----------
-// Fetch the categories list and EVERY category's groups list up front,
-// one at a time with a short pause between pulls, so Game > Category >
-// Group never waits on the network. Deliberately NOT every set's card
-// list: that is far too much data and would hit the proxy rate limits.
-// A set's products are fetched the first time it is opened and then
-// cached (memory + sessionStorage, see loadProducts), so re-opening a
-// set is instant too.
-let preloadStarted=false;
-function preloadCatalogStructure(){
- if(preloadStarted)return;preloadStarted=true;
- loadCategories();
- const ids=[];GAMES.forEach(g=>g.cats.forEach(c=>{if(ids.indexOf(c.id)===-1)ids.push(c.id)}));
- (async()=>{for(const id of ids){try{await loadGroupsFor(id)}catch(e){}await new Promise(r=>setTimeout(r,300))}})();
-}
 function parseProductsCSV(t){
  const rows=parseCSV(t);
  const products=rows.filter(r=>r.productId&&r.name).map(r=>({productId:r.productId,name:r.name,imageUrl:r.imageUrl||'',marketPrice:parseFloat(r.marketPrice)||parseFloat(r.midPrice)||0,subType:r.subTypeName||'',rarity:r.extRarity||'',number:r.extNumber||''}));
@@ -920,12 +999,12 @@ function wireProductControls(body,products){
 // ---------- Tracker cascading tree ----------
 // One page, three levels deep: a Game row expands in place to its
 // Categories, a Category row expands in place to its Groups (main sets
-// first, then Special sets — same split and sort as the old group page),
-// and tapping a Group opens that set's page. Everything the tree shows
-// comes from the catalog structure preloaded in the background at
-// startup (categories + every category's groups, cached in memory and
-// sessionStorage), so expanding a row never waits on the network; only
-// a set's cards load on open, as before.
+// first, then Special sets), and tapping a Group opens that set's
+// page. The tree shows ONLY what this user added via the + Add menu
+// (userCatalog → GAMES, plus standalone set adds) — it starts empty
+// for everyone. A category's groups load on demand the first time the
+// category is expanded and are cached after that (memory +
+// sessionStorage); a set's cards load on open, as before.
 function treeGameOpen(g){return treeOpen.games[g.name]!==undefined?treeOpen.games[g.name]:nav.game===g.name}
 function treeCatOpen(c){return treeOpen.cats[c.id]!==undefined?treeOpen.cats[c.id]:(nav.cat&&String(nav.cat.id)===String(c.id))}
 function groupSectionsHTML(gc,catId){
@@ -977,6 +1056,8 @@ function wireTreeTap(body){
  body.addEventListener('pointerdown',e=>{
   downKey=null;
   if(!e.isPrimary||(e.pointerType==='mouse'&&e.button!==0))return;
+  // A tap on a row's Remove control removes — it must never toggle.
+  if(e.target&&e.target.closest&&e.target.closest('.tremove'))return;
   const row=e.target&&e.target.closest?e.target.closest('[data-tgame],[data-tcat],[data-tgroup]'):null;
   downKey=treeRowKey(row);downX=e.clientX;downY=e.clientY;
  },{passive:true});
@@ -991,17 +1072,26 @@ function wireTreeTap(body){
  },{passive:true});
 }
 function renderTrackerTree(body){
- let html=`<div class="section-head"><div><h2>Game</h2><p>Alphabetical. Games with multiple tcgcsv categories are grouped under one Game. Tap a game to open its categories, then a category to open its sets.</p></div><button class="btn" data-scanlink>📷 Scan</button></div><div class="tree">`;
+ let html=`<div class="section-head"><div><h2>Game</h2><p>Your games, categories, and sets — tap one to open it. Build the list with + Add; it saves on this device only.</p></div><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn primary" data-addlink>+ Add</button><button class="btn" data-scanlink>📷 Scan</button></div></div>`;
+ if(!GAMES.length&&!userCatalog.groups.length){
+  // First-run empty state: nobody gets default games any more, so the
+  // Tracker explains itself and puts the + Add button front and centre.
+  html+=`<div class="notice" style="text-align:center;padding:24px 14px"><b style="font-size:16px">Nothing here yet — tap + Add to add a game, category, or set</b><p>Everyone starts with an empty Tracker. Browse the full tcgcsv catalog and add just the games you collect — nothing is preloaded, and what you add shows only on this device.</p><p style="margin-top:14px"><button class="btn primary" data-addlink style="min-height:48px;padding:10px 24px;font-size:16px">+ Add</button></p></div>`;
+  body.innerHTML=html;
+  body.querySelectorAll('[data-addlink]').forEach(b=>b.onclick=()=>openAddMenu());
+  return;
+ }
+ html+=`<div class="tree">`;
  for(const g of GAMES){
   const gOpen=treeGameOpen(g);
-  html+=`<div class="tnode"><button type="button" class="trow tgame" data-tgame="${esc(g.name)}" aria-expanded="${gOpen}"><span class="tchev">${gOpen?'▾':'▸'}</span><span class="tg-name">${esc(g.name)}</span><span class="tg-meta">${g.cats.length} ${g.cats.length===1?'category':'categories'} · ${g.cats.map(c=>esc(c.display||c.name)).join(' · ')}</span></button>`;
+  html+=`<div class="tnode"><button type="button" class="trow tgame" data-tgame="${esc(g.name)}" aria-expanded="${gOpen}"><span class="tchev">${gOpen?'▾':'▸'}</span><span class="tg-name">${esc(g.name)}</span><span class="tg-meta">${g.cats.length} ${g.cats.length===1?'category':'categories'} · ${g.cats.map(c=>esc(c.display||c.name)).join(' · ')}</span><span class="tremove" data-tremove-game="${esc(g.name)}" role="button" aria-label="Remove ${esc(g.name)} from your Tracker">Remove</span></button>`;
   if(gOpen){
    html+=`<div class="tkids">`;
    for(const c of g.cats){
     const gc=groupCache[c.id];
     const cOpen=treeCatOpen(c);
     const setCount=gc&&gc.status==='ready'?` · ${gc.groups.length} sets`:'';
-    html+=`<div class="tnode"><button type="button" class="trow tcat" data-tcat="${c.id}" aria-expanded="${cOpen}"><span class="tchev">${cOpen?'▾':'▸'}</span><span class="tg-name">${esc(c.display||c.name)}</span><span class="tg-meta">categoryId ${c.id}${setCount}</span></button>`;
+    html+=`<div class="tnode"><button type="button" class="trow tcat" data-tcat="${c.id}" aria-expanded="${cOpen}"><span class="tchev">${cOpen?'▾':'▸'}</span><span class="tg-name">${esc(c.display||c.name)}</span><span class="tg-meta">categoryId ${c.id}${setCount}</span>${g.solo?'':`<span class="tremove" data-tremove-cat="${c.id}" role="button" aria-label="Remove ${esc(c.display||c.name)} from your Tracker">Remove</span>`}</button>`;
     if(cOpen){
      html+=`<div class="tkids tk-group">`;
      if(!gc||gc.status==='loading'){html+=`<div class="tnote">Loading this category’s sets…</div>`;loadGroupsFor(c.id)}
@@ -1017,8 +1107,37 @@ function renderTrackerTree(body){
   html+=`</div>`;
  }
  html+=`</div>`;
+ if(userCatalog.groups.length){
+  // Sets added on their own (not via their game or category) get their
+  // own rows under the tree; tapping one opens the set directly.
+  html+=`<h3 style="margin:16px 0 6px;font-size:15px">Sets you added</h3><div class="tree">`;
+  for(const sg of userCatalog.groups){
+   const info=catInfo(sg.catId);
+   html+=`<div class="tnode"><button type="button" class="trow tgroup" data-tset="${sg.catId}:${sg.groupId}"><span class="tg-name">${esc(sg.name||'Set')}</span><span class="tg-meta">${info?esc(info.display||info.name):'categoryId '+sg.catId}${sg.abbreviation?' · '+esc(sg.abbreviation):''}</span><span class="tremove" data-tremove-group="${sg.catId}:${sg.groupId}" role="button" aria-label="Remove this set from your Tracker">Remove</span><span class="tarrow">›</span></button></div>`;
+  }
+  html+=`</div>`;
+ }
  body.innerHTML=html;
  wireTreeTap(body);
+ body.querySelectorAll('[data-addlink]').forEach(b=>b.onclick=()=>openAddMenu());
+ body.querySelectorAll('[data-tremove-game]').forEach(el=>el.addEventListener('click',e=>{
+  e.stopPropagation();
+  const g=GAMES.find(x=>x.name===el.dataset.tremoveGame);
+  if(g&&g.solo)removeCat(g.cats[0].id);else removeGame(el.dataset.tremoveGame);
+ }));
+ body.querySelectorAll('[data-tremove-cat]').forEach(el=>el.addEventListener('click',e=>{e.stopPropagation();removeCat(el.dataset.tremoveCat)}));
+ body.querySelectorAll('[data-tremove-group]').forEach(el=>el.addEventListener('click',e=>{e.stopPropagation();const parts=el.dataset.tremoveGroup.split(':');removeGroup(parts[0],parts[1])}));
+ body.querySelectorAll('[data-tset]').forEach(b=>b.onclick=()=>{
+  const parts=b.dataset.tset.split(':');
+  const sg=userCatalog.groups.find(x=>String(x.catId)===parts[0]&&String(x.groupId)===parts[1]);if(!sg)return;
+  const info=catInfo(sg.catId);
+  const master=MASTER_GAMES.find(g=>g.cats.some(c=>String(c.id)===String(sg.catId)));
+  nav.game=master?master.name:(info?(info.display||info.name):'Category '+sg.catId);
+  nav.cat={id:isNaN(+sg.catId)?sg.catId:+sg.catId,name:info?info.name:('Category '+sg.catId),display:info?info.display:undefined};
+  nav.group={groupId:isNaN(+sg.groupId)?sg.groupId:+sg.groupId,name:sg.name||'',abbreviation:sg.abbreviation||''};
+  visitedGroups[sg.catId+':'+sg.groupId]=true;binderPage=0;trackerView=null;groupSearch="";
+  renderTracker();pushHistory();
+ });
  body.querySelectorAll('[data-tgame]').forEach(b=>b.onclick=()=>{
   if(treeTapGuardHit('g:'+b.dataset.tgame))return; // this tap already toggled on pointerup
   toggleGameRow(b.dataset.tgame);
@@ -1040,6 +1159,75 @@ function renderTrackerTree(body){
  body.querySelectorAll('[data-gsort]').forEach(s=>s.onchange=()=>{groupSort=s.value;renderTracker()});
  body.querySelectorAll('[data-gfilter]').forEach(s=>s.onchange=()=>{groupFilter=s.value;renderTracker()});
 }
+// ---------- Add menu (the full tcgcsv catalog, on demand) ----------
+// Opening the menu is the ONLY thing that fetches the categories list.
+// Expanding a category in the menu fetches that category's groups
+// (loadGroupsFor — cached after). From here the user can add a whole
+// game (every category in a MASTER_GAMES grouping), a single category,
+// or a single set; everything added lands in userCatalog, saves to
+// localStorage, and can be removed again from here or from the tree.
+let addSearch="";let addOpenCats={};
+function openAddMenu(){
+ const d=document.getElementById('addDialog');
+ if(d&&!d.open)d.showModal();
+ renderAddMenu();
+ if(categoryCache.status!=='ready')loadLiveCategories().then(()=>renderAddMenu());
+}
+function addGroupRowsHTML(catId){
+ const gc=groupCache[catId];
+ if(!gc||gc.status==='loading')return `<div class="tnote">Loading this category’s sets…</div>`;
+ if(gc.status==='error')return `<div class="tnote">Couldn’t load this category’s sets (${esc(gc.error||'network error')}). <button type="button" class="btn small" data-addretry="${catId}">↻ Retry</button></div>`;
+ if(!gc.groups.length)return `<div class="tnote">tcgcsv lists no sets for this category.</div>`;
+ // Same main / Special split and ordering the Tracker tree uses.
+ const sorted=sortGroupList(gc.groups,'new');
+ const main=sorted.filter(gr=>!isSpecialGroup(gr)),special=sorted.filter(gr=>isSpecialGroup(gr));
+ const row=gr=>{const added=isGroupAdded(catId,gr.groupId);return `<div class="row" style="padding:7px 9px"><div class="grow" style="min-width:120px"><b style="font-size:13px">${esc(gr.name)}</b><small>${gr.abbreviation?esc(gr.abbreviation)+' · ':''}${groupReleaseDate(gr)}</small></div>${added?`<span class="badge">Added</span><button class="btn small danger" data-addgroup-del="${catId}:${gr.groupId}">Remove</button>`:`<button class="btn small primary" data-addgroup="${catId}:${gr.groupId}">+ Add set</button>`}</div>`};
+ let h='';
+ if(main.length)h+=main.map(row).join('');else h+=`<div class="tnote">No main sets — every group in this category is a special set, listed below.</div>`;
+ if(special.length)h+=`<div class="tspecial">Special sets</div>`+special.map(row).join('');
+ return h;
+}
+function renderAddMenu(){
+ const body=document.getElementById('addBody');if(!body)return;
+ if(categoryCache.status!=='ready'){
+  body.innerHTML=categoryCache.status==='error'
+   ?`<div class="notice"><b>Couldn’t load the catalog</b><p>The live pull from tcgcsv failed (${esc(categoryCache.error||'network error')}). Check your connection and try again.</p><p><button type="button" class="btn primary small" id="addRetryCats">↻ Retry</button></p></div>`
+   :`<div class="notice"><b>Loading the full catalog from tcgcsv…</b><p>Every category, pulled live — nothing was preloaded.</p></div>`;
+  const rc=body.querySelector('#addRetryCats');if(rc)rc.onclick=()=>{categoryCache.status='idle';renderAddMenu();loadLiveCategories().then(()=>renderAddMenu())};
+  return;
+ }
+ const q=addSearch.trim().toLowerCase();
+ const match=s=>!q||String(s||'').toLowerCase().indexOf(q)>-1;
+ let h='';
+ const gamesShown=MASTER_GAMES.filter(g=>match(g.name)||g.cats.some(c=>match(c.display||c.name)));
+ if(gamesShown.length){
+  h+=`<h3 style="margin:2px 0 4px;font-size:14px">Games — add the whole game</h3>`;
+  h+=gamesShown.map(g=>{const added=isGameAdded(g.name);return `<div class="row" style="padding:8px 10px"><div class="grow" style="min-width:120px"><b style="font-size:13.5px">${esc(g.name)}</b><small>${g.cats.length} ${g.cats.length===1?'category':'categories'} · ${g.cats.map(c=>esc(c.display||c.name)).join(' · ')}</small></div>${added?`<span class="badge">In your Tracker</span><button class="btn small danger" data-addgame-del="${esc(g.name)}">Remove</button>`:`<button class="btn small primary" data-addgame="${esc(g.name)}">+ Add game</button>`}</div>`}).join('');
+ }
+ h+=`<h3 style="margin:14px 0 4px;font-size:14px">All categories — tap one to see its sets</h3>`;
+ const catsShown=liveCats.filter(c=>match(c.name));
+ if(!catsShown.length)h+=`<div class="tnote">No categories match “${esc(addSearch)}”.</div>`;
+ h+=catsShown.map(c=>{
+  const id=c.categoryId;
+  const master=MASTER_GAMES.find(g=>g.cats.some(x=>String(x.id)===String(id)));
+  const added=isCatAdded(id);
+  const open=!!addOpenCats[id];
+  let row=`<div style="display:flex;gap:6px;align-items:stretch"><button type="button" class="trow tcat" style="margin-left:0;flex:1" data-addcat-toggle="${id}" aria-expanded="${open}"><span class="tchev">${open?'▾':'▸'}</span><span class="tg-name">${esc(c.name)}</span><span class="tg-meta">categoryId ${id}${master?' · part of '+esc(master.name):''}</span></button>${added?`<button class="btn small danger" data-addcat-del="${id}">Remove</button>`:`<button class="btn small primary" data-addcat="${id}">+ Add</button>`}</div>`;
+  if(open)row+=`<div style="display:grid;gap:5px;margin:2px 0 4px 12px">${addGroupRowsHTML(id)}</div>`;
+  return `<div class="tnode">${row}</div>`;
+ }).join('');
+ body.innerHTML=h;
+ body.querySelectorAll('[data-addgame]').forEach(b=>b.onclick=()=>addGame(b.dataset.addgame));
+ body.querySelectorAll('[data-addgame-del]').forEach(b=>b.onclick=()=>removeGame(b.dataset.addgameDel));
+ body.querySelectorAll('[data-addcat]').forEach(b=>b.onclick=()=>{const c=liveCats.find(x=>String(x.categoryId)===String(b.dataset.addcat));addCat(b.dataset.addcat,c?c.name:'')});
+ body.querySelectorAll('[data-addcat-del]').forEach(b=>b.onclick=()=>removeCat(b.dataset.addcatDel));
+ body.querySelectorAll('[data-addcat-toggle]').forEach(b=>b.onclick=()=>{const id=b.dataset.addcatToggle;addOpenCats[id]=!addOpenCats[id];if(addOpenCats[id])loadGroupsFor(id).then(()=>renderAddMenu());renderAddMenu()});
+ body.querySelectorAll('[data-addgroup]').forEach(b=>b.onclick=()=>{const parts=b.dataset.addgroup.split(':');const gc=groupCache[parts[0]];const gr=gc&&gc.groups?gc.groups.find(x=>String(x.groupId)===parts[1]):null;if(gr)addGroup(parts[0],gr)});
+ body.querySelectorAll('[data-addgroup-del]').forEach(b=>b.onclick=()=>{const parts=b.dataset.addgroupDel.split(':');removeGroup(parts[0],parts[1])});
+ body.querySelectorAll('[data-addretry]').forEach(b=>b.onclick=()=>{const id=b.dataset.addretry;delete groupCache[id];try{sessionStorage.removeItem(GROUP_STORE_PREFIX+id)}catch(e){}renderAddMenu();loadGroupsFor(id).then(()=>renderAddMenu())});
+}
+document.getElementById('addSearch').addEventListener('input',e=>{addSearch=e.target.value;renderAddMenu()});
+
 function renderTracker(){
  renderCrumbs();const body=document.getElementById('trackerBody');
  if(!nav.group){
@@ -1605,11 +1793,12 @@ document.getElementById('refreshBtn').onclick=refreshPrices;document.getElementB
 
 function renderAll(){renderTracker();renderTrade();renderSealed();renderSlabs();renderResearch();renderScans();updateStats();saveState()}
 loadState();applySettingsToUI();
+refreshGames(); // build the Tracker tree from THIS user's saved additions (empty for a first-time user)
 renderAll();
-// Background-preload the full catalog structure (categories + every
-// category's groups) so Tracker navigation never waits; set contents
-// load on first open and are cached from then on.
-if('requestIdleCallback' in window)requestIdleCallback(()=>preloadCatalogStructure(),{timeout:1200});else setTimeout(preloadCatalogStructure,350);
+// Nothing is preloaded. The catalog is fetched on demand only: the
+// categories list when the + Add menu opens, a category's groups when
+// that category is expanded (in the menu or in your own tree), and a
+// set's cards when the set is opened (then cached, see loadProducts).
 // After a refresh / reload, re-open the screen the user was on (from the
 // URL hash, falling back to the session copy) instead of always Home —
 // and rebuild the back-stack one level at a time (Home → section →
