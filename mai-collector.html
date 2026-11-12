@@ -152,6 +152,9 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent)}
 @media(hover:hover) and (pointer:fine){.trow:hover{border-color:var(--accent)}}
 .tchev{color:var(--accent2);font-size:13px;width:14px;flex:0 0 auto;text-align:center}
 .tg-name{font-weight:700;font-size:14px;min-width:0;overflow-wrap:anywhere}
+.addcat-main{flex:1;min-width:0;display:grid;gap:1px;text-align:left}
+.addcat-name{font-weight:700;font-size:14px;line-height:1.25;overflow-wrap:normal;word-break:normal}
+.addcat-meta{color:var(--muted);font-size:11.5px;line-height:1.3;overflow-wrap:normal;word-break:normal}
 .tg-meta{color:var(--muted);font-size:12px;margin-left:auto;text-align:right}
 .trow.tcat{margin-left:18px;background:var(--card2)}
 .tkids{display:grid;gap:6px}
@@ -275,7 +278,7 @@ dialog::backdrop{background:rgba(5,0,15,.6)}dialog .in{padding:20px}
 
 <div id="swipeHint" aria-hidden="true">‹</div>
 
-<dialog id="addDialog"><div class="in"><h3 style="margin-top:0">Add to Tracker</h3><p style="color:var(--muted);font-size:13px;margin-top:0">The full tcgcsv catalog, loaded now on demand — nothing is preloaded. Add a whole game, a single category, or one set. Your list saves on this device only; everyone starts with the same empty Tracker.</p><input type="text" id="addSearch" placeholder="Search games &amp; categories…" aria-label="Search the catalog" style="width:100%;background:var(--card2);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:0 12px"><div id="addBody" style="display:grid;gap:6px;max-height:52vh;overflow:auto;margin-top:12px;padding-right:2px"></div><div style="display:flex;gap:8px;margin-top:14px"><button class="btn primary" onclick="document.getElementById('addDialog').close()">Done</button></div></div></dialog>
+<dialog id="addDialog"><div class="in"><h3 style="margin-top:0">Add to Tracker</h3><p style="color:var(--muted);font-size:13px;margin-top:0">The full tcgcsv catalog, loaded now on demand — nothing is preloaded. Add a single category, or one set. Your list saves on this device only; everyone starts with the same empty Tracker.</p><input type="text" id="addSearch" placeholder="Search categories…" aria-label="Search the catalog" style="width:100%;background:var(--card2);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:0 12px"><div id="addBody" style="display:grid;gap:6px;max-height:52vh;overflow:auto;margin-top:12px;padding-right:2px"></div><div style="display:flex;gap:8px;margin-top:14px"><button class="btn primary" onclick="document.getElementById('addDialog').close()">Done</button></div></div></dialog>
 
 <dialog id="itemDialog"><div class="in"><h3 style="margin-top:0" id="itemDialogTitle">Add an item</h3><div style="display:grid;gap:10px"><div class="field"><label>Name</label><input type="text" id="itemName" placeholder="Card or product name"></div><div class="two"><div class="field"><label>Type</label><select id="itemKind"><option value="single">Single</option><option value="sealed">Sealed</option></select></div><div class="field"><label>Sealed type</label><select id="itemSub"><option value="box">Box / Case</option><option value="pack">Pack</option></select></div></div><div class="field"><label>Price ($)</label><input type="number" id="itemPrice" min="0" step="0.01" value="0"></div><div class="two"><div class="field"><label>Collected qty</label><input type="number" id="itemCollected" value="1" min="0"></div><div class="field"><label>Trade qty</label><input type="number" id="itemTrade" value="0" min="0"></div></div></div><div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap"><button class="btn primary" id="saveItemBtn">Save item</button><button class="btn danger" id="deleteItemBtn" style="display:none">Remove item</button><button class="btn" onclick="document.getElementById('itemDialog').close()">Cancel</button></div></div></dialog>
 
@@ -1162,9 +1165,8 @@ function renderTrackerTree(body){
 // ---------- Add menu (the full tcgcsv catalog, on demand) ----------
 // Opening the menu is the ONLY thing that fetches the categories list.
 // Expanding a category in the menu fetches that category's groups
-// (loadGroupsFor — cached after). From here the user can add a whole
-// game (every category in a MASTER_GAMES grouping), a single category,
-// or a single set; everything added lands in userCatalog, saves to
+// (loadGroupsFor — cached after). From here the user can add a single
+// category or a single set; everything added lands in userCatalog, saves to
 // localStorage, and can be removed again from here or from the tree.
 let addSearch="";let addOpenCats={};
 function openAddMenu(){
@@ -1199,26 +1201,19 @@ function renderAddMenu(){
  const q=addSearch.trim().toLowerCase();
  const match=s=>!q||String(s||'').toLowerCase().indexOf(q)>-1;
  let h='';
- const gamesShown=MASTER_GAMES.filter(g=>match(g.name)||g.cats.some(c=>match(c.display||c.name)));
- if(gamesShown.length){
-  h+=`<h3 style="margin:2px 0 4px;font-size:14px">Games — add the whole game</h3>`;
-  h+=gamesShown.map(g=>{const added=isGameAdded(g.name);return `<div class="row" style="padding:8px 10px"><div class="grow" style="min-width:120px"><b style="font-size:13.5px">${esc(g.name)}</b><small>${g.cats.length} ${g.cats.length===1?'category':'categories'} · ${g.cats.map(c=>esc(c.display||c.name)).join(' · ')}</small></div>${added?`<span class="badge">In your Tracker</span><button class="btn small danger" data-addgame-del="${esc(g.name)}">Remove</button>`:`<button class="btn small primary" data-addgame="${esc(g.name)}">+ Add game</button>`}</div>`}).join('');
- }
- h+=`<h3 style="margin:14px 0 4px;font-size:14px">All categories — tap one to see its sets</h3>`;
- const catsShown=liveCats.filter(c=>match(c.name));
+ h+=`<h3 style="margin:2px 0 4px;font-size:14px">All categories — tap one to see its sets</h3>`;
+ const catsShown=liveCats.filter(c=>match(c.name)).sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''),undefined,{sensitivity:'base'}));
  if(!catsShown.length)h+=`<div class="tnote">No categories match “${esc(addSearch)}”.</div>`;
  h+=catsShown.map(c=>{
   const id=c.categoryId;
   const master=MASTER_GAMES.find(g=>g.cats.some(x=>String(x.id)===String(id)));
   const added=isCatAdded(id);
   const open=!!addOpenCats[id];
-  let row=`<div style="display:flex;gap:6px;align-items:stretch"><button type="button" class="trow tcat" style="margin-left:0;flex:1" data-addcat-toggle="${id}" aria-expanded="${open}"><span class="tchev">${open?'▾':'▸'}</span><span class="tg-name">${esc(c.name)}</span><span class="tg-meta">categoryId ${id}${master?' · part of '+esc(master.name):''}</span></button>${added?`<button class="btn small danger" data-addcat-del="${id}">Remove</button>`:`<button class="btn small primary" data-addcat="${id}">+ Add</button>`}</div>`;
+  let row=`<div style="display:flex;gap:6px;align-items:stretch"><button type="button" class="trow tcat" style="margin-left:0;flex:1;min-width:0" data-addcat-toggle="${id}" aria-expanded="${open}"><span class="tchev">${open?'▾':'▸'}</span><span class="addcat-main"><span class="addcat-name">${esc(c.name)}</span><span class="addcat-meta">categoryId ${id}${master?' · part of '+esc(master.name):''}</span></span></button>${added?`<button class="btn small danger" data-addcat-del="${id}">Remove</button>`:`<button class="btn small primary" data-addcat="${id}">+ Add</button>`}</div>`;
   if(open)row+=`<div style="display:grid;gap:5px;margin:2px 0 4px 12px">${addGroupRowsHTML(id)}</div>`;
   return `<div class="tnode">${row}</div>`;
  }).join('');
  body.innerHTML=h;
- body.querySelectorAll('[data-addgame]').forEach(b=>b.onclick=()=>addGame(b.dataset.addgame));
- body.querySelectorAll('[data-addgame-del]').forEach(b=>b.onclick=()=>removeGame(b.dataset.addgameDel));
  body.querySelectorAll('[data-addcat]').forEach(b=>b.onclick=()=>{const c=liveCats.find(x=>String(x.categoryId)===String(b.dataset.addcat));addCat(b.dataset.addcat,c?c.name:'')});
  body.querySelectorAll('[data-addcat-del]').forEach(b=>b.onclick=()=>removeCat(b.dataset.addcatDel));
  body.querySelectorAll('[data-addcat-toggle]').forEach(b=>b.onclick=()=>{const id=b.dataset.addcatToggle;addOpenCats[id]=!addOpenCats[id];if(addOpenCats[id])loadGroupsFor(id).then(()=>renderAddMenu());renderAddMenu()});
