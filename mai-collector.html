@@ -112,24 +112,29 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent)}
 .toggle input{margin-top:2px}.toggle span small{display:block;color:var(--muted)}
 .field{display:grid;gap:6px}.field label{font-weight:700;font-size:13px}.field input,.field select{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:10px;color:var(--ink);padding:0 12px}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:640px){.two{grid-template-columns:1fr}}
-.binder-wrap{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:6px;touch-action:pan-y;box-shadow:var(--shadow)}
-.binder-page{display:grid;gap:6px}
-.pocket{background:var(--card);border:1px solid var(--line);border-radius:9px;padding:5px;display:flex;flex-direction:column;gap:3px;min-width:0}
-.pocket-art{position:relative}
-.pocket-art img{width:100%;aspect-ratio:63/88;object-fit:cover;border-radius:6px;background:var(--card2);display:block;-webkit-user-drag:none;user-select:none}
+.binder-wrap{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:6px;touch-action:pan-y;box-shadow:var(--shadow);height:calc(100vh - 250px);height:calc(100dvh - 250px);min-height:300px;max-height:1000px}
+.binder-page{display:grid;gap:6px;height:100%;grid-template-rows:repeat(3,minmax(0,1fr));align-items:stretch}
+.pocket{background:var(--card);border:1px solid var(--line);border-radius:9px;padding:5px;display:flex;flex-direction:column;gap:3px;min-width:0;height:100%;min-height:0;overflow:hidden}
+.pocket-art{position:relative;flex:1 1 auto;min-height:0;overflow:hidden;border-radius:6px;background:var(--card2)}
+.pocket-art img{width:100%;height:100%;object-fit:contain;border-radius:6px;background:var(--card2);display:block;-webkit-user-drag:none;user-select:none}
 .pocket-art img.img-hide{display:none}
 .pocket-badge{position:absolute;top:4px;left:4px;background:rgba(12,6,28,.85);color:#fff;border:1px solid rgba(255,255,255,.35);font-size:8.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:2px 5px;border-radius:999px;pointer-events:none}
-.pocket-info{display:grid;gap:0}.pocket-info b{font-size:11px;line-height:1.2;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
-.pocket-num{font-size:10px;font-weight:800;color:var(--accent2);letter-spacing:.03em;line-height:1.2}
+.pocket-info{display:grid;gap:0;flex:0 0 auto;min-width:0;overflow:hidden}.pocket-info b{font-size:11px;line-height:1.2;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pocket-num{font-size:10px;font-weight:800;color:var(--accent2);letter-spacing:.03em;line-height:1.2;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pocket-price{font-size:11px;font-weight:800;color:var(--accent2);line-height:1.2}
 .pocket-meta{font-size:10.5px;color:var(--muted);line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pocket-empty{aspect-ratio:63/88;border:1px dashed var(--line);border-radius:6px;display:grid;place-items:center;align-content:center;gap:2px;color:var(--muted);background:var(--card2);text-align:center;padding:4px}
+.pocket-art .pocket-empty{aspect-ratio:auto;height:100%}
 .pocket-fallback{display:none}
 .pocket-fallback.show{display:grid}
-.pocket-qty{display:flex;align-items:center;gap:3px;font-size:10.5px;font-weight:700;color:var(--muted);line-height:1.1}
+.pocket-qty{display:flex;align-items:center;gap:3px;font-size:10.5px;font-weight:700;color:var(--muted);line-height:1.1;height:24px;flex:0 0 24px;min-width:0}
+.pocket-qty span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pocket-qty button{width:24px;height:24px;min-height:24px;border-radius:6px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-weight:800;cursor:pointer;padding:0;font-size:13px}
 .pocket-qty strong{min-width:14px;text-align:center;color:var(--ink)}
 .pocket-add{min-height:28px;padding:3px 6px;font-size:11.5px;border-radius:7px}
+.pocket>.pocket-add{height:51px;flex:0 0 51px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pocket-blank{visibility:hidden}
+.pocket-blank-foot{height:51px;flex:0 0 51px}
 .binder-controls{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:6px;font-size:12px}
 .binder-controls .btn{min-height:28px;padding:3px 8px;font-size:12px}
 .binder-controls .pill{padding:4px 8px;font-size:11.5px}
@@ -1205,6 +1210,13 @@ function pocketHTML(p){
  if(has)return `<div class="pocket owned">${pocketArtHTML(p,false)}<div class="pocket-info"><span class="pocket-num">${esc(p.number||'')} · ${money(p.marketPrice)}</span><b title="${esc(p.name)}">${esc(p.name)}</b></div>${qtyBtnsHTML(p,owned)}</div>`;
  return `<div class="pocket missing">${pocketArtHTML(p,true)}<div class="pocket-info"><span class="pocket-num">${esc(p.number||'')}${p.rarity?' · '+esc(p.rarity):''} · ${money(p.marketPrice)}</span><b title="${esc(p.name)}">${esc(p.name)}</b></div><button class="btn pocket-add" data-padd="${p.productId}">+ Collected</button></div>`;
 }
+// Invisible skeleton pocket with the exact fixed dimensions of a real
+// one (art + info lines + footer block). The last binder page is padded
+// with these so every page renders at the same fixed size no matter how
+// many cards it holds.
+function blankPocketHTML(){
+ return `<div class="pocket pocket-blank" aria-hidden="true"><div class="pocket-art"><div class="pocket-empty"></div></div><div class="pocket-info"><span class="pocket-num">&nbsp;</span><b>&nbsp;</b></div><div class="pocket-blank-foot"></div></div>`;
+}
 function sealedProductHTML(p){
  const owned=findOwned(p);
  return `<article class="carditem">${p.imageUrl?`<img src="${esc(p.imageUrl)}" alt="${esc(p.name)}" loading="lazy" onerror="this.style.display='none'" style="width:100%;aspect-ratio:1/1;object-fit:cover;background:var(--card2)">`:''}<div class="cardbody"><b>${esc(p.name)}</b><div class="meta"><span>Sealed</span><span class="price">${money(p.marketPrice)}</span></div>${owned&&(owned.c+owned.t)>0?qtyBtnsHTML(p,owned):`<button class="btn pocket-add" data-padd="${p.productId}">+ Collected</button>`}</div></article>`;
@@ -1214,10 +1226,11 @@ function binderHTML(singles){
  const pages=Math.max(1,Math.ceil(singles.length/perPage));
  if(binderPage>=pages)binderPage=pages-1;if(binderPage<0)binderPage=0;
  const slice=singles.slice(binderPage*perPage,binderPage*perPage+perPage);
+ while(slice.length<perPage)slice.push(null); // pad a short last page to a full page of fixed-size pockets
  let dots='';
  if(pages<=24){dots=singles.length?Array.from({length:pages},(_,i)=>`<button class="binder-dot ${i===binderPage?'on':''}" data-page="${i}" aria-label="Page ${i+1}"></button>`).join(''):''}
  else{const win=[];for(let i=0;i<pages;i++){if(i===0||i===pages-1||Math.abs(i-binderPage)<=2)win.push(i);else if(win[win.length-1]!=='…')win.push('…')}dots=win.map(x=>x==='…'?'<span style="color:var(--muted)">…</span>':`<button class="binder-dot ${x===binderPage?'on':''}" data-page="${x}" aria-label="Page ${x+1}"></button>`).join('')}
- return `<div class="binder-wrap" id="binderWrap" data-pages="${pages}"><div class="binder-page" style="grid-template-columns:repeat(${cols},1fr)">${slice.map(pocketHTML).join('')}</div></div>
+ return `<div class="binder-wrap" id="binderWrap" data-pages="${pages}"><div class="binder-page" style="grid-template-columns:repeat(${cols},1fr)">${slice.map(p=>p?pocketHTML(p):blankPocketHTML()).join('')}</div></div>
  <div class="binder-controls"><button class="btn" data-turn="-1" ${binderPage===0?'disabled':''}>‹ Prev</button><span class="pill">Page ${binderPage+1} of ${pages}</span><button class="btn" data-turn="1" ${binderPage>=pages-1?'disabled':''}>Next ›</button><span class="binder-dots">${dots}</span><span style="color:var(--muted);font-size:11px">Swipe ↔</span></div>`;
 }
 function productListHTML(singles){
