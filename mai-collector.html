@@ -207,7 +207,7 @@ dialog::backdrop{background:rgba(5,0,15,.6)}dialog .in{padding:20px}
 <!-- SCAN -->
 <section class="panel" id="panel-scan">
 <div class="camera"><div class="camera-view" id="cameraView"><video id="scanVideo" playsinline muted></video><div class="frame"><div><div style="font-size:26px">▣</div><b style="font-size:13px">Hold a card in the frame</b></div></div>
-<div class="cam-top"><div class="cam-status" id="scanStatus" role="status">Tap Start camera, hold a card steady, then tap Scan card.</div><button class="cam-clear" id="clearSessionBtn" type="button">Clear session</button></div>
+<div class="cam-top"><div class="cam-status" id="scanStatus" role="status">Tap Start camera and hold a card steady in the frame — with Auto scan on it scans by itself, or tap Scan card.</div><button class="cam-clear" id="autoBtn" type="button">Auto scan: On</button><button class="cam-clear" id="clearSessionBtn" type="button">Clear session</button></div>
 <div class="cam-controls"><button class="cam-btn" id="cameraBtn" type="button">Start camera</button><button class="cam-btn primary" id="scanBtn" type="button">📷 Scan card</button><button class="cam-btn" id="manualBtn" type="button">Add by name</button><button class="cam-btn" id="doubleBtn" type="button">✓ Double-Check</button></div>
 </div>
 <canvas id="scanCanvas" style="display:none"></canvas>
@@ -267,18 +267,19 @@ dialog::backdrop{background:rgba(5,0,15,.6)}dialog .in{padding:20px}
 <div style="display:grid;gap:14px">
 <div class="hero-card"><h3 style="margin-top:0">Tracker defaults</h3><div class="two"><div class="field"><label>Default view</label><select id="setView"><option value="binder">Binder Page</option><option value="list">Long List</option></select></div><div class="field"><label>Binder grid</label><select id="setGrid"><option value="3">3 × 3</option><option value="4">4 × 3</option></select></div></div></div>
 <div class="hero-card"><h3 style="margin-top:0">Sealed &amp; Slabs defaults</h3><div class="two"><div class="field"><label>Sealed default sort</label><select id="setSealedSort"><option value="high">Price high → low</option><option value="low">Price low → high</option><option value="name">Name A–Z</option></select></div><div class="field"><label>Slabs default sort</label><select id="setSlabSort"><option value="high">Price high → low</option><option value="low">Price low → high</option><option value="name">Name A–Z</option></select></div></div><p style="color:var(--muted);font-size:13px">These become the sort each section opens with. You can still change the sort in the section itself.</p></div>
-<div class="hero-card"><h3 style="margin-top:0">Scan</h3><label class="toggle"><input type="checkbox" id="setAutoCreate"><span><b>Auto-create groups I haven’t opened</b><small>When a scan matches a set you haven’t opened in Tracker, file it there without asking. If this is off, that scan is held back in the list with a note until you open the set — and the app never nags you to turn this on.</small></span></label><label class="toggle" style="margin-top:10px"><input type="checkbox" id="setSameGuard" checked><span><b>Same-card guard</b><small>When the same card is scanned twice in a row, the second scan is flagged as a possible duplicate and left unselected, so a card held still doesn’t get counted twice. Turn it off to file back-to-back copies without the flag.</small></span></label></div>
+<div class="hero-card"><h3 style="margin-top:0">Scan</h3><label class="toggle"><input type="checkbox" id="setAutoCreate"><span><b>Auto-create groups I haven’t opened</b><small>When a scan matches a set you haven’t opened in Tracker, file it there without asking. If this is off, that scan is held back in the list with a note until you open the set — and the app never nags you to turn this on.</small></span></label><label class="toggle" style="margin-top:10px"><input type="checkbox" id="setSameGuard" checked><span><b>Same-card guard</b><small>When the same card is scanned twice in a row, the second scan is flagged as a possible duplicate and left unselected, so a card held still doesn’t get counted twice. Turn it off to file back-to-back copies without the flag.</small></span></label><label class="toggle" style="margin-top:10px"><input type="checkbox" id="setAutoScan" checked><span><b>Auto scan</b><small>With the camera on, holding a card steady in the frame scans it automatically — no tap needed. The same card won’t scan twice; swap it for the next one. You can also switch this on the camera itself.</small></span></label></div>
+<div class="hero-card"><h3 style="margin-top:0">Your data — read this</h3><p style="color:var(--muted);margin:0">Your collection is saved <b style="color:var(--ink)">in this browser only</b>. GitHub Pages hosts the app’s files — it does not hold your collection — and every browser keeps its own separate save: a set added in the Google app will not appear in Chrome, or the other way round. <b style="color:var(--ink)">Always open Mai Collector in the same browser.</b> Inside that browser your save is protected: the app keeps a backup copy and restores it automatically if the main save is ever damaged, syncs between open tabs so one tab can’t erase another’s additions, and asks the browser for durable storage so the save isn’t cleared when the phone runs low on space.</p></div>
 <div class="hero-card"><h3 style="margin-top:0">Prices</h3><p style="color:var(--muted);margin-top:0">Singles &amp; sealed: TCGplayer market prices from tcgcsv, pulled fresh each time a set is opened and re-pulled for every opened set when you refresh. Slabs: manual, from Slab Research only — never auto-refreshed.</p><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn primary" id="refreshBtn2">↻ Refresh prices now</button></div><p style="font-size:13px;color:var(--muted)" id="refreshNote">Refreshing re-pulls each opened set’s price list from tcgcsv and updates prices only — quantities, check-offs, and where a card is filed never change, and no card ever moves.</p></div>
 <div class="hero-card"><h3 style="margin-top:0">About</h3><p style="color:var(--muted);margin:0">Mai Collector, powered by Mai AI (recognition runs on this device — no Gemini, OpenRouter, Groq, OpenAI, or any other provider, no API key, no account). Hierarchy is Game – Category – Group – Product, with no Era level and no Bulk bucket: bulk is simply Collected quantity. Set lists and prices pull live from tcgcsv; lists you’ve opened are kept for the session so flipping between sets doesn’t re-pull them.</p></div>
 </div>
 </section>
 
-<footer id="pageFooter">Mai Collector · Source data: <a href="https://tcgcsv.com/tcgplayer/categories" target="_blank" rel="noopener">tcgcsv.com</a> (TCGplayer, updated daily) · The catalog loads on demand: tap + Add in Tracker to browse every game, category, and set on tcgcsv and add just what you collect — your list saves on this device only · A set’s cards and prices pull live from tcgcsv when the set is opened and stay cached after · Card images via TCGplayer CDN · Slab prices are manual — check eBay sold listings, never asking prices.</footer>
+<footer id="pageFooter">Mai Collector · Source data: <a href="https://tcgcsv.com/tcgplayer/categories" target="_blank" rel="noopener">tcgcsv.com</a> (TCGplayer, updated daily) · The catalog loads on demand: tap + Add in Tracker to browse every game, category, and set on tcgcsv and add just what you collect — your list saves in this browser only · A set’s cards and prices pull live from tcgcsv when the set is opened and stay cached after · Card images via TCGplayer CDN · Slab prices are manual — check eBay sold listings, never asking prices.</footer>
 </div>
 
 <div id="swipeHint" aria-hidden="true">‹</div>
 
-<dialog id="addDialog"><div class="in"><h3 style="margin-top:0">Add to Tracker</h3><p style="color:var(--muted);font-size:13px;margin-top:0">The full tcgcsv catalog, loaded now on demand — nothing is preloaded. Add a single category, or one set. Your list saves on this device only; everyone starts with the same empty Tracker.</p><input type="text" id="addSearch" placeholder="Search categories…" aria-label="Search the catalog" style="width:100%;background:var(--card2);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:0 12px"><div id="addBody" style="display:grid;gap:6px;max-height:52vh;overflow:auto;margin-top:12px;padding-right:16px"></div><div style="display:flex;gap:8px;margin-top:14px"><button class="btn primary" onclick="document.getElementById('addDialog').close()">Done</button></div></div></dialog>
+<dialog id="addDialog"><div class="in"><h3 style="margin-top:0">Add to Tracker</h3><p style="color:var(--muted);font-size:13px;margin-top:0">The full tcgcsv catalog, loaded now on demand — nothing is preloaded. Add a single category, or one set. Your list saves in this browser only; everyone starts with the same empty Tracker.</p><input type="text" id="addSearch" placeholder="Search categories…" aria-label="Search the catalog" style="width:100%;background:var(--card2);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:0 12px"><div id="addBody" style="display:grid;gap:6px;max-height:52vh;overflow:auto;margin-top:12px;padding-right:16px"></div><div style="display:flex;gap:8px;margin-top:14px"><button class="btn primary" onclick="document.getElementById('addDialog').close()">Done</button></div></div></dialog>
 
 <dialog id="itemDialog"><div class="in"><h3 style="margin-top:0" id="itemDialogTitle">Add an item</h3><div style="display:grid;gap:10px"><div class="field"><label>Name</label><input type="text" id="itemName" placeholder="Card or product name"></div><div class="two"><div class="field"><label>Type</label><select id="itemKind"><option value="single">Single</option><option value="sealed">Sealed</option></select></div><div class="field"><label>Sealed type</label><select id="itemSub"><option value="box">Box / Case</option><option value="pack">Pack</option></select></div></div><div class="field"><label>Price ($)</label><input type="number" id="itemPrice" min="0" step="0.01" value="0"></div><div class="two"><div class="field"><label>Collected qty</label><input type="number" id="itemCollected" value="1" min="0"></div><div class="field"><label>Trade qty</label><input type="number" id="itemTrade" value="0" min="0"></div></div></div><div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap"><button class="btn primary" id="saveItemBtn">Save item</button><button class="btn danger" id="deleteItemBtn" style="display:none">Remove item</button><button class="btn" onclick="document.getElementById('itemDialog').close()">Cancel</button></div></div></dialog>
 
@@ -399,7 +400,7 @@ let cardSort="number", cardFilter="all", cardRarity="all";
 let tradeSort="high", tradeFilter="all";
 let resSort="updated", resFilter="all";
 let visitedGroups={}; // "catId:groupId" -> true once the user has opened that set in Tracker
-let settings={view:"binder",grid:3,sealedSort:"high",slabSort:"high",autoCreate:false,sameGuard:true};
+let settings={view:"binder",grid:3,sealedSort:"high",slabSort:"high",autoCreate:false,sameGuard:true,autoScan:true};
 // ---------- Persistence (localStorage) ----------
 // On a real https host (e.g. GitHub Pages) localStorage persists per
 // device / per browser. Everything the user entered lives under one
@@ -410,26 +411,104 @@ let settings={view:"binder",grid:3,sealedSort:"high",slabSort:"high",autoCreate:
 // it has updated prices only (matched by productId) — quantities,
 // check-offs, slabs and research are carried through unchanged.
 const STORAGE_KEY='mai-collector-v1';
+const BACKUP_KEY='mai-collector-v1-backup';
+// ----- Save/load hardening (the "my Tracker reset" bug) -----
+// Three ways a good save used to be lost in the SAME browser:
+//  1. loadState() ran inside one big try/catch — if the stored payload
+//     failed to parse or apply for any reason, the app started empty
+//     and the startup renderAll() then SAVED that empty state over
+//     the top of the good one. Gone for good. Now a failed or empty
+//     load can never overwrite a stored collection (loadSuspect), and
+//     a rolling backup of the last collection-bearing save is kept
+//     under BACKUP_KEY and restored whenever the main save is missing,
+//     unreadable, or empty while the backup still has the collection.
+//  2. Two tabs of the site open at once each hold a full snapshot;
+//     whichever saved last won, so an older tab could silently erase
+//     what a newer tab added. Saves now carry a savedAt stamp, and a
+//     tab adopts a newer save the moment it appears (storage event,
+//     and a re-check whenever the tab becomes visible again).
+//  3. Browsers may evict a site's local storage under storage
+//     pressure; the app now asks for durable storage at startup
+//     (navigator.storage.persist) so the collection is not evictable
+//     where the browser supports that.
+let loadSuspect=false;       // a stored payload existed but could not be loaded into memory
+let sessionHadContent=false; // this session loaded (or created) a real collection
+let lastSavedAt=0;           // savedAt of the newest save this tab has seen or written
+function payloadHasContent(d){
+ return !!d&&typeof d==='object'&&((Array.isArray(d.items)&&d.items.length>0)||(Array.isArray(d.slabs)&&d.slabs.length>0)||(Array.isArray(d.scans)&&d.scans.length>0)||(d.research&&typeof d.research==='object'&&Object.keys(d.research).length>0)||(d.userCatalog&&typeof d.userCatalog==='object'&&(((d.userCatalog.games||[]).length>0)||((d.userCatalog.cats||[]).length>0)||((d.userCatalog.groups||[]).length>0))));
+}
+function currentPayload(scansArr){
+ return {items:items,slabs:slabs,research:research,scans:scansArr||scans,settings:settings,itemSeq:itemSeq,markedNeeds:(typeof markedNeeds!=='undefined'?markedNeeds:{}),visitedGroups:visitedGroups,userCatalog:userCatalog,savedAt:Date.now()};
+}
 function saveState(){
+ const data=currentPayload();
+ const has=payloadHasContent(data);
+ if(has){sessionHadContent=true;loadSuspect=false} // a real save exists again — the danger has passed
+ if(loadSuspect&&!has)return; // never let a failed load overwrite the stored collection with empties
+ let wrote=false;
  try{
-  const data={items:items,slabs:slabs,research:research,scans:scans,settings:settings,itemSeq:itemSeq,markedNeeds:(typeof markedNeeds!=='undefined'?markedNeeds:{}),visitedGroups:visitedGroups,userCatalog:userCatalog};
-  localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(data));wrote=true;
  }catch(e){
   // Quota (usually scan thumbnails): retry once without thumbnails so
   // the collection itself still saves.
   try{
    const slim=scans.map(function(s){const c={};Object.keys(s).forEach(function(k){if(k!=='thumb')c[k]=s[k]});c.thumb=null;return c});
-   const data={items:items,slabs:slabs,research:research,scans:slim,settings:settings,itemSeq:itemSeq,markedNeeds:(typeof markedNeeds!=='undefined'?markedNeeds:{}),visitedGroups:visitedGroups,userCatalog:userCatalog};
-   localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
+   localStorage.setItem(STORAGE_KEY,JSON.stringify(currentPayload(slim)));wrote=true;
   }catch(e2){}
  }
+ if(wrote)lastSavedAt=data.savedAt;
+ try{
+  if(has)localStorage.setItem(BACKUP_KEY,JSON.stringify(data)); // rolling last-known-good
+  else if(sessionHadContent)localStorage.removeItem(BACKUP_KEY); // emptied on purpose this session — let it stay emptied
+ }catch(e){}
 }
 function loadState(){
+ let mainRaw=null,backupRaw=null;
+ try{mainRaw=localStorage.getItem(STORAGE_KEY)}catch(e){}
+ try{backupRaw=localStorage.getItem(BACKUP_KEY)}catch(e){}
+ let d=null;
+ if(mainRaw){try{const p=JSON.parse(mainRaw);if(p&&typeof p==='object')d=p}catch(e){}}
+ if(!payloadHasContent(d)&&backupRaw){
+  // Main save missing / unreadable / empty, but the rolling backup
+  // still holds the collection: restore it and repair the main save.
+  try{const b=JSON.parse(backupRaw);if(payloadHasContent(b)){d=b;try{localStorage.setItem(STORAGE_KEY,backupRaw)}catch(e){}}}catch(e){}
+ }
+ if(!d){
+  if(mainRaw)loadSuspect=true; // something was stored but could not be read — protect it from being overwritten
+  return;
+ }
+ applyLoadedData(d);
+ if(typeof d.savedAt==='number')lastSavedAt=d.savedAt;
+ if(payloadHasContent(d)){
+  sessionHadContent=true;
+  if(!payloadHasContent(currentPayload()))loadSuspect=true; // payload claimed content but none of it applied
+ } else if(mainRaw&&!payloadHasContent(d)){
+  // A stored empty main with no backup content is a genuine fresh or
+  // intentionally-emptied state — nothing to protect.
+ }
+}
+function adoptStoredState(raw){
+ // Another tab (or a newer save found when this tab resurfaces) wrote
+ // a newer payload: take it in instead of clobbering it later.
  try{
-  const raw=localStorage.getItem(STORAGE_KEY);
-  if(!raw)return;
   const d=JSON.parse(raw);
-  if(!d||typeof d!=='object')return;
+  if(!d||typeof d!=='object')return false;
+  if(typeof d.savedAt==='number'&&lastSavedAt&&d.savedAt<=lastSavedAt)return false;
+  if(!payloadHasContent(d)&&payloadHasContent(currentPayload()))return false;
+  applyLoadedData(d);
+  if(typeof d.savedAt==='number')lastSavedAt=d.savedAt;
+  if(payloadHasContent(d))sessionHadContent=true;
+  refreshGames();
+  return true;
+ }catch(e){return false}
+}
+try{
+ window.addEventListener('storage',function(e){if(e.key===STORAGE_KEY&&e.newValue&&adoptStoredState(e.newValue))renderAll()});
+ document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'){try{const raw=localStorage.getItem(STORAGE_KEY);if(raw&&adoptStoredState(raw))renderAll()}catch(e){}}});
+ if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(function(){});
+}catch(e){}
+function applyLoadedData(d){
+ try{
   if(Array.isArray(d.items))items=d.items;
   if(Array.isArray(d.slabs))slabs=d.slabs;
   if(d.research&&typeof d.research==='object'&&!Array.isArray(d.research))research=d.research;
@@ -457,6 +536,8 @@ function applySettingsToUI(){
   const ssl=document.getElementById('setSlabSort');if(ssl)ssl.value=settings.slabSort;
   const sac=document.getElementById('setAutoCreate');if(sac)sac.checked=!!settings.autoCreate;
   const ssg=document.getElementById('setSameGuard');if(ssg)ssg.checked=!!settings.sameGuard;
+  const sas=document.getElementById('setAutoScan');if(sas)sas.checked=settings.autoScan!==false;
+  const ab=document.getElementById('autoBtn');if(ab)ab.textContent=settings.autoScan!==false?'Auto scan: On':'Auto scan: Off';
   const es=document.getElementById('sealedSort');if(es)es.value=settings.sealedSort;
   const ls=document.getElementById('slabSort');if(ls)ls.value=settings.slabSort;
  }catch(e){}
@@ -904,7 +985,7 @@ function loadGroupsFor(catId){
 function loadGroups(){if(!nav.cat)return;loadGroupsFor(nav.cat.id)}
 function parseProductsCSV(t){
  const rows=parseCSV(t);
- const products=rows.filter(r=>r.productId&&r.name).map(r=>({productId:r.productId,name:r.name,imageUrl:r.imageUrl||'',marketPrice:parseFloat(r.marketPrice)||parseFloat(r.midPrice)||0,subType:r.subTypeName||'',rarity:r.extRarity||'',number:r.extNumber||''}));
+ const products=rows.filter(r=>r.productId&&r.name).map(r=>({productId:r.productId,name:r.name,cleanName:r.cleanName||'',imageUrl:r.imageUrl||'',marketPrice:parseFloat(r.marketPrice)||parseFloat(r.midPrice)||0,subType:r.subTypeName||'',rarity:r.extRarity||'',number:r.extNumber||'',power:r.extPower||'',cost:r.extCost||'',traits:r.extCharacterTraits||''}));
  products.sort((a,b)=>{const na=a.number||'ZZZZ',nb=b.number||'ZZZZ';return na.localeCompare(nb,undefined,{numeric:true})||a.name.localeCompare(b.name)});
  return products;
 }
@@ -1075,11 +1156,11 @@ function wireTreeTap(body){
  },{passive:true});
 }
 function renderTrackerTree(body){
- let html=`<div class="section-head"><div><h2>Game</h2><p>Your games, categories, and sets — tap one to open it. Build the list with + Add; it saves on this device only.</p></div><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn primary" data-addlink>+ Add</button><button class="btn" data-scanlink>📷 Scan</button></div></div>`;
+ let html=`<div class="section-head"><div><h2>Game</h2><p>Your games, categories, and sets — tap one to open it. Build the list with + Add; it saves in this browser only.</p></div><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn primary" data-addlink>+ Add</button><button class="btn" data-scanlink>📷 Scan</button></div></div>`;
  if(!GAMES.length&&!userCatalog.groups.length){
   // First-run empty state: nobody gets default games any more, so the
   // Tracker explains itself and puts the + Add button front and centre.
-  html+=`<div class="notice" style="text-align:center;padding:24px 14px"><b style="font-size:16px">Nothing here yet — tap + Add to add a game, category, or set</b><p>Everyone starts with an empty Tracker. Browse the full tcgcsv catalog and add just the games you collect — nothing is preloaded, and what you add shows only on this device.</p><p style="margin-top:14px"><button class="btn primary" data-addlink style="min-height:48px;padding:10px 24px;font-size:16px">+ Add</button></p></div>`;
+  html+=`<div class="notice" style="text-align:center;padding:24px 14px"><b style="font-size:16px">Nothing here yet — tap + Add to add a game, category, or set</b><p>Everyone starts with an empty Tracker. Browse the full tcgcsv catalog and add just the games you collect — nothing is preloaded, and what you add shows only in this browser.</p><p style="margin-top:14px"><button class="btn primary" data-addlink style="min-height:48px;padding:10px 24px;font-size:16px">+ Add</button></p></div>`;
   body.innerHTML=html;
   body.querySelectorAll('[data-addlink]').forEach(b=>b.onclick=()=>openAddMenu());
   return;
@@ -1470,14 +1551,18 @@ document.getElementById('saveResearchBtn').onclick=()=>{
  renderAll();
 };
 
-// ---------- Scan (camera + on-device OCR name read + tcgcsv matching) ----------
+// ---------- Scan (camera + on-device OCR + tcgcsv matching) ----------
 // Mai AI here is deliberately small: a photo is taken with the device
-// camera, Tesseract.js (loaded on demand from CDN, runs entirely in the
-// browser) reads the text, and the best name candidate is fuzzy-matched
-// against the product lists of sets already pulled from tcgcsv. Nothing
-// leaves the device except the tcgcsv pulls themselves. If the camera
-// or the OCR engine is unavailable, "Add by name" keeps scanning fully
-// usable — the match step is identical either way.
+// camera, cropped to the guide frame so the OCR reads the card itself
+// (not the table around it), and Tesseract.js (loaded on demand from
+// CDN, runs entirely in the browser) reads the name strip and the set
+// number printed on the card. The set number is the primary key when
+// it can be read; the name only matches when it clearly beats every
+// other candidate — when Mai AI isn't sure it offers the closest cards
+// for a one-tap pick instead of filing a confident wrong match.
+// Nothing leaves the device except the tcgcsv pulls themselves. If the
+// camera or the OCR engine is unavailable, "Add by name" keeps
+// scanning fully usable — the match step is identical either way.
 let scanStream=null,ocrLoading=null;
 function scanStatus(msg){const el=document.getElementById('scanStatus');if(el)el.textContent=msg||''}
 function scanSetOptionsHTML(selKey){
@@ -1485,32 +1570,129 @@ function scanSetOptionsHTML(selKey){
  Object.keys(productCache).forEach(k=>{const pc=productCache[k];if(pc&&pc.status==='ready')opts+=`<option value="${esc(k)}" ${k===selKey?'selected':''}>${esc(pc.groupName||('Set '+pc.groupId))}</option>`});
  return opts;
 }
+// ----- Matching engine -----
+// Why this was rewritten: the old scorer returned 0.92 whenever the
+// OCR text appeared ANYWHERE as a raw substring of a product name, so
+// a fragment like "fb11", "015" or "go" (inside "gohan") scored
+// near-perfect, junk lines from the card art and its power numbers
+// outscored the real name printed on the card, and the set number —
+// the one identifier printed on the card that can't be confused with
+// another card — was never used at all. Real scans failed back to
+// back (a 30000-power Gotenks, FB11-006, matched a 5000-power
+// Son Gohan : Adolescence, FB11-015, twice in a row). The rules now:
+//   · only whole words are ever compared — never raw substrings;
+//   · pure numbers, set-code tokens and game words that are printed on
+//     every card (BATTLE, power values, traits…) count for nothing;
+//   · a set number read off the card decides the match, cross-checked
+//     against the name that was read;
+//   · a name match is only accepted when it clearly beats the best
+//     rival card — otherwise the scan stays unmatched and carries the
+//     closest candidates for the user to tap.
+const NON_NAME_TOKENS=new Set(['battle','leader','extra','unison','event','activate','main','auto','permanent','counter','attack','blocker','evolve','draw','card','cards','power','combo','cost','the','and','with','from','your','this','that','saiyan','earthling','namekian','android','majin','alien','demon','angel','supreme','fused','fusion','trait','traits','special']);
+function coreNameOf(name){
+ return normName(String(name||'').replace(/\s+-\s+[A-Za-z]{1,4}\d{1,2}-\d{2,3}.*$/,'').replace(/\s*\((?:alternate art|alt art)\)\s*$/i,''));
+}
+function nameTokens(s){
+ return normName(s).split(' ').filter(w=>w&&!/^\d+$/.test(w)&&!NON_NAME_TOKENS.has(w)&&!/^[a-z]{1,4}\d{1,2}$/.test(w));
+}
+function levRatio(a,b){
+ if(a===b)return 1;
+ const la=a.length,lb=b.length;if(!la||!lb)return 0;
+ let prev=[],cur=[];
+ for(let j=0;j<=lb;j++)prev[j]=j;
+ for(let i=1;i<=la;i++){cur[0]=i;for(let j=1;j<=lb;j++){cur[j]=Math.min(prev[j]+1,cur[j-1]+1,prev[j-1]+(a[i-1]===b[j-1]?0:1))}const t=prev;prev=cur;cur=t}
+ return 1-prev[lb]/Math.max(la,lb);
+}
 function matchScore(a,b){
- const A=normName(a),B=normName(b);
+ const A=coreNameOf(a),B=coreNameOf(b);
  if(!A||!B)return 0;
  if(A===B)return 1;
- if(B.indexOf(A)>-1||A.indexOf(B)>-1)return 0.92;
- const aw=new Set(A.split(' ')),bw=new Set(B.split(' '));
- let hit=0;aw.forEach(w=>{if(bw.has(w))hit++});
- return hit/Math.max(aw.size,bw.size);
+ const at=nameTokens(A),bt=nameTokens(B);
+ if(!at.length||!bt.length)return 0;
+ const bset=new Set(bt),aset=new Set(at);
+ let hit=0;at.forEach(w=>{if(bset.has(w))hit++});
+ const f1=hit?(2*hit/(at.length+bt.length)):0;
+ let contain=0;
+ if(at.every(w=>bset.has(w))||bt.every(w=>aset.has(w)))contain=0.9;
+ const sim=levRatio(at.join(' '),bt.join(' '));
+ return Math.max(f1,contain,f1>0?(f1*0.55+sim*0.45):sim*0.8);
 }
-function matchCardName(name){
- // Best fuzzy match across every set already loaded from tcgcsv.
- let best=null;
- Object.keys(productCache).forEach(k=>{
+function matchObj(pc,p){return {name:p.name,catId:pc.catId,groupId:pc.groupId,groupName:pc.groupName,productId:p.productId,number:p.number,price:p.marketPrice,rarity:p.rarity||'',imageUrl:p.imageUrl||''}}
+function sameCardFamily(pa,pb){return !!pa&&!!pb&&coreNameOf(pa.name)===coreNameOf(pb.name)&&normNum(pa.number)===normNum(pb.number)}
+function scoredProducts(name,restrictKey){
+ const out=[];
+ const keys=restrictKey?[restrictKey]:Object.keys(productCache);
+ keys.forEach(k=>{
   const pc=productCache[k];if(!pc||pc.status!=='ready')return;
   pc.products.forEach(p=>{
+   if(!p.number)return; // scans are cards; unnumbered products are sealed
    const s=matchScore(name,p.name);
-   if(s>=0.55&&(!best||s>best.score))best={score:s,catId:pc.catId,groupId:pc.groupId,groupName:pc.groupName,productId:p.productId,number:p.number,price:p.marketPrice,productName:p.name,rarity:p.rarity||'',imageUrl:p.imageUrl||''};
+   if(s>=0.4)out.push({score:s,pc:pc,p:p});
   });
  });
- return best;
+ out.sort((a,b)=>b.score-a.score);
+ return out;
+}
+function bestNameMatch(name,restrictKey){
+ const scored=scoredProducts(name,restrictKey);
+ if(!scored.length)return null;
+ const top=scored[0];
+ const rival=scored.find(x=>x.p!==top.p&&!sameCardFamily(x.p,top.p));
+ const confident=top.score>=0.62&&(!rival||top.score-rival.score>=0.07);
+ // Printings of the same card (plain / Alternate Art) are one family:
+ // prefer the plain printing, it is the one a normal pull produces.
+ const fam=scored.filter(x=>sameCardFamily(x.p,top.p)).sort((a,b)=>((/alternate art/i.test(a.p.name)?1:0)-(/alternate art/i.test(b.p.name)?1:0))||(b.score-a.score));
+ const chosen=fam.length?fam[0]:top;
+ return {best:{score:chosen.score,catId:chosen.pc.catId,groupId:chosen.pc.groupId,groupName:chosen.pc.groupName,productId:chosen.p.productId,number:chosen.p.number,price:chosen.p.marketPrice,productName:chosen.p.name,rarity:chosen.p.rarity||'',imageUrl:chosen.p.imageUrl||''},confident:confident,top:scored.slice(0,3).map(x=>matchObj(x.pc,x.p))};
+}
+function matchFromBest(b){return {name:b.productName,catId:b.catId,groupId:b.groupId,groupName:b.groupName,productId:b.productId,number:b.number,price:b.price,rarity:b.rarity||'',imageUrl:b.imageUrl||''}}
+function matchCardName(name){
+ const bm=name&&name.trim()?bestNameMatch(name):null;
+ return bm&&bm.confident?bm.best:null;
+}
+function normNum(s){return String(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'')}
+function extractCardNumber(text){
+ if(!text)return null;
+ const t=String(text).toUpperCase().replace(/[–—]/g,'-');
+ let m=t.match(/\b([A-Z]{1,4})\s*-?\s*(\d{1,2})\s*-\s*(\d{2,3})\b/);
+ if(m)return m[1]+m[2]+'-'+m[3].padStart(3,'0');
+ m=t.match(/\b([A-Z]{1,4})(\d{2})(\d{3})\b/);
+ if(m)return m[1]+m[2]+'-'+m[3];
+ m=t.match(/\b(\d{1,3})\s*\/\s*(\d{1,3})\b/);
+ if(m)return m[1]+'/'+m[2];
+ return null;
+}
+function matchFromEvidence(number,lines){
+ const target=normNum(number);if(!target)return {match:null};
+ const hits=[];
+ Object.keys(productCache).forEach(k=>{
+  const pc=productCache[k];if(!pc||pc.status!=='ready')return;
+  pc.products.forEach(p=>{if(p.number&&normNum(p.number)===target)hits.push({pc:pc,p:p})});
+ });
+ if(!hits.length)return {match:null};
+ if(hits.length===1)return {match:matchObj(hits[0].pc,hits[0].p)};
+ // Several printings share one number (Alternate Art): the name that
+ // was read picks between them; with no usable name, the plain one.
+ let best=null;
+ (lines||[]).forEach(line=>{hits.forEach(h=>{const s=matchScore(line,h.p.name);if(!best||s>best.score)best={score:s,h:h}})});
+ if(best&&best.score>=0.5)return {match:matchObj(best.h.pc,best.h.p)};
+ const plain=hits.find(h=>!/alternate art/i.test(h.p.name))||hits[0];
+ return {match:matchObj(plain.pc,plain.p)};
 }
 function applyMatch(s){
- const m=s.name.trim()?matchCardName(s.name):null;
- s.match=m?{catId:m.catId,groupId:m.groupId,groupName:m.groupName,productId:m.productId,number:m.number,price:m.price,rarity:m.rarity||'',imageUrl:m.imageUrl||''}:null;
- if(m&&normName(s.name)!==normName(m.productName))s.name=m.productName;
- return m;
+ const raw=(s.name||'').trim();
+ s.candidates=null;s.via=null;
+ if(!raw){s.match=null;return null}
+ const num=extractCardNumber(raw);
+ if(num){
+  const res=matchFromEvidence(num,[raw]);
+  if(res.match){s.match=res.match;s.name=res.match.name;s.via='number';return res.match}
+ }
+ const bm=bestNameMatch(raw);
+ if(bm&&bm.confident){s.match=matchFromBest(bm.best);s.name=bm.best.productName;s.via='name';return s.match}
+ s.match=null;
+ if(bm&&bm.top&&bm.top.length)s.candidates=bm.top;
+ return null;
 }
 function ownedLineFor(s){
  if(!s.match)return '';
@@ -1518,9 +1700,10 @@ function ownedLineFor(s){
  if(!o)return 'Not in your Tracker yet.';
  return `Already in Tracker: ${o.c} collected · ${o.t} trade — filing adds to those.`;
 }
-function pushScan(name,thumb){
- const s={name:name||'',fc:1,ft:0,checked:false,thumb:thumb||null,match:null,dup:false,held:false};
- if(s.name)applyMatch(s);
+function pushScan(name,thumb,pre){
+ const s={name:name||'',fc:1,ft:0,checked:false,thumb:thumb||null,match:null,dup:false,held:false,candidates:null,via:null,readText:''};
+ if(pre){s.match=pre.match||null;s.candidates=pre.candidates||null;s.via=pre.via||null;s.readText=pre.readText||'';if(pre.match)s.name=pre.name||s.name}
+ else if(s.name)applyMatch(s);
  // Same-card guard: a scan that resolves to the same product as the
  // scan right before it is flagged as a possible duplicate and left
  // unselected, so a card held still isn't double-counted. With the
@@ -1557,17 +1740,20 @@ function renderScans(){
  el.innerHTML=scans.map((s,i)=>{
   const m=s.match;
   return `<div class="row">${s.thumb?`<img class="scan-thumb" src="${s.thumb}" alt="Scan ${i+1} photo">`:''}<input type="checkbox" data-sel="${i}" ${s.dup?'':'checked'}><div class="grow"><b>Scan ${i+1} ${s.checked?'<span class="badge">Double-checked</span>':''} ${s.dup?'<span class="badge warn">Possible duplicate — same card twice in a row</span>':''}</b>
- <small>${m?`Matched: ${esc(m.number?m.number+' · ':'')}${esc(s.name)} — ${esc(m.groupName||'')} · ${money(m.price)}<br>${esc(ownedLineFor(s))}`:`No set match yet. ${Object.keys(productCache).some(k=>productCache[k]&&productCache[k].status==='ready')?'Fix the name to match the card, or pick its set below.':'Open a set in Tracker first so scans can match it, or pick a set below once one is loaded.'}`}</small>
+ <small>${m?`Matched${s.via==='number'?' by set number':''}: ${esc(m.number?m.number+' · ':'')}${esc(s.name)} — ${esc(m.groupName||'')} · ${money(m.price)}<br>${esc(ownedLineFor(s))}`:`No set match yet. ${Object.keys(productCache).some(k=>productCache[k]&&productCache[k].status==='ready')?'Fix the name to match the card, or pick its set below.':'Open a set in Tracker first so scans can match it, or pick a set below once one is loaded.'}`}</small>
+ ${!m&&s.candidates&&s.candidates.length?`<div style="margin-top:8px"><small style="font-weight:700">Closest matches — tap the right one:</small><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:5px">${s.candidates.map((c,j)=>`<button type="button" class="btn small" data-cand="${i}:${j}">${esc(c.name)}${c.number?' · '+esc(c.number):''} · ${money(c.price)}</button>`).join('')}</div></div>`:''}
+ ${!m&&s.readText?`<small style="display:block;margin-top:6px">Mai AI read: “${esc(s.readText)}”</small>`:''}
  <div style="display:grid;gap:8px;margin-top:8px"><span>Card name <input type="text" value="${esc(s.name)}" data-sname="${i}" placeholder="Name this scan" style="width:min(320px,70vw);background:var(--card2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:0 8px"></span>
  <span>Belongs to <select data-sset="${i}" style="background:var(--card2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:0 8px;min-height:36px">${scanSetOptionsHTML(m?(m.catId+':'+m.groupId):'')}</select></span>
  <span style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"><span>File as Collected <input type="number" min="0" value="${s.fc}" data-fc="${i}" style="width:64px;background:var(--card2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:0 8px"></span><span>Trade <input type="number" min="0" value="${s.ft}" data-ft="${i}" style="width:64px;background:var(--card2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:0 8px"></span><button class="btn small" data-del="${i}">Delete &amp; rescan</button></span></div></div></div>`}).join('');
  el.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{scans.splice(+b.dataset.del,1);renderScans()});
+ el.querySelectorAll('[data-cand]').forEach(b=>b.onclick=()=>{const parts=b.dataset.cand.split(':');const s=scans[+parts[0]];const c=s&&s.candidates?s.candidates[+parts[1]]:null;if(!c)return;s.match={name:c.name,catId:c.catId,groupId:c.groupId,groupName:c.groupName,productId:c.productId,number:c.number,price:c.price,rarity:c.rarity||'',imageUrl:c.imageUrl||''};s.name=c.name;s.candidates=null;s.via='picked';renderScans();updateStats()});
  el.querySelectorAll('[data-sname]').forEach(inp=>inp.onchange=()=>{const s=scans[+inp.dataset.sname];s.name=inp.value;s.checked=false;applyMatch(s);renderScans();updateStats()});
  el.querySelectorAll('[data-sset]').forEach(sel=>sel.onchange=()=>{
   const s=scans[+sel.dataset.sset];const pc=productCache[sel.value];
   if(!pc){s.match=null;renderScans();return}
-  const p=s.name.trim()?pc.products.slice().sort((a,b)=>matchScore(s.name,b.name)-matchScore(s.name,a.name))[0]:null;
-  if(p&&matchScore(s.name,p.name)>=0.55){s.match={catId:pc.catId,groupId:pc.groupId,groupName:pc.groupName,productId:p.productId,number:p.number,price:p.marketPrice,rarity:p.rarity||'',imageUrl:p.imageUrl||''};s.name=p.name}
+  const bm=s.name.trim()?bestNameMatch(s.name,sel.value):null;
+  if(bm&&bm.confident){const b=bm.best;s.match={name:b.productName,catId:b.catId,groupId:b.groupId,groupName:b.groupName,productId:b.productId,number:b.number,price:b.price,rarity:b.rarity||'',imageUrl:b.imageUrl||''};s.name=b.productName;s.candidates=null}
   else s.match={catId:pc.catId,groupId:pc.groupId,groupName:pc.groupName,productId:null,number:'',price:0,rarity:'',imageUrl:''};
   s.checked=false;renderScans();updateStats();
  });
@@ -1587,79 +1773,234 @@ function loadOCR(){
  }
  return ocrLoading;
 }
+// ----- Auto scan -----
+// While the camera is live, a light check runs twice a second on a
+// tiny downscaled frame: a card is "present" when the middle of the
+// frame has real texture (a printed card) rather than a flat table,
+// and "ready" when the picture holds still. A present, steady card
+// that doesn't look like the one just scanned triggers scanNow() by
+// itself; the same card held in place never scans twice — it has to
+// move away or be swapped before auto scan re-arms.
+let autoTimer=null,autoPrevSig=null,autoStable=0,autoLastSig=null,autoArmed=true;
+const autoCanvas=document.createElement('canvas');autoCanvas.width=40;autoCanvas.height=56;
+function autoSample(){
+ const video=document.getElementById('scanVideo');
+ if(!video||video.readyState<2||!video.videoWidth)return null;
+ const ctx=autoCanvas.getContext('2d');
+ ctx.drawImage(video,0,0,40,56);
+ let data;try{data=ctx.getImageData(0,0,40,56).data}catch(e){return null}
+ const blocks=[];let sum=0,sumSq=0,n=0;
+ for(let by=0;by<10;by++)for(let bx=0;bx<8;bx++){
+  let s=0,c=0;
+  for(let y=by*5+2;y<by*5+5&&y<52;y++)for(let x=bx*5+1;x<bx*5+4;x++){const i=(y*40+x)*4;s+=(data[i]+data[i+1]+data[i+2])/3;c++}
+  const m=c?s/c:0;blocks.push(m);sum+=m;sumSq+=m*m;n++;
+ }
+ const mean=sum/n;
+ return {blocks:blocks,mean:mean,sd:Math.sqrt(Math.max(0,sumSq/n-mean*mean))};
+}
+function sigDist(a,b){let s=0;for(let i=0;i<a.blocks.length;i++)s+=Math.abs(a.blocks[i]-b.blocks[i]);return s/a.blocks.length}
+function autoTick(){
+ if(!scanStream||scanBusy||settings.autoScan===false)return;
+ if(currentPanel!=='scan')return;
+ if(document.querySelector('dialog[open]'))return;
+ const ae=document.activeElement;
+ if(ae&&(ae.tagName==='INPUT'||ae.tagName==='SELECT'||ae.tagName==='TEXTAREA'))return;
+ const sig=autoSample();if(!sig)return;
+ const present=sig.sd>=14&&sig.mean>25&&sig.mean<235;
+ if(autoLastSig&&sigDist(sig,autoLastSig)>=10)autoArmed=true;
+ if(!present){autoStable=0;autoPrevSig=sig;if(autoLastSig&&sigDist(sig,autoLastSig)>=10){autoLastSig=null;autoArmed=true}return}
+ if(autoPrevSig&&sigDist(sig,autoPrevSig)<2.5)autoStable++;else autoStable=0;
+ autoPrevSig=sig;
+ if(autoArmed&&autoStable>=2){
+  autoArmed=false;autoLastSig=sig;autoStable=0;
+  scanStatus('Card detected — scanning…');
+  scanNow();
+ }
+}
+function startAutoScan(){stopAutoScan();autoPrevSig=null;autoStable=0;autoLastSig=null;autoArmed=true;autoTimer=setInterval(autoTick,650)}
+function stopAutoScan(){if(autoTimer){clearInterval(autoTimer);autoTimer=null}}
 async function startCamera(){
  const view=document.getElementById('cameraView'),video=document.getElementById('scanVideo');
- if(scanStream){scanStream.getTracks().forEach(t=>t.stop());scanStream=null;view.classList.remove('live');document.getElementById('cameraBtn').textContent='Start camera';scanStatus('Camera off.');return}
+ if(scanStream){scanStream.getTracks().forEach(t=>t.stop());scanStream=null;stopAutoScan();view.classList.remove('live');document.getElementById('cameraBtn').textContent='Start camera';scanStatus('Camera off.');return}
  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){scanStatus('This browser can’t open a camera here. Use “Add by name” instead — matching and filing work the same.');return}
  try{
   scanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});
   video.srcObject=scanStream;await video.play();
   view.classList.add('live');document.getElementById('cameraBtn').textContent='Stop camera';
-  scanStatus('Camera on. Hold a card steady in the frame, then tap Scan card.');
+  startAutoScan();
+  scanStatus(settings.autoScan!==false?'Camera on. Hold a card steady in the frame — Auto scan reads it by itself.':'Camera on. Hold a card steady in the frame, then tap Scan card.');
  }catch(e){scanStatus('Camera permission was not granted. Use “Add by name” instead — matching and filing work the same.')}
 }
 document.getElementById('cameraBtn').onclick=startCamera;
-document.getElementById('scanBtn').onclick=async()=>{
+// ----- OCR evidence pipeline -----
+// The camera used to OCR the whole video frame in a single pass. The
+// frame is mostly card ART, giant power numbers and table, so junk
+// lines regularly beat the small printed name — and the stored
+// thumbnail Double-Check re-read was only 180px wide, far too small
+// for the name on it to ever be read again. Now: the photo is cropped
+// to the dashed guide frame (the card itself, via its on-screen
+// position over the cover-fitted video), OCR runs on the strips where
+// the name and set number are printed — bottom bar first (Dragon Ball
+// prints both there), then the top strip (Pokémon / Magic / Yu-Gi-Oh!
+// print the name at the top), then the whole card — and the stored
+// scan photo is the cropped card at 440px wide so Double-Check has
+// something readable to work from.
+function captureCardCanvas(){
+ const video=document.getElementById('scanVideo');
+ const view=document.getElementById('cameraView');
+ const frameEl=view?view.querySelector('.frame'):null;
+ const W=video.videoWidth||640,H=video.videoHeight||480;
+ const src=document.createElement('canvas');src.width=W;src.height=H;
+ src.getContext('2d').drawImage(video,0,0,W,H);
+ if(!frameEl||!video.clientWidth)return src;
+ const vr=video.getBoundingClientRect(),fr=frameEl.getBoundingClientRect();
+ const scale=Math.max(video.clientWidth/W,video.clientHeight/H);
+ const offX=(video.clientWidth-W*scale)/2,offY=(video.clientHeight-H*scale)/2;
+ let sx=(fr.left-vr.left-offX)/scale,sy=(fr.top-vr.top-offY)/scale;
+ let sw=fr.width/scale,sh=fr.height/scale;
+ const mx=sw*0.05,my=sh*0.05;
+ sx=Math.max(0,sx-mx);sy=Math.max(0,sy-my);sw=Math.min(W-sx,sw+2*mx);sh=Math.min(H-sy,sh+2*my);
+ if(sw<40||sh<40)return src;
+ const out=document.createElement('canvas');out.width=Math.round(sw);out.height=Math.round(sh);
+ out.getContext('2d').drawImage(src,sx,sy,sw,sh,0,0,out.width,out.height);
+ return out;
+}
+function ocrPrep(src,sx,sy,sw,sh,targetW,invert){
+ const out=document.createElement('canvas');
+ out.width=targetW;out.height=Math.max(1,Math.round(sh*(targetW/sw)));
+ const ctx=out.getContext('2d');
+ ctx.fillStyle='#fff';ctx.fillRect(0,0,out.width,out.height);
+ try{ctx.filter='grayscale(1) contrast(1.5) brightness(1.05)'}catch(e){}
+ ctx.drawImage(src,sx,sy,sw,sh,0,0,out.width,out.height);
+ try{ctx.filter='none'}catch(e){}
+ if(invert){
+  try{
+   const id=ctx.getImageData(0,0,out.width,out.height),d=id.data;
+   for(let i=0;i<d.length;i+=4){d[i]=255-d[i];d[i+1]=255-d[i+1];d[i+2]=255-d[i+2]}
+   ctx.putImageData(id,0,0);
+  }catch(e){}
+ }
+ return out;
+}
+async function ocrText(canvas){
+ const r=await window.Tesseract.recognize(canvas,'eng');
+ return (r&&r.data&&r.data.text)||'';
+}
+async function ocrCardEvidence(cardCanvas){
+ const W=cardCanvas.width,H=cardCanvas.height;
+ const passes=[
+  {strip:'bottom',canvas:ocrPrep(cardCanvas,0,H*0.80,W,H*0.20,1400,true)},
+  {strip:'bottom',canvas:ocrPrep(cardCanvas,0,H*0.80,W,H*0.20,1400,false)},
+  {strip:'top',canvas:ocrPrep(cardCanvas,0,0,W,H*0.16,1400,true)},
+  {strip:'top',canvas:ocrPrep(cardCanvas,0,0,W,H*0.16,1400,false)},
+  {strip:'full',canvas:ocrPrep(cardCanvas,0,0,W,H,1100,false)}
+ ];
+ let number=null;const lineCands=[];
+ for(const pass of passes){
+  let text='';
+  try{text=await ocrText(pass.canvas)}catch(e){continue}
+  if(!text)continue;
+  if(!number)number=extractCardNumber(text);
+  text.split('\n').map(x=>x.trim()).filter(x=>x.length>=3&&/[A-Za-z]/.test(x)).forEach(line=>lineCands.push({line:line,strip:pass.strip}));
+  // Early exit: a set number plus any strip line that names a card in
+  // that number's family is decisive — no need to run the rest.
+  if(number&&lineCands.some(c=>c.strip!=='full')){
+   const res=matchFromEvidence(number,lineCands.map(c=>c.line));
+   if(res.match)break;
+  }
+ }
+ return {number:number,lineCands:lineCands};
+}
+function decideFromEvidence(ev){
+ let bestLine=null;
+ ev.lineCands.forEach(c=>{
+  const bm=bestNameMatch(c.line);
+  if(bm&&bm.best&&(!bestLine||bm.best.score>bestLine.bm.best.score))bestLine={bm:bm,line:c.line};
+ });
+ if(ev.number){
+  const res=matchFromEvidence(ev.number,ev.lineCands.map(c=>c.line));
+  if(res.match){
+   // Cross-check: a confident, clearly different name read beats a
+   // possibly misread number; anything less and the number stands.
+   const contradiction=bestLine&&bestLine.bm.confident&&bestLine.bm.best.score>=0.9&&String(bestLine.bm.best.productId)!==String(res.match.productId)&&matchScore(bestLine.line,res.match.name)<0.35;
+   if(!contradiction)return {match:res.match,via:'number',name:res.match.name,candidates:null,readText:bestLine?bestLine.line:''};
+  }
+ }
+ if(bestLine&&bestLine.bm.confident)return {match:matchFromBest(bestLine.bm.best),via:'name',name:bestLine.bm.best.productName,candidates:null,readText:bestLine.line};
+ const read=(ev.lineCands.find(c=>c.strip==='bottom')||ev.lineCands.find(c=>c.strip==='top')||ev.lineCands[0]||{line:''}).line;
+ return {match:null,via:null,name:'',candidates:bestLine?bestLine.bm.top:null,readText:read};
+}
+let scanBusy=false;
+async function scanNow(){
+ if(scanBusy)return;
+ scanBusy=true;
+ try{
  const video=document.getElementById('scanVideo');
  if(!scanStream||video.readyState<2){scanStatus('Start the camera first, hold the card in the frame, then tap Scan card. No camera? “Add by name” does the same matching.');return}
- const canvas=document.getElementById('scanCanvas');
- const w=video.videoWidth||640,h=video.videoHeight||480;
- canvas.width=w;canvas.height=h;
- canvas.getContext('2d').drawImage(video,0,0,w,h);
- // Small thumbnail (this is the real per-scan photo Double-Check re-reads).
- const tc=document.createElement('canvas');const tw=180,th=Math.max(1,Math.round(h*180/w));
- tc.width=tw;tc.height=th;tc.getContext('2d').drawImage(canvas,0,0,tw,th);
- const thumb=tc.toDataURL('image/jpeg',0.72);
- scanStatus('Reading the card name…');
- let text='';
+ scanStatus('Reading the card — name and set number…');
+ let cardCanvas;
  try{
   await loadOCR();
-  const r=await window.Tesseract.recognize(canvas,'eng');
-  text=(r&&r.data&&r.data.text)||'';
+  cardCanvas=captureCardCanvas();
  }catch(e){
-  pushScan('',thumb);
+  pushScan('',null);
   scanStatus('The name reader couldn’t run, so this scan was added without a name — type the card name on it and it will match and file normally.');
   return;
  }
- const lines=text.split('\n').map(x=>x.trim()).filter(x=>x.length>=3);
- let bestName='',bestOverall=0;
- lines.forEach(line=>{
-  const words=line.split(/\s+/).slice(0,5).join(' ');
-  const m=matchCardName(words);
-  const sc=m?m.score:0;
-  if(m&&sc>bestOverall){bestOverall=sc;bestName=m.productName}
-  else if(!bestName&&line.length>=4&&/[A-Za-z]/.test(line))bestName=words;
- });
- const s=pushScan(bestName,thumb);
- scanStatus(s.match?`Matched ${s.match.number?s.match.number+' · ':''}${s.name} (${s.match.groupName||''}) — ${money(s.match.price)}. It’s in the list below; check it, then file.`:(bestName?`Read “${bestName}” but no loaded set matched it. Open its set in Tracker, fix the name, or pick the set on the scan below.`:'Couldn’t read a name from that photo. The scan is in the list below — type the card name on it, or delete and rescan with the card filling the frame.'));
-};
+ // The stored per-scan photo Double-Check re-reads: the cropped card
+ // at a readable size, not a 180px thumbnail of the whole frame.
+ const tc=document.createElement('canvas');const tw=440,th=Math.max(1,Math.round(cardCanvas.height*440/cardCanvas.width));
+ tc.width=tw;tc.height=th;tc.getContext('2d').drawImage(cardCanvas,0,0,tw,th);
+ const thumb=tc.toDataURL('image/jpeg',0.72);
+ let decision;
+ try{
+  const ev=await ocrCardEvidence(cardCanvas);
+  decision=decideFromEvidence(ev);
+ }catch(e){
+  pushScan('',thumb);
+  scanStatus('The name reader couldn’t finish that one — the scan is in the list below; type the card name on it, or delete and rescan.');
+  return;
+ }
+ const s=pushScan(decision.name||'',thumb,decision);
+ scanStatus(decision.match?(decision.via==='number'?`Matched by set number ${decision.match.number} · ${s.name} (${decision.match.groupName||''}) — ${money(decision.match.price)}. It’s in the list below; check it, then file.`:`Matched ${decision.match.number?decision.match.number+' · ':''}${s.name} (${decision.match.groupName||''}) — ${money(decision.match.price)}. It’s in the list below; check it, then file.`):(decision.candidates&&decision.candidates.length?`Couldn’t pin that card down for sure — the closest matches are on the scan below. Tap the right one, or fix the name on the scan.`:`Couldn’t read a name or set number from that photo. The scan is in the list below — type the card name on it, or delete and rescan with the card filling the frame.`));
+ }finally{scanBusy=false}
+}
+document.getElementById('scanBtn').onclick=scanNow;
 document.getElementById('manualBtn').onclick=()=>{pushScan('',null);scanStatus('Blank scan added. Type the card name on it — Mai AI matches it against every set you’ve opened, or pick its set on the scan.');const inputs=document.querySelectorAll('[data-sname]');const last=inputs[inputs.length-1];if(last)last.focus()};
 document.getElementById('doubleBtn').onclick=async()=>{
  if(!scans.length){scanStatus('Nothing to check yet.');return}
- scanStatus('Double-Check: re-matching every scan against the live set data…');
- let fixed=0,still=0;
+ scanStatus('Double-Check: re-reading every scan photo and re-matching…');
+ let fixed=0,still=0,ocrReady=true;
+ try{await loadOCR()}catch(e){ocrReady=false}
  for(const s of scans){
   const before=s.match?String(s.match.productId):'';
-  if(s.thumb){
+  let decided=null;
+  if(ocrReady&&s.thumb){
    try{
-    await loadOCR();
     const img=new Image();
     await new Promise((res,rej)=>{img.onload=res;img.onerror=rej;img.src=s.thumb});
-    const r=await window.Tesseract.recognize(img,'eng');
-    const lines=((r&&r.data&&r.data.text)||'').split('\n').map(x=>x.trim()).filter(x=>x.length>=3);
-    let bn='',bo=0;
-    lines.forEach(line=>{const words=line.split(/\s+/).slice(0,5).join(' ');const m=matchCardName(words);if(m&&m.score>bo){bo=m.score;bn=m.productName}});
-    if(bn&&(!s.name||matchScore(bn,s.name)<0.6))s.name=bn;
-   }catch(e){/* the stored name match below still runs */}
+    const c=document.createElement('canvas');c.width=img.naturalWidth||img.width||440;c.height=img.naturalHeight||img.height||616;
+    c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+    decided=decideFromEvidence(await ocrCardEvidence(c));
+   }catch(e){decided=null}
   }
-  applyMatch(s);
+  if(decided&&decided.match){
+   // Only a confident re-read may replace the current match — a
+   // blurrier second look never talks a scan out of a match it has,
+   // and the stored name is never re-matched on its own (for a scan
+   // the old scorer got wrong, that name IS the wrong card's name).
+   s.match=decided.match;s.name=decided.name;s.via=decided.via;s.candidates=null;if(decided.readText)s.readText=decided.readText;
+  } else if(decided&&decided.candidates&&decided.candidates.length&&!s.match){
+   s.candidates=decided.candidates;if(decided.readText)s.readText=decided.readText;
+  }
   s.checked=true;
   if((s.match?String(s.match.productId):'')!==before)fixed++;else if(!s.match)still++;
  }
  renderScans();
- scanStatus(`Double-Check done: every scan re-matched against the set data.${fixed?` ${fixed} match${fixed===1?'':'es'} updated.`:''}${still?` ${still} still unmatched — fix the name or pick its set on the scan.`:''}`);
+ scanStatus(`Double-Check done: every scan photo re-read and re-matched.${fixed?` ${fixed} match${fixed===1?'':'es'} updated.`:''}${still?` ${still} still unmatched — tap a closest match on the scan, fix its name, or pick its set.`:''}`);
 };
 document.getElementById('clearSessionBtn').onclick=()=>{scans=[];renderScans();scanStatus('Session cleared — the list and its thumbnails are gone. Filed cards in Tracker are untouched.')};
+document.getElementById('autoBtn').onclick=()=>{settings.autoScan=settings.autoScan===false?true:false;document.getElementById('autoBtn').textContent=settings.autoScan?'Auto scan: On':'Auto scan: Off';const sas=document.getElementById('setAutoScan');if(sas)sas.checked=settings.autoScan;autoPrevSig=null;autoStable=0;autoArmed=true;saveState();scanStatus(settings.autoScan?'Auto scan on — hold a card steady in the frame and it scans by itself.':'Auto scan off — tap Scan card for each card.')};
 document.getElementById('cancelScanBtn').onclick=()=>{const sels=[...document.querySelectorAll('[data-sel]')].filter(c=>c.checked).map(c=>+c.dataset.sel);scans=scans.filter((_,i)=>!sels.includes(i));renderScans()};
 document.getElementById('fileBtn').onclick=()=>{
  const sels=new Set([...document.querySelectorAll('[data-sel]')].filter(c=>c.checked).map(c=>+c.dataset.sel));
@@ -1739,6 +2080,7 @@ document.getElementById('setSealedSort').onchange=e=>{settings.sealedSort=e.targ
 document.getElementById('setSlabSort').onchange=e=>{settings.slabSort=e.target.value;document.getElementById('slabSort').value=e.target.value;saveState();renderSlabs()};
 document.getElementById('setAutoCreate').onchange=e=>{settings.autoCreate=e.target.checked;saveState()};
 document.getElementById('setSameGuard').onchange=e=>{settings.sameGuard=e.target.checked;saveState()};
+document.getElementById('setAutoScan').onchange=e=>{settings.autoScan=e.target.checked;const ab=document.getElementById('autoBtn');if(ab)ab.textContent=settings.autoScan?'Auto scan: On':'Auto scan: Off';saveState()};
 document.getElementById('sealedSort').onchange=()=>{renderSealed();saveState()};document.getElementById('sealedFilter').onchange=()=>{renderSealed();saveState()};document.getElementById('sealedQty').onchange=()=>{renderSealed();saveState()};
 document.getElementById('slabSort').onchange=()=>{renderSlabs();saveState()};document.getElementById('slabFilter').onchange=()=>{renderSlabs();saveState()};document.getElementById('slabQty').onchange=()=>{renderSlabs();saveState()};
 document.getElementById('tradeSort').onchange=()=>{renderTrade()};document.getElementById('tradeFilter').onchange=()=>{renderTrade()};
