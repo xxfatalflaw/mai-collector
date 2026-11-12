@@ -141,6 +141,17 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent)}
 .pocket-art img{width:100%;height:100%;object-fit:contain;border-radius:6px;background:var(--card2);display:block;-webkit-user-drag:none;user-select:none}
 .pocket-art img.img-hide{display:none}
 .card-detail-img.missing-img{filter:grayscale(1);opacity:.6}
+.detail-stage{position:relative;touch-action:pan-y}
+.detail-nav{position:absolute;top:50%;transform:translateY(-50%);width:40px;height:40px;min-height:40px;border-radius:50%;border:1px solid var(--line);background:color-mix(in srgb,var(--card) 84%,transparent);color:var(--ink);font-size:25px;font-weight:800;line-height:1;display:grid;place-items:center;cursor:pointer;z-index:2;padding:0;box-shadow:var(--shadow)}
+.detail-nav.prev{left:8px}.detail-nav.next{right:8px}
+.detail-nav[disabled]{opacity:.35;cursor:default}
+.detail-foot{display:flex;gap:8px;margin-top:16px;align-items:center;flex-wrap:wrap}
+.detail-pos{flex:1;text-align:center;color:var(--muted);font-size:12px;white-space:nowrap}
+@keyframes detailNext{from{opacity:.35;transform:translateX(16px)}to{opacity:1;transform:none}}
+@keyframes detailPrev{from{opacity:.35;transform:translateX(-16px)}to{opacity:1;transform:none}}
+.detail-stage.enter-next{animation:detailNext .18s ease}
+.detail-stage.enter-prev{animation:detailPrev .18s ease}
+@media(prefers-reduced-motion:reduce){.detail-stage.enter-next,.detail-stage.enter-prev{animation:none}}
 .pocket-info{display:grid;gap:0;flex:0 0 auto;min-width:0;overflow:hidden}.pocket-info b{font-size:11px;line-height:1.2;display:block;white-space:normal;overflow-wrap:break-word}
 .pocket-num{font-size:10px;font-weight:800;color:var(--accent2);letter-spacing:.03em;line-height:1.2;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pocket-price{font-size:11px;font-weight:800;color:var(--accent2);line-height:1.2;white-space:nowrap}
@@ -367,6 +378,17 @@ function refreshGames(){
   const info=catInfo(id);
   out.push({name:info?(info.display||info.name):(entry.name||('Category '+id)),solo:true,cats:[{id:id,name:info?info.name:(entry.name||('Category '+id)),display:info?info.display:undefined}]});
  });
+ // A tracked set always has a visible category above it in the tree:
+ // a set added before its category came along with it (or left behind
+ // by an older save) gets its category as a standalone entry, so the
+ // set shows under category → group like every other tracked set.
+ userCatalog.groups.forEach(entry=>{
+  const id=entry.catId;
+  if(out.some(g=>g.cats.some(c=>String(c.id)===String(id))))return; // category already in the tree
+  const info=catInfo(id);
+  const nm=info?(info.display||info.name):('Category '+id);
+  out.push({name:nm,solo:true,cats:[{id:isNaN(+id)?id:+id,name:info?info.name:nm,display:info?info.display:undefined}]});
+ });
  out.sort((a,b)=>a.name.localeCompare(b.name));
  GAMES=out;
 }
@@ -374,6 +396,16 @@ function isGameAdded(name){return userCatalog.games.indexOf(name)>-1}
 function gameCoveringCat(catId){return userCatalog.games.find(name=>{const m=MASTER_GAMES.find(x=>x.name===name);return m&&m.cats.some(c=>String(c.id)===String(catId))})||null}
 function isCatAdded(catId){return !!gameCoveringCat(catId)||userCatalog.cats.some(x=>String(x.id)===String(catId))}
 function isGroupAdded(catId,groupId){return userCatalog.groups.some(x=>String(x.catId)===String(catId)&&String(x.groupId)===String(groupId))}
+// The sets a category shows in the Tracker tree: only the ones this
+// user is tracking — sets added via + Add, plus sets they actually
+// hold cards from. The category's full set list NEVER renders in the
+// Tracker; it lives only in the + Add picker.
+function trackedGroupIds(catId){
+ const ids=new Set();
+ userCatalog.groups.forEach(g=>{if(String(g.catId)===String(catId))ids.add(String(g.groupId))});
+ items.forEach(it=>{if(it.groupId!=null&&String(it.catId)===String(catId)&&copiesOf(it)>0)ids.add(String(it.groupId))});
+ return ids;
+}
 function afterCatalogChange(){refreshGames();saveState();if(currentPanel==='tracker')renderTracker();const ad=document.getElementById('addDialog');if(ad&&ad.open)renderAddMenu()}
 function addGame(name){
  if(isGameAdded(name))return;
@@ -382,13 +414,28 @@ function addGame(name){
  if(m)userCatalog.cats=userCatalog.cats.filter(x=>!m.cats.some(c=>String(c.id)===String(x.id))); // now covered by the game
  afterCatalogChange();
 }
-function removeGame(name){userCatalog.games=userCatalog.games.filter(x=>x!==name);afterCatalogChange()}
+function removeGame(name){
+ userCatalog.games=userCatalog.games.filter(x=>x!==name);
+ // Tracked sets under this game's categories go with it — unless
+ // their category also stands on its own, in which case they stay
+ // under that category.
+ const m=MASTER_GAMES.find(x=>x.name===name);
+ if(m){
+  const standalone=new Set(userCatalog.cats.map(x=>String(x.id)));
+  const drop=new Set(m.cats.filter(c=>!standalone.has(String(c.id))).map(c=>String(c.id)));
+  if(drop.size)userCatalog.groups=userCatalog.groups.filter(x=>!drop.has(String(x.catId)));
+ }
+ afterCatalogChange();
+}
 function addCat(catId,name){
  if(isCatAdded(catId))return;
  userCatalog.cats.push({id:isNaN(+catId)?catId:+catId,name:name||''});
  afterCatalogChange();
 }
 function removeCat(catId){
+ // The category's tracked sets go with it (collected cards stay in
+ // the totals — items are separate from the catalog lists).
+ userCatalog.groups=userCatalog.groups.filter(x=>String(x.catId)!==String(catId));
  const gname=gameCoveringCat(catId);
  if(gname){
   // Removing one category out of an added game: the game comes off
@@ -402,8 +449,14 @@ function removeCat(catId){
  afterCatalogChange();
 }
 function addGroup(catId,gr){
- if(isGroupAdded(catId,gr.groupId))return;
- userCatalog.groups.push({catId:isNaN(+catId)?catId:+catId,groupId:gr.groupId,name:gr.name||'',abbreviation:gr.abbreviation||''});
+ // Adding a set adds its category too, so the Tracker tree always
+ // shows category → group: the set lands under its category, never
+ // in a separate list.
+ if(!isCatAdded(catId)){
+  const info=catInfo(catId);
+  userCatalog.cats.push({id:isNaN(+catId)?catId:+catId,name:info?info.name:''});
+ }
+ if(!isGroupAdded(catId,gr.groupId))userCatalog.groups.push({catId:isNaN(+catId)?catId:+catId,groupId:gr.groupId,name:gr.name||'',abbreviation:gr.abbreviation||''});
  afterCatalogChange();
 }
 function removeGroup(catId,groupId){userCatalog.groups=userCatalog.groups.filter(x=>!(String(x.catId)===String(catId)&&String(x.groupId)===String(groupId)));afterCatalogChange()}
@@ -1554,26 +1607,95 @@ document.addEventListener('click',function(e){if(lastBinderSwipe&&Date.now()-las
 // same Collected toggle / Trade stepper the pocket carries. Changes
 // file through setProductQty as usual; the detail body re-renders
 // after each change so the state and the Owned value stay live.
+// The enlarged view also walks the set: swipe left / right on the art
+// (or the ‹ › buttons, the Prev / Next buttons, or the arrow keys)
+// moves to the previous / next card. detailList is a snapshot, taken
+// when the view opens, of the cards in the order the set page is
+// showing them — search / filter / sort applied — so swiping walks
+// the same order the user was just looking at, and collecting a card
+// mid-swipe (which can drop it from a Missing filter) never loses the
+// place. shownDetailList / sealedDetailList are refreshed by
+// renderTracker() on every set render; openCardDetail snapshots
+// whichever one holds the tapped card (falling back to the set's full
+// product list in set-number order).
 let detailProduct=null;
-function openCardDetail(p){detailProduct=p;renderCardDetail();const d=document.getElementById('cardDialog');if(d&&!d.open)d.showModal()}
+let detailList=[];
+let detailDir=0;
+let detailFromBinder=false;
+let shownDetailList=[], sealedDetailList=[];
+let lastDetailSwipe=0;
+function openCardDetail(p){
+ let navList=null;
+ if(shownDetailList.some(x=>String(x.productId)===String(p.productId)))navList=shownDetailList;
+ else if(sealedDetailList.some(x=>String(x.productId)===String(p.productId)))navList=sealedDetailList;
+ else if(nav.cat&&nav.group){const pc=productCache[nav.cat.id+':'+nav.group.groupId];if(pc&&pc.products)navList=pc.products.filter(x=>!!x.number===!!p.number)}
+ detailList=navList?navList.slice():[p];
+ detailFromBinder=navList===shownDetailList;
+ detailDir=0;detailProduct=p;renderCardDetail();
+ const d=document.getElementById('cardDialog');if(d&&!d.open)d.showModal();
+}
+function detailIndex(){return detailList.findIndex(x=>detailProduct&&String(x.productId)===String(detailProduct.productId))}
+function detailStep(dir){
+ const i=detailIndex();if(i<0)return;
+ const n=i+dir;if(n<0||n>=detailList.length)return;
+ detailDir=dir;detailProduct=detailList[n];
+ // Keep the binder underneath on the page that holds this card, so
+ // closing the view lands the user next to the card they stopped on.
+ if(detailFromBinder&&currentPanel==='tracker'&&nav.group&&(trackerView||settings.view||'binder')==='binder'){
+  const perPage=(settings.grid===4?4:3)*3;const page=Math.floor(n/perPage);
+  if(page!==binderPage){binderPage=page;renderTracker()}
+ }
+ renderCardDetail();
+}
+document.addEventListener('keydown',e=>{
+ const d=document.getElementById('cardDialog');if(!d||!d.open)return;
+ if(e.key==='ArrowLeft'){e.preventDefault();detailStep(-1)}
+ else if(e.key==='ArrowRight'){e.preventDefault();detailStep(1)}
+});
 function renderCardDetail(){
  const p=detailProduct;if(!p)return;
  const body=document.getElementById('cardDetailBody');if(!body)return;
  const owned=findOwned(p);const copies=owned?copiesOf(owned):0;const has=copies>0;
  const setName=(nav.group&&nav.group.name)||(nav.cat?(nav.cat.display||nav.cat.name):'');
  const facts=[p.number?('Number '+p.number):'',p.rarity||'',p.subType||'',setName].filter(Boolean).join(' · ');
+ const idx=detailIndex();const multi=detailList.length>1;
+ const enterCls=detailDir>0?' enter-next':detailDir<0?' enter-prev':'';
  body.innerHTML=`
- ${p.imageUrl?`<img class="card-detail-img${has?'':' missing-img'}" src="${esc(p.imageUrl)}" alt="${esc(cleanDisplayName(p.name))}" onerror="this.style.display='none'" style="width:100%;max-height:44vh;object-fit:contain;background:var(--card2);border-radius:10px;display:block">`:`<div class="pocket-empty" style="aspect-ratio:63/88;max-height:44vh"><span class="pocket-num">${esc(p.number||'—')}</span></div>`}
+ <div class="detail-stage${enterCls}" id="detailStage">
+ ${p.imageUrl?`<img class="card-detail-img${has?'':' missing-img'}" src="${esc(p.imageUrl)}" alt="${esc(cleanDisplayName(p.name))}" draggable="false" onerror="this.style.display='none'" style="width:100%;max-height:44vh;object-fit:contain;background:var(--card2);border-radius:10px;display:block">`:`<div class="pocket-empty" style="aspect-ratio:63/88;max-height:44vh"><span class="pocket-num">${esc(p.number||'—')}</span></div>`}
+ ${multi?`<button type="button" class="detail-nav prev" data-dnav="-1" aria-label="Previous card in this set" ${idx<=0?'disabled':''}>‹</button><button type="button" class="detail-nav next" data-dnav="1" aria-label="Next card in this set" ${idx>=detailList.length-1?'disabled':''}>›</button>`:''}
+ </div>
  <h3 style="margin:12px 0 2px">${esc(cleanDisplayName(p.name))}</h3>
  <p style="color:var(--muted);font-size:13px;margin:0">${esc(facts)}</p>
  <p style="margin:8px 0 0"><span class="price" style="font-size:17px">${money(p.marketPrice)}</span> <span style="color:var(--muted);font-size:12.5px">TCGplayer market</span></p>
  <p style="margin:6px 0 0;font-size:13.5px">${has?`${owned.c>0?`In your collection`:`Not in your collection`} · <b>${owned.t} trade extra${owned.t===1?'':'s'}</b> · owned value <b>${money(copies*p.marketPrice)}</b>`:`Not in your collection yet — this copy is <b>missing</b>.`}</p>
  <div style="display:grid;gap:6px;margin-top:12px;max-width:300px">${has?qtyBtnsHTML(p,owned):`<button class="btn primary" data-dadd="${p.productId}">+ Collected</button>`}</div>
- <div style="display:flex;gap:8px;margin-top:16px"><button class="btn" id="cardDetailClose">Close</button></div>`;
+ <div class="detail-foot">${multi?`<button class="btn" data-dnav="-1" ${idx<=0?'disabled':''}>‹ Prev</button><span class="detail-pos">${idx+1} of ${detailList.length} · Swipe ↔</span><button class="btn" data-dnav="1" ${idx>=detailList.length-1?'disabled':''}>Next ›</button>`:''}<button class="btn" id="cardDetailClose">Close</button></div>`;
+ detailDir=0;
  body.querySelectorAll('[data-pq]').forEach(b=>b.onclick=()=>{const parts=b.dataset.pq.split(':');setProductQty(p,parts[1],+parts[2]);renderCardDetail()});
  const tg=body.querySelector('[data-ptoggle]');if(tg)tg.onclick=()=>{toggleProductCollected(p);renderCardDetail()};
  const add=body.querySelector('[data-dadd]');if(add)add.onclick=()=>{setProductQty(p,'c',1);renderCardDetail()};
  const cl=body.querySelector('#cardDetailClose');if(cl)cl.onclick=()=>document.getElementById('cardDialog').close();
+ body.querySelectorAll('[data-dnav]').forEach(b=>b.onclick=()=>{if(lastDetailSwipe&&Date.now()-lastDetailSwipe<400)return;detailStep(+b.dataset.dnav)});
+ const stage=body.querySelector('#detailStage');
+ if(stage&&multi){
+  // Set swipe: Pointer Events, like the binder page-turn, so a touch
+  // swipe and a mouse drag both work. The stage is touch-action:pan-y,
+  // so horizontal drags reach pointerup intact while vertical drags
+  // still scroll the dialog. A drag that starts on a ‹ › button is
+  // that button's tap, never a swipe.
+  let sx=null,sy=null;
+  stage.addEventListener('dragstart',e=>e.preventDefault());
+  stage.addEventListener('pointerdown',e=>{if(e.target.closest&&e.target.closest('[data-dnav]')){sx=null;return}sx=e.clientX;sy=e.clientY},{passive:true});
+  stage.addEventListener('pointerup',e=>{
+   if(sx===null)return;
+   const dx=e.clientX-sx,dy=e.clientY-sy;sx=null;
+   if(Math.abs(dx)>44&&Math.abs(dx)>Math.abs(dy)*1.35){lastDetailSwipe=Date.now();detailStep(dx<0?1:-1)}
+  });
+  stage.addEventListener('pointercancel',()=>{sx=null});
+ }
+ // Preload the neighbours so a swipe lands on art that's already there.
+ [detailList[idx-1],detailList[idx+1]].forEach(q=>{if(q&&q.imageUrl){const im=new Image();im.src=q.imageUrl}});
 }
 function wireProductControls(body,products){
  body.querySelectorAll('[data-detail]').forEach(el=>el.addEventListener('click',e=>{e.stopPropagation();const p=products.find(x=>String(x.productId)===String(el.dataset.detail));if(p)openCardDetail(p)}));
@@ -1609,25 +1731,34 @@ function wireProductControls(body,products){
 }
 // ---------- Tracker cascading tree ----------
 // One page, three levels deep: a Game row expands in place to its
-// Categories, a Category row expands in place to its Groups (main sets
-// first, then Special sets), and tapping a Group opens that set's
-// page. The tree shows ONLY what this user added via the + Add menu
-// (userCatalog → GAMES, plus standalone set adds) — it starts empty
-// for everyone. A category's groups load on demand the first time the
-// category is expanded and are cached after that (memory +
-// sessionStorage); a set's cards load on open, as before.
+// Categories, a Category row expands in place to its tracked Groups,
+// and tapping a Group opens that set's page. The tree shows ONLY what
+// this user is tracking (userCatalog → GAMES): added categories, and
+// under each one only its added sets plus sets the user holds cards
+// from. A category's FULL set list never renders here — it lives only
+// in the + Add picker. The full groups list still loads in the
+// background when a category expands, but only to sharpen tracked
+// sets' names / dates; a set's cards load on open, as before.
 function treeGameOpen(g){return treeOpen.games[g.name]!==undefined?treeOpen.games[g.name]:nav.game===g.name}
 function treeCatOpen(c){return treeOpen.cats[c.id]!==undefined?treeOpen.cats[c.id]:(nav.cat&&String(nav.cat.id)===String(c.id))}
-function groupSectionsHTML(gc,catId){
- const sorted=sortGroupList(gc.groups,groupSort);
- const mainGroups=sorted.filter(gr=>!isSpecialGroup(gr));
- const specialGroups=sorted.filter(gr=>isSpecialGroup(gr));
- const groupRow=gr=>`<button type="button" class="trow tgroup" data-tgroup="${gr.groupId}" data-tcat="${catId}"><span class="tg-name">${esc(gr.name)}</span><span class="tg-meta">${gr.abbreviation?esc(gr.abbreviation)+' · ':''}${groupReleaseDate(gr)?groupReleaseDate(gr)+' · ':''}groupId ${gr.groupId}</span><span class="tarrow">›</span></button>`;
- let sections='';
- if(groupFilter!=='special')sections+=mainGroups.length?mainGroups.map(groupRow).join(''):`<div class="tnote">No main sets here — every group in this category is a special set (promos, decks, kits), listed under Special sets below.</div>`;
- if(groupFilter!=='main'&&specialGroups.length)sections+=(groupFilter==='all'?`<div class="tspecial">Special sets</div>`:'')+specialGroups.map(groupRow).join('');
- if(groupFilter==='special'&&!specialGroups.length)sections=`<div class="tnote">No special sets — this category has no promo, deck, or kit groups.</div>`;
- return `<div class="ttoolbar"><label style="font-weight:700">Sort <select data-gsort><option value="new" ${groupSort==='new'?'selected':''}>Newest first</option><option value="old" ${groupSort==='old'?'selected':''}>Oldest first</option><option value="name" ${groupSort==='name'?'selected':''}>Name A–Z</option></select></label><label style="font-weight:700">Show <select data-gfilter><option value="all" ${groupFilter==='all'?'selected':''}>All groups</option><option value="main" ${groupFilter==='main'?'selected':''}>Main sets</option><option value="special" ${groupFilter==='special'?'selected':''}>Special sets</option></select></label><span class="pill">${mainGroups.length} main · ${specialGroups.length} special</span></div>`+sections;
+function trackedGroupsHTML(catId){
+ // ONLY the tracked sets render — added via + Add, or holding cards.
+ // Names / dates come from the category's full groups list when it's
+ // loaded; until then the stored add (or an opened set's cached name)
+ // carries the row, and the row opens its set either way.
+ const ids=trackedGroupIds(catId);
+ if(!ids.size)return `<div class="tnote">No sets tracked here yet — tap <button type="button" class="btn small primary" data-addlink>+ Add</button> and pick the sets you collect; they'll show up here under this category.</div>`;
+ const gc=groupCache[catId];
+ const list=[...ids].map(gid=>{
+  const full=gc&&gc.status==='ready'?gc.groups.find(x=>String(x.groupId)===gid):null;
+  if(full)return full;
+  const ug=userCatalog.groups.find(x=>String(x.catId)===String(catId)&&String(x.groupId)===gid);
+  if(ug)return{groupId:ug.groupId,name:ug.name||'',abbreviation:ug.abbreviation||''};
+  const pc=productCache[catId+':'+gid];
+  return{groupId:isNaN(+gid)?gid:+gid,name:(pc&&pc.groupName)||('Set '+gid),abbreviation:''};
+ });
+ const sorted=sortGroupList(list,'new');
+ return sorted.map(gr=>`<button type="button" class="trow tgroup" data-tgroup="${gr.groupId}" data-tcat="${catId}" data-tgname="${esc(gr.name||'')}" data-tgabbr="${esc(gr.abbreviation||'')}"><span class="tg-name">${esc(gr.name||'Set')}</span><span class="tg-meta">${gr.abbreviation?esc(gr.abbreviation)+' · ':''}${groupReleaseDate(gr)?groupReleaseDate(gr)+' · ':''}groupId ${gr.groupId}</span><span class="tarrow">›</span></button>`).join('');
 }
 // First-tap fix: on touch screens the first tap on a freshly loaded
 // page can be spent putting focus on the row, so the click that toggles
@@ -1684,7 +1815,7 @@ function wireTreeTap(body){
 }
 function renderTrackerTree(body){
  let html=`<div class="section-head"><div><h2>Game</h2><p>Your games, categories, and sets — tap one to open it. Build the list with + Add; it saves in this browser only.</p></div><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn primary" data-addlink>+ Add</button><button class="btn" data-scanlink>📷 Scan</button></div></div>`;
- if(!GAMES.length&&!userCatalog.groups.length){
+ if(!GAMES.length){
   // First-run empty state: nobody gets default games any more, so the
   // Tracker explains itself and puts the + Add button front and centre.
   html+=`<div class="notice" style="text-align:center;padding:24px 14px"><b style="font-size:16px">Nothing here yet — tap + Add to add a game, category, or set</b><p>Everyone starts with an empty Tracker. Browse the full tcgcsv catalog and add just the games you collect — nothing is preloaded, and what you add shows only in this browser.</p><p style="margin-top:14px"><button class="btn primary" data-addlink style="min-height:48px;padding:10px 24px;font-size:16px">+ Add</button></p></div>`;
@@ -1701,14 +1832,16 @@ function renderTrackerTree(body){
    for(const c of g.cats){
     const gc=groupCache[c.id];
     const cOpen=treeCatOpen(c);treeOpen.cats[c.id]=cOpen; // write the rendered state back, so the stored state always matches the arrow on screen
-    const setCount=gc&&gc.status==='ready'?` · ${gc.groups.length} sets`:'';
+    const trackedCount=trackedGroupIds(c.id).size;
+    const setCount=trackedCount?` · ${trackedCount} tracked`:'';
     html+=`<div class="tnode"><button type="button" class="trow tcat" data-tcat="${c.id}" aria-expanded="${cOpen}"><span class="tchev">${cOpen?'▾':'▸'}</span><span class="tg-name">${esc(c.display||c.name)}</span><span class="tg-meta">categoryId ${c.id}${setCount}</span>${g.solo?'':`<span class="tremove" data-tremove-cat="${c.id}" role="button" aria-label="Remove ${esc(c.display||c.name)} from your Tracker">Remove</span>`}</button>`;
     if(cOpen){
+     // Only tracked sets show. The full groups list still loads in
+     // the background (names / dates for the tracked rows sharpen
+     // when it lands) — it is never rendered here.
+     if(!gc)loadGroupsFor(c.id);
      html+=`<div class="tkids tk-group">`;
-     if(!gc||gc.status==='loading'){html+=`<div class="tnote">Loading this category’s sets…</div>`;loadGroupsFor(c.id)}
-     else if(gc.status==='error'){html+=`<div class="tnote">Couldn’t load this category’s sets (${esc(gc.error||'network error')}). <button type="button" class="btn small" data-tretry="${c.id}">↻ Retry</button></div>`}
-     else if(!gc.groups.length){html+=`<div class="tnote">tcgcsv returned an empty set list for this category.</div>`}
-     else html+=groupSectionsHTML(gc,c.id);
+     html+=trackedGroupsHTML(c.id);
      html+=`</div>`;
     }
     html+=`</div>`;
@@ -1718,16 +1851,6 @@ function renderTrackerTree(body){
   html+=`</div>`;
  }
  html+=`</div>`;
- if(userCatalog.groups.length){
-  // Sets added on their own (not via their game or category) get their
-  // own rows under the tree; tapping one opens the set directly.
-  html+=`<h3 style="margin:16px 0 6px;font-size:15px">Sets you added</h3><div class="tree">`;
-  for(const sg of userCatalog.groups){
-   const info=catInfo(sg.catId);
-   html+=`<div class="tnode"><button type="button" class="trow tgroup" data-tset="${sg.catId}:${sg.groupId}"><span class="tg-name">${esc(sg.name||'Set')}</span><span class="tg-meta">${info?esc(info.display||info.name):'categoryId '+sg.catId}${sg.abbreviation?' · '+esc(sg.abbreviation):''}</span><span class="tremove" data-tremove-group="${sg.catId}:${sg.groupId}" role="button" aria-label="Remove this set from your Tracker">Remove</span><span class="tarrow">›</span></button></div>`;
-  }
-  html+=`</div>`;
- }
  body.innerHTML=html;
  wireTreeTap(body);
  body.querySelectorAll('[data-addlink]').forEach(b=>b.onclick=()=>openAddMenu());
@@ -1739,18 +1862,6 @@ function renderTrackerTree(body){
   });
  }));
  body.querySelectorAll('[data-tremove-cat]').forEach(el=>el.addEventListener('click',e=>{e.stopPropagation();const c=GAMES.flatMap(g=>g.cats).find(x=>String(x.id)===String(el.dataset.tremoveCat));confirmAction(`Remove “${c?(c.display||c.name):'this category'}” from your Tracker list? Cards you’ve already collected stay in your totals.`,()=>removeCat(el.dataset.tremoveCat))}));
- body.querySelectorAll('[data-tremove-group]').forEach(el=>el.addEventListener('click',e=>{e.stopPropagation();const parts=el.dataset.tremoveGroup.split(':');const sg=userCatalog.groups.find(x=>String(x.catId)===parts[0]&&String(x.groupId)===parts[1]);confirmAction(`Remove “${sg?(sg.name||'this set'):'this set'}” from your Tracker list? Cards you’ve already collected stay in your totals.`,()=>removeGroup(parts[0],parts[1]))}));
- body.querySelectorAll('[data-tset]').forEach(b=>b.onclick=()=>{
-  const parts=b.dataset.tset.split(':');
-  const sg=userCatalog.groups.find(x=>String(x.catId)===parts[0]&&String(x.groupId)===parts[1]);if(!sg)return;
-  const info=catInfo(sg.catId);
-  const master=MASTER_GAMES.find(g=>g.cats.some(c=>String(c.id)===String(sg.catId)));
-  nav.game=master?master.name:(info?(info.display||info.name):'Category '+sg.catId);
-  nav.cat={id:isNaN(+sg.catId)?sg.catId:+sg.catId,name:info?info.name:('Category '+sg.catId),display:info?info.display:undefined};
-  nav.group={groupId:isNaN(+sg.groupId)?sg.groupId:+sg.groupId,name:sg.name||'',abbreviation:sg.abbreviation||''};
-  visitedGroups[sg.catId+':'+sg.groupId]=true;binderPage=0;trackerView=null;groupSearch="";
-  renderTracker();pushHistory();
- });
  body.querySelectorAll('[data-tgame]').forEach(b=>b.onclick=()=>{
   if(treeTapGuardHit('g:'+b.dataset.tgame))return; // this tap already toggled on pointerup
   toggleGameRow(b.dataset.tgame);
@@ -1762,15 +1873,16 @@ function renderTrackerTree(body){
  body.querySelectorAll('[data-tgroup]').forEach(b=>b.onclick=()=>{
   const catId=b.dataset.tcat,gid=b.dataset.tgroup;
   const g=GAMES.find(x=>x.cats.some(c=>String(c.id)===String(catId)));if(!g)return;
-  const cat=g.cats.find(c=>String(c.id)===String(catId));const gc=groupCache[catId];if(!gc||gc.status!=='ready')return;
-  const gr=gc.groups.find(x=>String(x.groupId)===String(gid));if(!gr)return;
-  nav.game=g.name;nav.cat=cat;nav.group={groupId:gr.groupId,name:gr.name,abbreviation:gr.abbreviation||''};
-  visitedGroups[catId+':'+gr.groupId]=true;binderPage=0;trackerView=null;groupSearch="";
+  const cat=g.cats.find(c=>String(c.id)===String(catId));
+  // The row itself carries the set's name / abbreviation, so a
+  // tracked set opens at once — it never waits on the category's
+  // full groups list (which the tree no longer renders anyway).
+  const gc=groupCache[catId];const gr=gc&&gc.status==='ready'?gc.groups.find(x=>String(x.groupId)===String(gid)):null;
+  nav.game=g.name;nav.cat=cat;
+  nav.group=gr?{groupId:gr.groupId,name:gr.name,abbreviation:gr.abbreviation||''}:{groupId:isNaN(+gid)?gid:+gid,name:b.dataset.tgname||'',abbreviation:b.dataset.tgabbr||''};
+  visitedGroups[catId+':'+nav.group.groupId]=true;binderPage=0;trackerView=null;groupSearch="";
   renderTracker();pushHistory();
  });
- body.querySelectorAll('[data-tretry]').forEach(b=>b.onclick=()=>{const id=b.dataset.tretry;delete groupCache[id];try{sessionStorage.removeItem(GROUP_STORE_PREFIX+id)}catch(e){}loadGroupsFor(id);renderTracker()});
- body.querySelectorAll('[data-gsort]').forEach(s=>s.onchange=()=>{groupSort=s.value;renderTracker()});
- body.querySelectorAll('[data-gfilter]').forEach(s=>s.onchange=()=>{groupFilter=s.value;renderTracker()});
 }
 // ---------- Add menu (the full tcgcsv catalog, on demand) ----------
 // Opening the menu is the ONLY thing that fetches the categories list.
@@ -1793,10 +1905,10 @@ function addGroupRowsHTML(catId){
  // Same main / Special split and ordering the Tracker tree uses.
  const sorted=sortGroupList(gc.groups,'new');
  const main=sorted.filter(gr=>!isSpecialGroup(gr)),special=sorted.filter(gr=>isSpecialGroup(gr));
- // A set whose category is already in the Tracker is already listed
- // there — say so on the row instead of offering an Add that changes
- // nothing visible.
- const row=gr=>{const added=isGroupAdded(catId,gr.groupId);const viaCat=!added&&isCatAdded(catId);return `<div class="row" style="padding:7px 9px"><div class="grow" style="min-width:120px"><b style="font-size:13px">${esc(gr.name)}</b><small>${gr.abbreviation?esc(gr.abbreviation)+' · ':''}${groupReleaseDate(gr)}</small></div>${added?`<span class="badge">Added</span><button class="btn small danger" data-addgroup-del="${catId}:${gr.groupId}">Remove</button>`:viaCat?`<span class="badge">Already in Tracker</span>`:`<button class="btn small primary" data-addgroup="${catId}:${gr.groupId}">+ Add set</button>`}</div>`};
+ // The Tracker lists a set only once it's added — a category being
+ // in the Tracker doesn't pull its sets in. Adding a set here adds
+ // its category along with it when the category isn't there yet.
+ const row=gr=>{const added=isGroupAdded(catId,gr.groupId);return `<div class="row" style="padding:7px 9px"><div class="grow" style="min-width:120px"><b style="font-size:13px">${esc(gr.name)}</b><small>${gr.abbreviation?esc(gr.abbreviation)+' · ':''}${groupReleaseDate(gr)}</small></div>${added?`<span class="badge">Added</span><button class="btn small danger" data-addgroup-del="${catId}:${gr.groupId}">Remove</button>`:`<button class="btn small primary" data-addgroup="${catId}:${gr.groupId}">+ Add set</button>`}</div>`};
  let h='';
  if(main.length)h+=main.map(row).join('');else h+=`<div class="tnote">No main sets — every group in this category is a special set, listed below.</div>`;
  if(special.length)h+=`<div class="tspecial">Special sets</div>`+special.map(row).join('');
@@ -1830,7 +1942,7 @@ function renderAddMenu(){
  body.querySelectorAll('[data-addcat]').forEach(b=>b.onclick=()=>{const c=liveCats.find(x=>String(x.categoryId)===String(b.dataset.addcat));addCat(b.dataset.addcat,c?c.name:'');toast('Added to Tracker — it’s in your list now.')});
  body.querySelectorAll('[data-addcat-del]').forEach(b=>b.onclick=()=>{const c=liveCats.find(x=>String(x.categoryId)===String(b.dataset.addcatDel));confirmAction(`Remove “${c?c.name:'this category'}” from your Tracker list? Cards you’ve already collected stay in your totals.`,()=>removeCat(b.dataset.addcatDel))});
  body.querySelectorAll('[data-addcat-toggle]').forEach(b=>b.onclick=()=>{const id=b.dataset.addcatToggle;addOpenCats[id]=!addOpenCats[id];if(addOpenCats[id])loadGroupsFor(id).then(()=>renderAddMenu());renderAddMenu()});
- body.querySelectorAll('[data-addgroup]').forEach(b=>b.onclick=()=>{const parts=b.dataset.addgroup.split(':');const gc=groupCache[parts[0]];const gr=gc&&gc.groups?gc.groups.find(x=>String(x.groupId)===parts[1]):null;if(gr){addGroup(parts[0],gr);toast('Set added — find it under “Sets you added” in Tracker.')}});
+ body.querySelectorAll('[data-addgroup]').forEach(b=>b.onclick=()=>{const parts=b.dataset.addgroup.split(':');const gc=groupCache[parts[0]];const gr=gc&&gc.groups?gc.groups.find(x=>String(x.groupId)===parts[1]):null;if(gr){addGroup(parts[0],gr);toast('Set added — it’s in Tracker under its category now.')}});
  body.querySelectorAll('[data-addgroup-del]').forEach(b=>b.onclick=()=>{const parts=b.dataset.addgroupDel.split(':');const gc=groupCache[parts[0]];const gr=gc&&gc.groups?gc.groups.find(x=>String(x.groupId)===parts[1]):null;confirmAction(`Remove “${gr?gr.name:'this set'}” from your Tracker list? Cards you’ve already collected stay in your totals.`,()=>removeGroup(parts[0],parts[1]))});
  body.querySelectorAll('[data-addretry]').forEach(b=>b.onclick=()=>{const id=b.dataset.addretry;delete groupCache[id];try{sessionStorage.removeItem(GROUP_STORE_PREFIX+id)}catch(e){}renderAddMenu();loadGroupsFor(id).then(()=>renderAddMenu())});
 }
@@ -1875,6 +1987,9 @@ function renderTracker(){
    else if(cardSort==='high')shown.sort((a,b)=>b.marketPrice-a.marketPrice);
    else if(cardSort==='low')shown.sort((a,b)=>a.marketPrice-b.marketPrice);
    else if(cardSort==='rarity')shown.sort((a,b)=>String(a.rarity||'').localeCompare(String(b.rarity||''))||String(a.number||'').localeCompare(String(b.number||''),undefined,{numeric:true})||a.name.localeCompare(b.name));
+   // The enlarged card view swipes through the set in exactly this
+   // display order (and through the sealed products in theirs).
+   shownDetailList=shown.slice();sealedDetailList=sealedProds.slice();
    inner=`
    <div class="chips" style="margin:2px 0 5px"><button class="chip ${view==='binder'?'on':''}" data-view="binder">Binder</button><button class="chip ${view==='list'?'on':''}" data-view="list">List</button>${view==='binder'?`<span style="display:inline-flex;gap:3px;align-items:center" aria-label="Binder grid size"><button class="chip gridchip ${settings.grid!==4?'on':''}" data-grid="3">3×3</button><button class="chip gridchip ${settings.grid===4?'on':''}" data-grid="4">4×3</button></span>`:''}<input type="text" id="groupSearch" placeholder="Search…" value="${esc(groupSearch)}" aria-label="Search this set" style="flex:1;min-width:90px;background:var(--card2);color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:0 10px;min-height:30px;font-size:12.5px"><span style="font-size:11.5px;color:var(--muted);white-space:nowrap">Owned ${ownedCount}/${allSingles.length} · ${money(ownedVal)}</span></div>
    <div class="chips" style="margin:0 0 6px"><label style="font-weight:700;font-size:11.5px">Sort <select class="mini-sel" id="cardSortSel"><option value="number" ${cardSort==='number'?'selected':''}>Set number</option><option value="name" ${cardSort==='name'?'selected':''}>Name A–Z</option><option value="high" ${cardSort==='high'?'selected':''}>Price high → low</option><option value="low" ${cardSort==='low'?'selected':''}>Price low → high</option><option value="rarity" ${cardSort==='rarity'?'selected':''}>Rarity</option></select></label><label style="font-weight:700;font-size:11.5px">Show <select class="mini-sel" id="cardFilterSel"><option value="all" ${cardFilter==='all'?'selected':''}>All cards</option><option value="owned" ${cardFilter==='owned'?'selected':''}>Owned</option><option value="missing" ${cardFilter==='missing'?'selected':''}>Missing</option></select></label><label style="font-weight:700;font-size:11.5px">Rarity <select class="mini-sel" id="cardRaritySel"><option value="all">All rarities</option>${rarities.map(r=>`<option value="${esc(r)}" ${cardRarity===r?'selected':''}>${esc(r)}</option>`).join('')}</select></label><span style="font-size:11.5px;color:var(--muted)">Showing ${shown.length}/${allSingles.length}</span></div>
