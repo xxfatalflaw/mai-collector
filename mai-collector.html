@@ -268,18 +268,18 @@ dialog::backdrop{background:rgba(5,0,15,.6)}dialog .in{padding:20px}
 <div class="hero-card"><h3 style="margin-top:0">Tracker defaults</h3><div class="two"><div class="field"><label>Default view</label><select id="setView"><option value="binder">Binder Page</option><option value="list">Long List</option></select></div><div class="field"><label>Binder grid</label><select id="setGrid"><option value="3">3 × 3</option><option value="4">4 × 3</option></select></div></div></div>
 <div class="hero-card"><h3 style="margin-top:0">Sealed &amp; Slabs defaults</h3><div class="two"><div class="field"><label>Sealed default sort</label><select id="setSealedSort"><option value="high">Price high → low</option><option value="low">Price low → high</option><option value="name">Name A–Z</option></select></div><div class="field"><label>Slabs default sort</label><select id="setSlabSort"><option value="high">Price high → low</option><option value="low">Price low → high</option><option value="name">Name A–Z</option></select></div></div><p style="color:var(--muted);font-size:13px">These become the sort each section opens with. You can still change the sort in the section itself.</p></div>
 <div class="hero-card"><h3 style="margin-top:0">Scan</h3><label class="toggle"><input type="checkbox" id="setAutoCreate"><span><b>Auto-create groups I haven’t opened</b><small>When a scan matches a set you haven’t opened in Tracker, file it there without asking. If this is off, that scan is held back in the list with a note until you open the set — and the app never nags you to turn this on.</small></span></label><label class="toggle" style="margin-top:10px"><input type="checkbox" id="setSameGuard" checked><span><b>Same-card guard</b><small>When the same card is scanned twice in a row, the second scan is flagged as a possible duplicate and left unselected, so a card held still doesn’t get counted twice. Turn it off to file back-to-back copies without the flag.</small></span></label><label class="toggle" style="margin-top:10px"><input type="checkbox" id="setAutoScan" checked><span><b>Auto scan</b><small>With the camera on, holding a card steady in the frame scans it automatically — no tap needed. The same card won’t scan twice; swap it for the next one. You can also switch this on the camera itself.</small></span></label></div>
-<div class="hero-card"><h3 style="margin-top:0">Your data — read this</h3><p style="color:var(--muted);margin:0">Your collection is saved <b style="color:var(--ink)">in this browser only</b>. GitHub Pages hosts the app’s files — it does not hold your collection — and every browser keeps its own separate save: a set added in the Google app will not appear in Chrome, or the other way round. <b style="color:var(--ink)">Always open Mai Collector in the same browser.</b> Inside that browser your save is protected: the app keeps a backup copy and restores it automatically if the main save is ever damaged, syncs between open tabs so one tab can’t erase another’s additions, and asks the browser for durable storage so the save isn’t cleared when the phone runs low on space.</p></div>
+<div class="hero-card"><h3 style="margin-top:0">Your data — a file on this phone</h3><p style="color:var(--muted);margin:0" id="dataHomeStatus">Right now your collection is saved <b style="color:var(--ink)">in this browser only</b> — every browser keeps its own separate save, so a set added in the Google app will not appear in Chrome, or the other way round. Link a data file in a folder on this phone and <b style="color:var(--ink)">the file becomes the real home</b>: every change saves to it, any browser that opens the app and uses the same file sees the same collection, and the file survives browser switches, updates, and reloads. Inside a browser your save is still protected: a backup copy restores automatically if the main save is damaged, open tabs sync so one can’t erase another’s additions, and the app asks the browser for durable storage.</p><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button type="button" class="btn primary" id="linkFileBtn">Save to a phone folder…</button><button type="button" class="btn" id="openFileBtn">Use an existing data file…</button><button type="button" class="btn primary" id="reconnectFileBtn" style="display:none">Reconnect data file</button><button type="button" class="btn" id="unlinkFileBtn" style="display:none">Stop using the file</button></div><p style="color:var(--muted);font-size:13px;margin:12px 0 0">Pick any folder on the phone — Downloads is an easy one to find again. The file is small: a few kilobytes of text for a typical collection, well under a megabyte even with hundreds of scans. It stays on your phone unless you move it.</p></div>
 <div class="hero-card"><h3 style="margin-top:0">Prices</h3><p style="color:var(--muted);margin-top:0">Singles &amp; sealed: TCGplayer market prices from tcgcsv, pulled fresh each time a set is opened and re-pulled for every opened set when you refresh. Slabs: manual, from Slab Research only — never auto-refreshed.</p><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn primary" id="refreshBtn2">↻ Refresh prices now</button></div><p style="font-size:13px;color:var(--muted)" id="refreshNote">Refreshing re-pulls each opened set’s price list from tcgcsv and updates prices only — quantities, check-offs, and where a card is filed never change, and no card ever moves.</p></div>
 <div class="hero-card"><h3 style="margin-top:0">About</h3><p style="color:var(--muted);margin:0">Mai Collector, powered by Mai AI (recognition runs on this device — no Gemini, OpenRouter, Groq, OpenAI, or any other provider, no API key, no account). Hierarchy is Game – Category – Group – Product, with no Era level and no Bulk bucket: bulk is simply Collected quantity. Set lists and prices pull live from tcgcsv; lists you’ve opened are kept for the session so flipping between sets doesn’t re-pull them.</p></div>
 </div>
 </section>
 
-<footer id="pageFooter">Mai Collector · Source data: <a href="https://tcgcsv.com/tcgplayer/categories" target="_blank" rel="noopener">tcgcsv.com</a> (TCGplayer, updated daily) · The catalog loads on demand: tap + Add in Tracker to browse every game, category, and set on tcgcsv and add just what you collect — your list saves in this browser only · A set’s cards and prices pull live from tcgcsv when the set is opened and stay cached after · Card images via TCGplayer CDN · Slab prices are manual — check eBay sold listings, never asking prices.</footer>
+<footer id="pageFooter">Mai Collector · Source data: <a href="https://tcgcsv.com/tcgplayer/categories" target="_blank" rel="noopener">tcgcsv.com</a> (TCGplayer, updated daily) · The catalog loads on demand: tap + Add in Tracker to browse every game, category, and set on tcgcsv and add just what you collect — your list saves to your data file on this phone when one is linked in Settings, and in this browser only until then · A set’s cards and prices pull live from tcgcsv when the set is opened and stay cached after · Card images via TCGplayer CDN · Slab prices are manual — check eBay sold listings, never asking prices.</footer>
 </div>
 
 <div id="swipeHint" aria-hidden="true">‹</div>
 
-<dialog id="addDialog"><div class="in"><h3 style="margin-top:0">Add to Tracker</h3><p style="color:var(--muted);font-size:13px;margin-top:0">The full tcgcsv catalog, loaded now on demand — nothing is preloaded. Add a single category, or one set. Your list saves in this browser only; everyone starts with the same empty Tracker.</p><input type="text" id="addSearch" placeholder="Search categories…" aria-label="Search the catalog" style="width:100%;background:var(--card2);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:0 12px"><div id="addBody" style="display:grid;gap:6px;max-height:52vh;overflow:auto;margin-top:12px;padding-right:16px"></div><div style="display:flex;gap:8px;margin-top:14px"><button class="btn primary" onclick="document.getElementById('addDialog').close()">Done</button></div></div></dialog>
+<dialog id="addDialog"><div class="in"><h3 style="margin-top:0">Add to Tracker</h3><p style="color:var(--muted);font-size:13px;margin-top:0">The full tcgcsv catalog, loaded now on demand — nothing is preloaded. Add a single category, or one set. Your list saves on this phone — to your linked data file, or in this browser until you link one in Settings; everyone starts with the same empty Tracker.</p><input type="text" id="addSearch" placeholder="Search categories…" aria-label="Search the catalog" style="width:100%;background:var(--card2);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:0 12px"><div id="addBody" style="display:grid;gap:6px;max-height:52vh;overflow:auto;margin-top:12px;padding-right:16px"></div><div style="display:flex;gap:8px;margin-top:14px"><button class="btn primary" onclick="document.getElementById('addDialog').close()">Done</button></div></div></dialog>
 
 <dialog id="itemDialog"><div class="in"><h3 style="margin-top:0" id="itemDialogTitle">Add an item</h3><div style="display:grid;gap:10px"><div class="field"><label>Name</label><input type="text" id="itemName" placeholder="Card or product name"></div><div class="two"><div class="field"><label>Type</label><select id="itemKind"><option value="single">Single</option><option value="sealed">Sealed</option></select></div><div class="field"><label>Sealed type</label><select id="itemSub"><option value="box">Box / Case</option><option value="pack">Pack</option></select></div></div><div class="field"><label>Price ($)</label><input type="number" id="itemPrice" min="0" step="0.01" value="0"></div><div class="two"><div class="field"><label>Collected qty</label><input type="number" id="itemCollected" value="1" min="0"></div><div class="field"><label>Trade qty</label><input type="number" id="itemTrade" value="0" min="0"></div></div></div><div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap"><button class="btn primary" id="saveItemBtn">Save item</button><button class="btn danger" id="deleteItemBtn" style="display:none">Remove item</button><button class="btn" onclick="document.getElementById('itemDialog').close()">Cancel</button></div></div></dialog>
 
@@ -401,7 +401,10 @@ let tradeSort="high", tradeFilter="all";
 let resSort="updated", resFilter="all";
 let visitedGroups={}; // "catId:groupId" -> true once the user has opened that set in Tracker
 let settings={view:"binder",grid:3,sealedSort:"high",slabSort:"high",autoCreate:false,sameGuard:true,autoScan:true};
-// ---------- Persistence (localStorage) ----------
+// ---------- Persistence ----------
+// The collection's real home can be one data file in a folder on the
+// phone (see the phone-folder section below); localStorage is the
+// always-on mirror and stays the home until a file is linked.
 // On a real https host (e.g. GitHub Pages) localStorage persists per
 // device / per browser. Everything the user entered lives under one
 // key, in exactly the shapes the totals / Trade views already read:
@@ -434,6 +437,11 @@ const BACKUP_KEY='mai-collector-v1-backup';
 let loadSuspect=false;       // a stored payload existed but could not be loaded into memory
 let sessionHadContent=false; // this session loaded (or created) a real collection
 let lastSavedAt=0;           // savedAt of the newest save this tab has seen or written
+let contentStamp=0;          // savedAt of the content currently in memory — its true version stamp
+let lastContentSig='';       // signature of that content, so an unchanged re-render keeps the stamp
+function contentSigOf(d){
+ try{return JSON.stringify([d.items||[],d.slabs||[],d.research||{},d.scans||[],d.settings||{},d.itemSeq||0,d.markedNeeds||{},d.visitedGroups||{},d.userCatalog||{}])}catch(e){return ''}
+}
 function payloadHasContent(d){
  return !!d&&typeof d==='object'&&((Array.isArray(d.items)&&d.items.length>0)||(Array.isArray(d.slabs)&&d.slabs.length>0)||(Array.isArray(d.scans)&&d.scans.length>0)||(d.research&&typeof d.research==='object'&&Object.keys(d.research).length>0)||(d.userCatalog&&typeof d.userCatalog==='object'&&(((d.userCatalog.games||[]).length>0)||((d.userCatalog.cats||[]).length>0)||((d.userCatalog.groups||[]).length>0))));
 }
@@ -442,6 +450,13 @@ function currentPayload(scansArr){
 }
 function saveState(){
  const data=currentPayload();
+ // Keep the content's savedAt stamp honest: re-stamping on every
+ // render would make this browser's copy look newer than a data file
+ // another browser wrote more recently. The stamp only moves when
+ // the content itself actually changes.
+ const sig=contentSigOf(data);
+ if(sig===lastContentSig&&contentStamp)data.savedAt=contentStamp;
+ else{contentStamp=data.savedAt;lastContentSig=sig}
  const has=payloadHasContent(data);
  if(has){sessionHadContent=true;loadSuspect=false} // a real save exists again — the danger has passed
  if(loadSuspect&&!has)return; // never let a failed load overwrite the stored collection with empties
@@ -461,6 +476,7 @@ function saveState(){
   if(has)localStorage.setItem(BACKUP_KEY,JSON.stringify(data)); // rolling last-known-good
   else if(sessionHadContent)localStorage.removeItem(BACKUP_KEY); // emptied on purpose this session — let it stay emptied
  }catch(e){}
+ writeToFile(); // the phone-folder data file, when one is linked, is the real home — mirror every save there too
 }
 function loadState(){
  let mainRaw=null,backupRaw=null;
@@ -479,6 +495,7 @@ function loadState(){
  }
  applyLoadedData(d);
  if(typeof d.savedAt==='number')lastSavedAt=d.savedAt;
+ contentStamp=(typeof d.savedAt==='number')?d.savedAt:0;lastContentSig=contentSigOf(d);
  if(payloadHasContent(d)){
   sessionHadContent=true;
   if(!payloadHasContent(currentPayload()))loadSuspect=true; // payload claimed content but none of it applied
@@ -496,7 +513,8 @@ function adoptStoredState(raw){
   if(typeof d.savedAt==='number'&&lastSavedAt&&d.savedAt<=lastSavedAt)return false;
   if(!payloadHasContent(d)&&payloadHasContent(currentPayload()))return false;
   applyLoadedData(d);
-  if(typeof d.savedAt==='number')lastSavedAt=d.savedAt;
+  if(typeof d.savedAt==='number'){lastSavedAt=d.savedAt;contentStamp=d.savedAt}
+  lastContentSig=contentSigOf(d);
   if(payloadHasContent(d))sessionHadContent=true;
   refreshGames();
   return true;
@@ -507,6 +525,166 @@ try{
  document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'){try{const raw=localStorage.getItem(STORAGE_KEY);if(raw&&adoptStoredState(raw))renderAll()}catch(e){}}});
  if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(function(){});
 }catch(e){}
+// ---------- Phone-folder data file (File System Access) ----------
+// The collection's real home can be ONE data file in a folder on the
+// phone. The user links it once (Settings → Your data): from then on
+// every save also writes that file, and every open reads it first.
+// The file holds plain JSON in exactly the payload shape saveState()
+// already writes, so it survives browser switches (any browser that
+// links the same file sees the same collection), app updates, and
+// reloads. The file handle itself cannot live in localStorage, so it
+// is kept in a tiny IndexedDB; browsers remember the permission, and
+// when a browser asks again the Settings card offers a one-tap
+// Reconnect (permission requests need a tap). localStorage stays as
+// the always-on mirror: in a browser without folder support (or
+// before a file is linked) it is the home, exactly as before.
+let dataFileHandle=null;      // FileSystemFileHandle for the linked data file
+let dataFileReady=false;      // true once the file has been read (or seeded) this session — saves never touch the file before that, so a startup save can't clobber it unread
+let dataFileNeedsPerm=false;  // a file is linked but this browser wants a tap before read/write
+let dataFileBroken=false;     // the last file write failed (file moved/deleted, access revoked)
+let fileWriteTimer=null,fileWriteChain=Promise.resolve();
+const fileSupported=('showSaveFilePicker' in window)&&('indexedDB' in window);
+function idbOpen(){return new Promise(function(res,rej){try{const r=indexedDB.open('mai-collector-fs',1);r.onupgradeneeded=function(){try{r.result.createObjectStore('kv')}catch(e){}};r.onsuccess=function(){res(r.result)};r.onerror=function(){rej(r.error)}}catch(e){rej(e)}})}
+function idbCall(mode,fn){return idbOpen().then(function(db){return new Promise(function(res,rej){try{const tx=db.transaction('kv',mode);const req=fn(tx.objectStore('kv'));req.onsuccess=function(){res(req.result)};req.onerror=function(){rej(req.error)};tx.oncomplete=function(){try{db.close()}catch(e){}}}catch(e){rej(e)}})}).catch(function(){return null})}
+function idbGet(k){return idbCall('readonly',function(s){return s.get(k)})}
+function idbSet(k,v){return idbCall('readwrite',function(s){return s.put(v,k)})}
+function idbDel(k){return idbCall('readwrite',function(s){return s.delete(k)})}
+async function filePerm(ask){
+ if(!dataFileHandle)return 'denied';
+ const opts={mode:'readwrite'};
+ try{
+  let p=await dataFileHandle.queryPermission(opts);
+  if(p!=='granted'&&ask)p=await dataFileHandle.requestPermission(opts);
+  return p;
+ }catch(e){return 'denied'}
+}
+function adoptFilePayload(d){
+ // The data file holds a payload: take it when this browser has no
+ // collection of its own, or when the file's copy is newer than the
+ // content this tab is holding. Otherwise this browser's copy wins
+ // and is written out to the file by the caller.
+ if(!d||typeof d!=='object')return false;
+ const has=payloadHasContent(d);
+ if(!has&&payloadHasContent(currentPayload()))return false;
+ if(has&&typeof d.savedAt==='number'&&contentStamp&&d.savedAt<=contentStamp&&payloadHasContent(currentPayload()))return false;
+ applyLoadedData(d);
+ if(typeof d.savedAt==='number'){lastSavedAt=d.savedAt;contentStamp=d.savedAt}
+ lastContentSig=contentSigOf(d);
+ if(has)sessionHadContent=true;
+ loadSuspect=false;
+ refreshGames();
+ return true;
+}
+async function readDataFile(){
+ if(!dataFileHandle)return false;
+ try{
+  const f=await dataFileHandle.getFile();
+  const text=await f.text();
+  if(!text||!text.trim())return false;
+  return adoptFilePayload(JSON.parse(text));
+ }catch(e){return false}
+}
+function queueFileWrite(){
+ fileWriteChain=fileWriteChain.then(async function(){
+  if(!dataFileHandle||!dataFileReady)return;
+  if(loadSuspect&&!payloadHasContent(currentPayload()))return; // same guard as the local save: never overwrite a good file with a failed load's empties
+  try{
+   const perm=await filePerm(false);
+   if(perm!=='granted'){dataFileNeedsPerm=true;updateDataHomeUI();return}
+   const p=currentPayload();if(contentStamp)p.savedAt=contentStamp;
+   const w=await dataFileHandle.createWritable();
+   await w.write(JSON.stringify(p));
+   await w.close();
+   if(dataFileBroken){dataFileBroken=false;updateDataHomeUI()}
+  }catch(e){if(!dataFileBroken){dataFileBroken=true;updateDataHomeUI()}}
+ }).catch(function(){});
+ return fileWriteChain;
+}
+function writeToFile(){
+ if(!dataFileHandle||!dataFileReady||!fileSupported)return;
+ if(fileWriteTimer)clearTimeout(fileWriteTimer);
+ fileWriteTimer=setTimeout(function(){fileWriteTimer=null;queueFileWrite()},300);
+}
+async function activateDataFile(ask){
+ if(!dataFileHandle)return;
+ const perm=await filePerm(ask);
+ dataFileNeedsPerm=(perm!=='granted');
+ if(perm==='granted'){
+  const adopted=await readDataFile();
+  dataFileReady=true;
+  if(adopted)renderAll();
+  else await queueFileWrite(); // file empty, unreadable, or older: this browser's copy becomes the file's content
+ }
+ updateDataHomeUI();
+}
+async function initDataFile(){
+ updateDataHomeUI();
+ const lf=document.getElementById('linkFileBtn');if(lf)lf.addEventListener('click',linkDataFile);
+ const of=document.getElementById('openFileBtn');if(of)of.addEventListener('click',openDataFile);
+ const rf=document.getElementById('reconnectFileBtn');if(rf)rf.addEventListener('click',function(){activateDataFile(true)});
+ const uf=document.getElementById('unlinkFileBtn');if(uf)uf.addEventListener('click',unlinkDataFile);
+ document.addEventListener('visibilitychange',async function(){
+  if(document.visibilityState!=='visible'||!dataFileHandle||!dataFileReady)return;
+  // Another browser may have updated the file while this one was in
+  // the background — pick up its newer copy instead of overwriting it.
+  if((await filePerm(false))==='granted'){if(await readDataFile())renderAll()}
+ });
+ if(!fileSupported)return;
+ try{
+  const h=await idbGet('dataFileHandle');
+  if(h&&h.kind==='file'){dataFileHandle=h;await activateDataFile(false)}
+ }catch(e){}
+}
+async function linkDataFile(){
+ if(!fileSupported)return;
+ try{
+  const h=await window.showSaveFilePicker({suggestedName:'mai-collector-data.json',types:[{description:'Mai Collector data file',accept:{'application/json':['.json']}}]});
+  dataFileHandle=h;dataFileBroken=false;dataFileNeedsPerm=false;
+  await idbSet('dataFileHandle',h);
+  dataFileReady=true; // a freshly picked file: seeding it with the current collection is the point of linking
+  await queueFileWrite();
+  updateDataHomeUI();
+ }catch(e){/* picker cancelled — nothing changes */}
+}
+async function openDataFile(){
+ if(!fileSupported)return;
+ try{
+  const picked=await window.showOpenFilePicker({types:[{description:'Mai Collector data file',accept:{'application/json':['.json']}}],multiple:false});
+  if(!picked||!picked[0])return;
+  dataFileHandle=picked[0];dataFileBroken=false;
+  await idbSet('dataFileHandle',dataFileHandle);
+  await activateDataFile(true);
+ }catch(e){/* picker cancelled — nothing changes */}
+}
+async function unlinkDataFile(){
+ dataFileHandle=null;dataFileReady=false;dataFileNeedsPerm=false;dataFileBroken=false;
+ await idbDel('dataFileHandle');
+ updateDataHomeUI();
+}
+function updateDataHomeUI(){
+ const st=document.getElementById('dataHomeStatus');if(!st)return;
+ const lf=document.getElementById('linkFileBtn'),of=document.getElementById('openFileBtn'),rf=document.getElementById('reconnectFileBtn'),uf=document.getElementById('unlinkFileBtn');
+ function show(el,on){if(el)el.style.display=on?'':'none'}
+ if(!fileSupported){
+  st.innerHTML='This browser can’t save to a phone folder — that needs a browser with file access, like Chrome on Android. Here your collection keeps saving the way it always has: in this browser only, with the automatic backup copy, cross-tab sync, and durable-storage request all still on.';
+  show(lf,false);show(of,false);show(rf,false);show(uf,false);return;
+ }
+ if(!dataFileHandle){
+  st.innerHTML='Right now your collection is saved <b style="color:var(--ink)">in this browser only</b> — every browser keeps its own separate save, so a set added in the Google app will not appear in Chrome, or the other way round. Link a data file in a folder on this phone and <b style="color:var(--ink)">the file becomes the real home</b>: every change saves to it, any browser that opens the app and uses the same file sees the same collection, and the file survives browser switches, updates, and reloads. Inside a browser your save is still protected: a backup copy restores automatically if the main save is damaged, open tabs sync so one can’t erase another’s additions, and the app asks the browser for durable storage.';
+  show(lf,true);show(of,true);show(rf,false);show(uf,false);return;
+ }
+ const name=esc(dataFileHandle.name||'mai-collector-data.json');
+ if(dataFileNeedsPerm){
+  st.innerHTML='Your data file <b style="color:var(--ink)">'+name+'</b> is linked, but this browser needs your OK before it can read and write it again — that comes up after the browser has been closed a while. Tap <b style="color:var(--ink)">Reconnect data file</b> and your collection loads from the file. Until then, changes keep saving in this browser only.';
+  show(lf,false);show(of,false);show(rf,true);show(uf,true);return;
+ }
+ if(dataFileBroken){
+  st.innerHTML='Your collection’s home is the file <b style="color:var(--ink)">'+name+'</b> in the phone folder you picked — but the last save to it failed: the file may have been moved or deleted, or access was taken back. Your collection is still safe in this browser. Reconnect the file, or link it again, to resume saving to the folder.';
+  show(lf,true);show(of,true);show(rf,true);show(uf,true);return;
+ }
+ st.innerHTML='Your collection’s home is the file <b style="color:var(--ink)">'+name+'</b> in the phone folder you picked. Every change saves to that file, and opening the app reads it first — so the collection is the same in any browser that uses the same file, and it survives browser switches, app updates, and reloads. A copy also stays in this browser as a backup. To use it in another browser: open Mai Collector there, come to this card, tap “Use an existing data file…”, and pick the same file.';
+ show(lf,false);show(of,false);show(rf,false);show(uf,true);
+}
 function applyLoadedData(d){
  try{
   if(Array.isArray(d.items))items=d.items;
@@ -2170,6 +2348,10 @@ renderAll();
  }catch(e){historyArmed=false}
  persistNav();
 })();
+// Phone-folder data file: recover the linked file (if any) and make
+// it the home — read it first, adopt it when it holds the collection
+// or the newer copy, otherwise seed it from this browser's save.
+initDataFile();
 </script>
 </body>
 </html>
